@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, Coach
+from .models import CustomUser
 
 
 class CustomUserAdmin(UserAdmin):
@@ -12,11 +12,17 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     ordering = ['national_id']
     list_display = [
-        "email",
         "national_id",
+        "full_name",
+        "role",
         "is_staff",
         "is_active",
     ]
+    def full_name(self, obj):
+        return obj.get_full_name()
+
+    full_name.short_description = "نام کامل"
+    
     fieldsets = (
         (None, {"fields": ("national_id", "password")}),
         (_("Personal info"), {"fields": ("profile_picture","first_name", "last_name","father_name", "email", "phone_number", "birthdate", "address", "gender")}),
@@ -24,8 +30,8 @@ class CustomUserAdmin(UserAdmin):
             _("Permissions"),
             {
                 "fields": (
+                    "role",
                     "is_active",
-                    "is_manager",
                     "is_staff",
                     "is_superuser",
                     "groups",
@@ -42,14 +48,5 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
-class CoachAdmin(admin.ModelAdmin):
-    model = Coach
-    list_display = [
-        "user",
-        "is_active",
-    ]
-
-
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Coach, CoachAdmin)

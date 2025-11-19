@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, ListAPIView, ListCreateAPIView, DestroyAPIView, RetrieveUpdateAPIView
 from django.contrib.auth import authenticate
 from rest_framework import status
-from .models import CustomUser, Coach
-from .serializers import userSerializers, RegisterSerializer, UserUpdateSerializer, coachSerializers, coachUpdateSerializers
+from .models import CustomUser
+from .serializers import userSerializers, RegisterSerializer, UserUpdateSerializer
 from .permissions import IsManager
 
 class LoginView(APIView):
@@ -94,48 +94,48 @@ class UpdateUserView(UpdateAPIView):
         return self.request.user 
 
 
-class CoachView(APIView):
-    permission_classes = [IsAuthenticated]
+# class CoachView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        try:
-            coach = Coach.objects.get(user=request.user)
-            serializer = coachSerializers(coach)
-            return Response(serializer.data)
-        except Coach.DoesNotExist:
-            return Response({"coach": None})
+#     def get(self, request):
+#         try:
+#             coach = Coach.objects.get(user=request.user)
+#             serializer = coachSerializers(coach)
+#             return Response(serializer.data)
+#         except Coach.DoesNotExist:
+#             return Response({"coach": None})
 
-class CoachesView(ListCreateAPIView):
-    queryset = Coach.objects.all()
-    permission_classes = [IsAuthenticated, IsManager]
-    serializer_class = coachSerializers
+# class CoachesView(ListCreateAPIView):
+#     queryset = Coach.objects.all()
+#     permission_classes = [IsAuthenticated, IsManager]
+#     serializer_class = coachSerializers
 
-    def post(self, request):
-        serializer = coachUpdateSerializers(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'کلاس با موفقیت ایجاد شد'}, status=status.HTTP_201_CREATED)
-        print("⛔️ Validation Error:", serializer.errors)
-        return Response({'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = coachUpdateSerializers(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({'message': 'کلاس با موفقیت ایجاد شد'}, status=status.HTTP_201_CREATED)
+#         print("⛔️ Validation Error:", serializer.errors)
+#         return Response({'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-class CoachUpdateView(RetrieveUpdateAPIView):
-    queryset = Coach.objects.all()
-    serializer_class = coachUpdateSerializers
-    lookup_field = 'id'  # از URL مقدار می‌گیره
+# class CoachUpdateView(RetrieveUpdateAPIView):
+#     queryset = Coach.objects.all()
+#     serializer_class = coachUpdateSerializers
+#     lookup_field = 'id'  # از URL مقدار می‌گیره
 
-    def put(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'مربی با موفقیت به‌روزرسانی شد'}, status=status.HTTP_200_OK)
-        print("⛔️ Validation Error:", serializer.errors)
-        return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+#     def put(self, request, *args, **kwargs):
+#         instance = self.get_object()
+#         serializer = self.get_serializer(instance, data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({'message': 'مربی با موفقیت به‌روزرسانی شد'}, status=status.HTTP_200_OK)
+#         print("⛔️ Validation Error:", serializer.errors)
+#         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CoachDeleteView(DestroyAPIView):
-    queryset = Coach.objects.all()
-    serializer_class = coachUpdateSerializers
-    permission_classes = [IsAuthenticated, IsManager]  # می‌تونی اینجا پرمیشن خاص بذاری
-    lookup_field = 'id' 
+# class CoachDeleteView(DestroyAPIView):
+#     queryset = Coach.objects.all()
+#     serializer_class = coachUpdateSerializers
+#     permission_classes = [IsAuthenticated, IsManager]  # می‌تونی اینجا پرمیشن خاص بذاری
+#     lookup_field = 'id' 
 

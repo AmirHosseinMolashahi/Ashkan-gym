@@ -38,6 +38,13 @@ class CustomUser(AbstractUser):
         ('m', 'male'),
         ('f', 'female'),
     )
+
+    ROLE_CHOICES = (
+        ('manager', 'Manager'),
+        ('coach', 'Coach'),
+        ('athlete', 'Athlete'),
+    )
+
     username = None   # حذف username
     national_id = models.CharField(
         verbose_name='کد ملی',
@@ -59,7 +66,7 @@ class CustomUser(AbstractUser):
     address = models.TextField(verbose_name='آدرس',null=True)
     gender = models.CharField(verbose_name='جنسیت', max_length=1, choices=GENDER_CHOICES, null=True)
     father_name = models.CharField(verbose_name='نام پدر')
-    is_manager = models.BooleanField(verbose_name='Manager', default=False, help_text='اگر فعال باشد، این کاربر به عنوان مدیر شناخته می‌شود و به بخش‌های مدیریتی دسترسی دارد.')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name='نقش', default='athlete')
     profile_picture = models.ImageField(upload_to=user_directory_path, verbose_name='عکس پروفایل', default='default/man-user.jpg')
 
     USERNAME_FIELD = 'national_id'   # اینجا مهم‌ترین بخش است
@@ -75,18 +82,6 @@ class CustomUser(AbstractUser):
             return "خانم"
     
     def get_full_name(self):
-         return (self.first_name + ' ' + self.last_name)
+        return (self.first_name + ' ' + self.last_name)
     
     objects = CustomUserManager()
-    
-class Coach(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    is_active = models.BooleanField()
-    account = models.IntegerField(default=0)
-
-    def __str__(self):
-        return (self.user.first_name + ' ' + self.user.last_name)
-    
-    class Meta:
-        verbose_name = 'مربی'
-        verbose_name_plural = 'مربیان'

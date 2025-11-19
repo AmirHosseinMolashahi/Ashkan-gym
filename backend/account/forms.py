@@ -6,10 +6,10 @@ class CustomUserCreationForm(AdminUserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ("national_id", "email")
+        fields = ("national_id", "phone_number")
 
 class CustomUserChangeForm(UserChangeForm):
 
     class Meta:
         model = CustomUser
-        fields = ("national_id", "email")
+        fields = ("national_id", "phone_number")

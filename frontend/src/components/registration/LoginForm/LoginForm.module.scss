@@ -1,0 +1,105 @@
+@use '../../../styles/constants.scss' as *;
+.container {
+    width: 30rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15); // شفاف
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255, 255, 255, 0.25); // لبه شیشه‌ای
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); // سایه لطیف
+
+    color: $secondary-white;
+
+
+    .wrapper {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+
+        .formContainer {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            
+            .inputWrapper {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                
+                label {
+                    color: $secondary-white;
+                }
+
+                .email, .password {
+                    padding: 1rem;
+                    border-radius: 12px;
+                    border: 1px solid transparent;
+                    background: rgba(255, 255, 255, 0.2);
+                    backdrop-filter: blur(6px);
+                    -webkit-backdrop-filter: blur(6px);
+                    color: #fff;
+                    transition: all 0.3s ease;
+
+                    &::placeholder {
+                        color: rgba(255, 255, 255, 0.6);
+                    }
+
+                    &:focus {
+                        border: 1px solid transparent;
+                        background: rgba(255, 255, 255, 0.25);
+                    }
+                }
+            }
+            .submitBtn {
+                border: none;
+                width: 100%;
+                font-size: 16px;
+                font-weight: bold;
+                background: $secondary-white;
+                padding: 1rem;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: scale(1.05);
+                }
+
+                span {
+                    color: $primary;
+                    transition: all 0.3s ease;
+                }
+            }
+            .forgetPass {
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.3s ease-in-out;
+                color: $secondary;
+                &:hover {
+                    color: #fff;
+                    transform: scale(1.02);
+                }
+            }
+        }
+        .registerLink {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            a {
+                text-decoration: none;
+                transition: all 0.3s ease-in-out;
+                color: $secondary;
+                &:hover {
+                    color: #fff;
+                    transform: scale(1.02);
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Coach
+from .models import CustomUser
 
 class userSerializers(serializers.ModelSerializer):
     gender_title = serializers.SerializerMethodField()
@@ -39,20 +39,20 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'profile_picture': {'required': False},
         }
 
-class coachSerializers(serializers.ModelSerializer):
-    user = userSerializers()
+# class coachSerializers(serializers.ModelSerializer):
+#     user = userSerializers()
 
-    class Meta:
-        model = Coach
-        fields = ['id', 'is_active', 'account', 'user']
+#     class Meta:
+#         model = Coach
+#         fields = ['id', 'is_active', 'account', 'user']
 
 
-class coachUpdateSerializers(serializers.ModelSerializer):
-    # آیدی کاربر برای نوشتن
-    user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
-    # نمایش اطلاعات کامل کاربر در GET
-    user_detail = userSerializers(source='user', read_only=True)
+# class coachUpdateSerializers(serializers.ModelSerializer):
+#     # آیدی کاربر برای نوشتن
+#     user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+#     # نمایش اطلاعات کامل کاربر در GET
+#     user_detail = userSerializers(source='user', read_only=True)
 
-    class Meta:
-        model = Coach
-        fields = ['id', 'is_active', 'user', 'user_detail']
+#     class Meta:
+#         model = Coach
+#         fields = ['id', 'is_active', 'user', 'user_detail']

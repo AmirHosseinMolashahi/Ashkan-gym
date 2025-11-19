@@ -1,4 +1,4 @@
-from .views import userView, LoginView, RefreshTokenView, RegisterView, LogoutView, UpdateUserView, CoachView, CoachesView, UsersView, CoachDeleteView, CoachUpdateView
+from .views import userView, LoginView, RefreshTokenView, RegisterView, LogoutView, UpdateUserView, UsersView
 from django.urls import path
 
 app_name = 'account'
@@ -11,8 +11,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logou'),
     path('update/', UpdateUserView.as_view(), name='update-user'),
-    path('coach/', CoachView.as_view(), name='coach'),
-    path('coach/<int:id>/delete/', CoachDeleteView.as_view(), name='coach-delete'),
-    path('coach/<int:id>/update/', CoachUpdateView.as_view(), name='coach-update'),
-    path('coach-list/', CoachesView.as_view(), name='coach-list'),
+    # path('coach/', CoachView.as_view(), name='coach'),
+    # path('coach/<int:id>/delete/', CoachDeleteView.as_view(), name='coach-delete'),
+    # path('coach/<int:id>/update/', CoachUpdateView.as_view(), name='coach-update'),
+    # path('coach-list/', CoachesView.as_view(), name='coach-list'),
 ]

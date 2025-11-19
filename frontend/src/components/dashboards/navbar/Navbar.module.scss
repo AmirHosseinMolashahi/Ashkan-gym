@@ -1,0 +1,104 @@
+@use '../../../styles/constants.scss' as *;
+.navbar {
+    top: 0;
+    display: block;
+    width: 100%;
+    height: fit-content;
+    position: relative;
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: left;
+        gap: 2rem;
+        padding: 1rem;
+        @media (max-width:$sm){
+          justify-content: space-between;
+          padding: 0;
+        }
+
+        h1 {
+          position: absolute;
+          right: 0;
+          top: 0;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+        
+          
+          .search__input {
+            font-family: inherit;
+            font-size: inherit;
+            background-color: #fff;
+            border: none;
+            color: #646464;
+            padding: 0.7rem 1rem;
+            border-radius: 30px;
+            width: 20rem;
+            transition: all ease-in-out .5s;
+            margin-left: -2rem;
+            @media (max-width: $sm){
+              width: fit-content;
+            }
+
+            &:hover, &:focus{
+                box-shadow: 0 0 1em #00000013;
+            }
+            &:focus {
+                outline: none;
+                background-color: #fff;
+            }
+            &:focus, .search__button{
+                background-color: #fff;
+            }
+            &::-webkit-input-placeholder {
+                font-weight: 100;
+                color: #616161;
+            }
+          }
+          
+          .search__button {
+            border: none;
+            background-color: #fff;
+            margin-top: .1em;
+            padding: 0;
+            &:hover {
+              cursor: pointer;
+            }
+            .search__icon {
+              height: 1.3em;
+              width: 1.3em;
+              fill: #616161;
+            } 
+          }
+          
+        }
+
+        .notif, .user {
+          font-family: inherit;
+          font-size: inherit;
+          border: none;
+          padding: 0.7rem 1rem;
+          border-radius: 100%;
+          width: fit-content;
+          transition: all 300ms ease-in-out;
+          cursor: pointer;
+          @media (max-width: $sm){
+            position: relative;
+            padding: .5rem;
+          }
+          >svg {
+              width: 1.7rem;
+              color: #646464;
+          }
+
+          &:hover {
+            transform: scale(1.2);
+          }
+        }
+    }
+}
