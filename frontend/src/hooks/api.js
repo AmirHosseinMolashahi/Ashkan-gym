@@ -24,6 +24,10 @@ api.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
+    if (originalRequest.url.includes('/account/login/')) {
+      return Promise.reject(error); // پیام خطا مستقیم میره به React
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       // ⛔ جلوگیری از حلقه‌ی بی‌پایان هنگام تلاش برای refresh
       if (originalRequest.url.includes('/account/refresh/')) {

@@ -2,13 +2,7 @@
 .container {
     width: 30rem;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.15); // شفاف
-    backdrop-filter: blur(12px); 
-    -webkit-backdrop-filter: blur(12px);
-
-    border: 1px solid rgba(255, 255, 255, 0.25); // لبه شیشه‌ای
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); // سایه لطیف
-
+    background-color: $primary;
     color: $secondary-white;
 
 
@@ -34,8 +28,24 @@
                 label {
                     color: $secondary-white;
                 }
+                .passwordWrapper {
+                    position: relative;
+                    display: flex;
+                    width: 100%;
+                    .passwordinput {
+                        width: 100%;
+                    }
+                    .togglePassword {
+                        position: absolute;
+                        left: 10px;
+                        top: 55%;
+                        transform: translateY(-50%);
+                        cursor: pointer;
+                        color: #666;
+                        }  
+                }
 
-                .email, .password {
+                .input, .passwordinput {
                     padding: 1rem;
                     border-radius: 12px;
                     border: 1px solid transparent;
@@ -54,6 +64,16 @@
                         background: rgba(255, 255, 255, 0.25);
                     }
                 }
+
+                .inputError {
+                    border-color: #e11d48 !important; // قرمز
+                }
+
+                .errorText {
+                    color: #e11d48;
+                    font-size: 0.85rem;
+                    margin-top: 4px;
+                } 
             }
             .submitBtn {
                 border: none;

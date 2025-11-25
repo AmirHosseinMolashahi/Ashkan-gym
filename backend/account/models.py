@@ -62,6 +62,7 @@ class CustomUser(AbstractUser):
         max_length=15,
         verbose_name="شماره موبایل"
     )
+
     birthdate = models.DateField(verbose_name='تاریخ تولد', null=True)
     address = models.TextField(verbose_name='آدرس',null=True)
     gender = models.CharField(verbose_name='جنسیت', max_length=1, choices=GENDER_CHOICES, null=True)

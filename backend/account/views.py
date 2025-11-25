@@ -13,31 +13,56 @@ from .permissions import IsManager
 class LoginView(APIView):
     authentication_classes = []
     permission_classes = []
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(username=username, password=password)
 
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            res = Response()
-            res.set_cookie(
-                key='access',
-                value=str(refresh.access_token),
-                httponly=True,
-                samesite='Lax',
-                secure=False,
-                path='/')
-            res.set_cookie(
-                key='refresh',
-                value=str(refresh),
-                httponly=True,
-                samesite='Lax',
-                secure=False,
-                path='/')
-            res.data = {"success": True}
-            return res
-        return Response({'error': 'نام کاربری یا رمز عبور اشتباه است'}, status=401)
+    def post(self, request):
+        national_id = request.data.get('national_id')
+        password = request.data.get('password')
+
+        # === 1) بررسی اینکه کاربر با این کدملی وجود دارد ===
+        try:
+            user_obj = CustomUser.objects.get(national_id=national_id)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {'error': 'کد ملی اشتباه است'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # === 2) چک کردن صحت رمز عبور ===
+        if not user_obj.check_password(password):
+            return Response(
+                {'error': 'رمز عبور اشتباه است'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        # === 3) اگر هر دو صحیح، authenticate کنید ===
+        user = authenticate(
+            request,
+            national_id=national_id,
+            password=password
+        )
+
+        refresh = RefreshToken.for_user(user)
+        res = Response()
+
+        res.set_cookie(
+            key='access',
+            value=str(refresh.access_token),
+            httponly=True,
+            samesite='Lax',
+            secure=False,
+            path='/'
+        )
+        res.set_cookie(
+            key='refresh',
+            value=str(refresh),
+            httponly=True,
+            samesite='Lax',
+            secure=False,
+            path='/'
+        )
+
+        res.data = {"success": True}
+        return res
 
     
 class RefreshTokenView(APIView):
@@ -89,9 +114,20 @@ class UpdateUserView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserUpdateSerializer
 
-    
     def get_object(self):
-        return self.request.user 
+        # برمی‌گرداند کاربر فعلی
+        return self.request.user
+
+# class UpdateUserView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def put(self, request):
+#         serializer = UserUpdateSerializer(data=request.data)
+#         print(request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # class CoachView(APIView):

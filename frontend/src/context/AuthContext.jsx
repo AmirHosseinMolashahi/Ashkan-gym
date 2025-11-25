@@ -25,10 +25,10 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (national_id, password) => {
     setLoading(true);
     try {
-      await api.post('/account/login/', { username, password });
+      await api.post('/account/login/', { national_id, password });
       await checkAuth();
     } catch (err) {
       setUser(null);

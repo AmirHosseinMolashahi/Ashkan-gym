@@ -6,6 +6,7 @@ import DashboardLayouts from './layouts/dashboardLayouts/DashboardLayouts';
 import Dashbaord from './pages/dashbaord/Dashbaord';
 import Registration from './pages/registrations/Registration';
 import PrivateRoute from './wrapper/PrivateRoute';
+import EditProfile from './pages/dashbaord/profile/Profile';
 
 function App() {
 
@@ -20,6 +21,11 @@ function App() {
           <Route path='/dashboard' element={
             <PrivateRoute>
               <Dashbaord />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/profile' element={
+            <PrivateRoute>
+              <EditProfile />
             </PrivateRoute>
           } />
         </Route>

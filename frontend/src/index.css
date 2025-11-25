@@ -3,4 +3,5 @@ body {
   padding: 0;
   direction: rtl;
   right: 0;
+  overflow: hidden;
 }

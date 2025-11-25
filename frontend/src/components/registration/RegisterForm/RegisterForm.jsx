@@ -9,6 +9,15 @@ const RegisterForm = () => {
         <h1>فرم ثبت نام</h1>
         <span>به صفحه ثبت نام خوش آمدید</span>
         <form action="" className={style.formContainer}>
+          <div className={style.inputWrapper}>
+            <label>کدملی</label>
+            <input
+                className={style.email}
+                type="text"
+                placeholder="کد ملی"
+                required
+            />
+          </div>
           <div className={style.doubleInput}>
             <div className={style.inputWrapper}>
             <label>نام</label>
@@ -30,38 +39,36 @@ const RegisterForm = () => {
             </div>
           </div>
           <div className={style.inputWrapper}>
-            <label>ایمیل</label>
+            <label>موبایل</label>
             <input
                 className={style.email}
                 type="text"
-                placeholder="ایمیل"
+                placeholder="موبایل"
                 required
             />
           </div>
-          <div className={style.inputWrapper}>
-            <label>رمز عبور</label>
-            <input
-                className={style.password}
-                type="password"
-                placeholder="رمز عبور"
-                required
-            />
-          </div>
-          <div className={style.inputWrapper}>
-            <label>تایید رمز عبور</label>
-            <input
-                className={style.password}
-                type="password"
-                placeholder="رمز عبور"
-                required
-            />
-          </div>
-          <div className={style.inputWrapper2}>
-            <label>آیا شرایط را میپذیرید؟</label>
-            <input type="checkbox" name="agree" id="" />
+          <div className={style.doubleInput}>
+            <div className={style.inputWrapper}>
+              <label>رمز عبور</label>
+              <input
+                  className={style.password}
+                  type="password"
+                  placeholder="رمز عبور"
+                  required
+              />
+            </div>
+            <div className={style.inputWrapper}>
+              <label>تایید رمز عبور</label>
+              <input
+                  className={style.password}
+                  type="password"
+                  placeholder="رمز عبور"
+                  required
+              />
+            </div>
           </div>
           <button type="submit" className={style.submitBtn}>
-          ورود
+          ثبت نام
           </button>
         </form>
         <div className={style.registerLink}>

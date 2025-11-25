@@ -1,7 +1,7 @@
 import React from 'react';
 import css from './Sidebar.module.scss';
 // import logoPic from '../../../assets/dashbaord/logo.jpg';
-import { UilHome, UilUser, UilSetting, UilSignOutAlt, UilCalendar, UilDumbbell , UilUserSquare   } from '@iconscout/react-unicons';
+import { UilHome, UilUser, UilSetting, UilSignOutAlt, UilCalendar, UilDumbbell , UilMegaphone   } from '@iconscout/react-unicons';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useNotification } from '../../../context/notificationContext';
@@ -15,7 +15,7 @@ const Sidebar = () => {
   const location = useLocation();
   const {showLoading, hideLoading} = useLoading();
   
-  const isActive = (path) => location.pathname.startsWith(path);
+  const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
     showLoading()
@@ -30,11 +30,10 @@ const Sidebar = () => {
 
   const navItem = [
     { title: "داشبورد", icon: <UilHome />, link: "/dashboard" },
-    { title: "کلاس ها", icon: <UilDumbbell  />, link: "/transaction" },
-    { title: "مربیان", icon: <UilUserSquare />, link: "/schedule" },
-    { title: "ورزشکاران", icon: <UilUser />, link: "/users" },
-    { title: "تقویم", icon: <UilCalendar />, link: "/schedule" },
-    { title: "تنطیمات", icon: <UilSetting />, link: "/settings" },
+    { title: "کلاس ها", icon: <UilDumbbell  />, link: "/dashboard/transaction" },
+    { title: "تقویم", icon: <UilCalendar />, link: "/dashboard/schedule" },
+    { title: "اطلاعیه ها", icon: <UilMegaphone  />, link: "/dashboard/announcements" },
+    { title: "پروفایل", icon: <UilUser />, link: "/dashboard/profile" },
     { title: "خروج", icon: <UilSignOutAlt />, onClick: handleLogout }  // دیگه لینک نداره، onClick داره
   ];
 
@@ -44,7 +43,7 @@ const Sidebar = () => {
         <div>
           <img src={user?.profile_picture} alt="" />
         </div>
-        <div className={css.title}>داشبورد</div>
+        <div className={css.title}>{user?.role}</div>
       </div>
       <ul className={css.sidebarLinks}>
         {

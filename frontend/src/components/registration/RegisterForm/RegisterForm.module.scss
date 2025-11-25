@@ -2,13 +2,7 @@
 .container {
     width: 30rem;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.15); // شفاف
-    backdrop-filter: blur(12px); 
-    -webkit-backdrop-filter: blur(12px);
-
-    border: 1px solid rgba(255, 255, 255, 0.25); // لبه شیشه‌ای
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); // سایه لطیف
-
+    background-color: $primary;
     color: $secondary-white;
 
     .wrapper {
