@@ -22,7 +22,6 @@ const EditProfile = () => {
     phone_number: '',
     address: '',
     profile_picture: '',
-    birthdate: '',
     birthdate_jalali: '',
     role: '',
     last_login_jalali: '',
@@ -219,7 +218,7 @@ const EditProfile = () => {
                 locale={persian_en}
                 onChange={(date) => {
                   // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
-                  const miladi = date?.format("YYYY-MM-DD");  // ← این رشته میلادی
+                  const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
                   // console.log("miladi: ", miladi)
                   setFormData({ ...formData, birthdate_jalali: miladi });
                 }}

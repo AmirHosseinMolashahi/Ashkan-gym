@@ -41,7 +41,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
 
 class UserUpdateSerializer(serializers.ModelSerializer):
-    birthdate = serializers.CharField(required=False, allow_null=True)
+    birthdate = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = CustomUser
@@ -61,16 +61,17 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             return None
 
         try:
-            y, m, d = map(int, value.split('-'))
+            print(value)
+            y, m, d = map(int, value.split('/'))
             gregorian_date = jdatetime.date(y, m, d).togregorian()
             print(gregorian_date)
             return gregorian_date
         except:
             raise serializers.ValidationError("فرمت تاریخ شمسی نامعتبر است.")
     
-    def update(self, instance, validated_data):
-        # اگر birth_date در validated_data وجود دارد، اینجا دیگر میلادی شده
-        return super().update(instance, validated_data)
+    # def update(self, instance, validated_data):
+    #     # اگر birth_date در validated_data وجود دارد، اینجا دیگر میلادی شده
+    #     return super().update(instance, validated_data)
 
 # class coachSerializers(serializers.ModelSerializer):
 #     user = userSerializers()
