@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser
+from .models import CustomUser, LoginHistory
 
 
 class CustomUserAdmin(UserAdmin):
@@ -11,6 +11,7 @@ class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     model = CustomUser
     ordering = ['national_id']
+    readonly_fields = ['previous_login']
     list_display = [
         "national_id",
         "full_name",
@@ -39,7 +40,7 @@ class CustomUserAdmin(UserAdmin):
                 ),
             },
         ),
-        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+        (_("Important dates"), {"fields": ("last_login", "date_joined", "previous_login")}),
     )
     add_fieldsets = (
         (None, {
@@ -49,4 +50,12 @@ class CustomUserAdmin(UserAdmin):
     )
 
 
+class LoginHistoryAdmin(admin.ModelAdmin):
+    model = LoginHistory
+    list_display = [
+        "user",
+        "login_time",
+    ]
+
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(LoginHistory, LoginHistoryAdmin)

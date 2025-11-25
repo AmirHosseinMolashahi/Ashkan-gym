@@ -6,9 +6,12 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, ListAPIView, ListCreateAPIView, DestroyAPIView, RetrieveUpdateAPIView
 from django.contrib.auth import authenticate
 from rest_framework import status
-from .models import CustomUser
+from .models import CustomUser, LoginHistory
 from .serializers import userSerializers, RegisterSerializer, UserUpdateSerializer
 from .permissions import IsManager
+from django.contrib.auth.models import update_last_login
+from .utils import get_client_ip
+from django.utils import timezone
 
 class LoginView(APIView):
     authentication_classes = []
@@ -39,6 +42,17 @@ class LoginView(APIView):
             request,
             national_id=national_id,
             password=password
+        )
+
+        user.previous_login = user.last_login
+        user.last_login = timezone.now()
+        user.save()
+
+        ip = get_client_ip(request)
+        LoginHistory.objects.create(
+            user=user,
+            ip_address=ip,  # تابع get_client_ip خودت
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
         )
 
         refresh = RefreshToken.for_user(user)

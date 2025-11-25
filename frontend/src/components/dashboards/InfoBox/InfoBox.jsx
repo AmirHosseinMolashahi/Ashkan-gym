@@ -2,9 +2,11 @@ import React from 'react'
 import css from './InfoBox.module.scss'
 import userpic from '../../../assets/dashbaord/man-user.jpg'
 import { useAuth } from '../../../context/AuthContext';
+import toPersianDigits from '../../../hooks/convertNumber';
+import roleConverter from '../../../hooks/roleConverter';
 
 const InfoBox = () => {
-  const { user, isCoach, coach, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <div className={css.infoBox}>
@@ -12,13 +14,13 @@ const InfoBox = () => {
             <div className={css.avatar}>
                 <img src={user?.profile_picture} alt="" />
                 <span>
-                    وضعیت:  {user?.role}
+                    وضعیت:  {roleConverter(user?.role)}
                 </span>
             </div>
             <div className={css.baseInfo}>
                 <ul>
                     <li>
-                        کدملی: <span>{user?.national_id}</span>
+                        کدملی: <span>{toPersianDigits(user?.national_id)}</span>
                     </li>
                     <li>
                         نام: <span>{user?.first_name}</span>
@@ -30,10 +32,10 @@ const InfoBox = () => {
                         نام پدر: <span>{user?.father_name}</span>
                     </li>
                     <li>
-                        تاریخ تولد: <span>{user?.birthdate}</span>
+                        تاریخ تولد: <span>{toPersianDigits(user?.birthdate_jalali)}</span>
                     </li>
                     <li>
-                        تلفن: <span>{user?.phone_number}</span>
+                        تلفن: <span>{toPersianDigits(user?.phone_number)}</span>
                     </li>
                 </ul>
             </div>

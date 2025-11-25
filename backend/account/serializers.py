@@ -8,7 +8,7 @@ from jalali_date import datetime2jalali
 class userSerializers(serializers.ModelSerializer):
     gender_title = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
-    last_login_jalali = serializers.SerializerMethodField()
+    previous_login_jalali = serializers.SerializerMethodField()
     birthdate_jalali = serializers.SerializerMethodField()
     
 
@@ -22,8 +22,8 @@ class userSerializers(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return obj.get_full_name()  # call the model method
     
-    def get_last_login_jalali(self, obj):
-        if obj.last_login:
+    def get_previous_login_jalali(self, obj):
+        if obj.previous_login:
             return jdatetime.datetime.fromgregorian(datetime=obj.last_login).strftime("%Y/%m/%d %H:%M")
         return None
     def get_birthdate_jalali(self, obj):

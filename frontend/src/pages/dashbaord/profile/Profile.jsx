@@ -6,10 +6,12 @@ import { useAuth } from '../../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../utils/cropImage'; // تابع کمکی برای برش
-import { UilCameraPlus, UilSignInAlt, UilChatBubbleUser  } from '@iconscout/react-unicons'
+import { UilCameraPlus, UilSignInAlt, UilChatBubbleUser, UilLockAlt   } from '@iconscout/react-unicons'
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
+import toPersianDigits from '../../../hooks/convertNumber';
+import roleConverter from '../../../hooks/roleConverter';
 
 
 const EditProfile = () => {
@@ -24,7 +26,7 @@ const EditProfile = () => {
     profile_picture: '',
     birthdate_jalali: '',
     role: '',
-    last_login_jalali: '',
+    previous_login_jalali: '',
   });
   const { notify } = useNotification()
   const { updateUser, user } = useAuth();
@@ -37,12 +39,6 @@ const EditProfile = () => {
   const [imageToCrop, setImageToCrop] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-
-  const roleTitles = {
-    manager: "مدیر",
-    coach: "مربی",
-    athlete: "ورزشکار"
-  };
 
 
   useEffect(() => {
@@ -173,40 +169,40 @@ const EditProfile = () => {
           <div className={styles.inputContainer}>
             <div className={styles.inputWrapper}>
               <label>کدملی</label>
-              <input name="national_id" value={formData.national_id} onChange={handleChange} placeholder="کد ملی" readOnly/>
+              <input name="national_id" className={styles.formInput} value={formData.national_id} onChange={handleChange} placeholder="کد ملی" readOnly/>
             </div>
 
             <div className={styles.inputWrapper}>
               <label>نام پدر</label>
-              <input name="father_name" value={formData.father_name} onChange={handleChange} placeholder="نام پدر" readOnly/>
+              <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر" readOnly/>
             </div>
           </div>
           <div className={styles.inputContainer}>
             <div className={styles.inputWrapper}>
               <label>نام</label>
-              <input name="first_name" value={formData.first_name} onChange={handleChange} placeholder="نام" required/>
+              <input name="first_name" className={styles.formInput} value={formData.first_name} onChange={handleChange} placeholder="نام" required/>
             </div>
 
             <div className={styles.inputWrapper}>
               <label>نام خانوادگی</label>
-              <input name="last_name" value={formData.last_name} onChange={handleChange} placeholder="نام خانوادگی" required/>
+              <input name="last_name" className={styles.formInput} value={formData.last_name} onChange={handleChange} placeholder="نام خانوادگی" required/>
             </div>
           </div>
           <div className={styles.inputContainer}>
             <div className={styles.inputWrapper}>
               <label>ایمیل</label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="ایمیل" required/>
+              <input type="email" name="email" className={styles.formInput} value={formData.email} onChange={handleChange} placeholder="ایمیل" required/>
             </div>
 
             <div className={styles.inputWrapper}>
               <label>شماره تماس</label>
-              <input name="phone_number" value={formData.phone_number} onChange={handleChange} placeholder="شماره تماس" required/>
+              <input name="phone_number" className={styles.formInput} value={formData.phone_number} onChange={handleChange} placeholder="شماره تماس" required/>
             </div>
           </div>
           <div className={styles.inputContainer} >
             <div className={styles.inputWrapper}>
               <label>آدرس</label>
-              <input name="address" value={formData.address} onChange={handleChange} placeholder="آدرس" required/>
+              <input name="address" className={styles.formInput} value={formData.address} onChange={handleChange} placeholder="آدرس" required/>
             </div>
 
             <div className={styles.inputWrapper}>
@@ -222,10 +218,19 @@ const EditProfile = () => {
                   // console.log("miladi: ", miladi)
                   setFormData({ ...formData, birthdate_jalali: miladi });
                 }}
+                render={(value, openCalendar) => (
+                <input
+                  onFocus={openCalendar}
+                  value={value}           // این فارسی نمایش می‌دهد
+                  placeholder="تاریخ تولد"
+                  className={styles.formInput}
+                  readOnly
+                />
+              )}
               />
             </div>
           </div>
-          <button type="submit">
+          <button type="submit" className={styles.submit}>
             {saved ? "✅ ذخیره شد" : "ذخیره"}
           </button>
         </form>
@@ -258,7 +263,7 @@ const EditProfile = () => {
             <div><UilChatBubbleUser  /></div>
           </div>
           <div className={styles.content}>
-            {roleTitles[formData.role] || ""}
+            {roleConverter(formData.role)}
           </div>
         </div>
         <div className={styles.InfoItem}>
@@ -267,7 +272,16 @@ const EditProfile = () => {
             <div><UilSignInAlt  /></div>
           </div>
           <div className={styles.content}>
-            {formData.last_login_jalali}
+            {toPersianDigits(formData.previous_login_jalali)}
+          </div>
+        </div>
+        <div className={styles.InfoItem}>
+          <div className={styles.header}>
+            <div>تغییر رمز</div>
+            <div><UilLockAlt /></div>
+          </div>
+          <div className={styles.content}>
+            <button>تغییر رمز عبور</button>
           </div>
         </div>
       </div>

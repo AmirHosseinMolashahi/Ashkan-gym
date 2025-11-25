@@ -69,6 +69,7 @@ class CustomUser(AbstractUser):
     father_name = models.CharField(verbose_name='نام پدر')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name='نقش', default='athlete')
     profile_picture = models.ImageField(upload_to=user_directory_path, verbose_name='عکس پروفایل', default='default/man-user.jpg')
+    previous_login = models.DateTimeField(auto_now=True, verbose_name='ورود قبلی')
 
     USERNAME_FIELD = 'national_id'   # اینجا مهم‌ترین بخش است
     REQUIRED_FIELDS = []             # چون username حذف شده
@@ -86,3 +87,11 @@ class CustomUser(AbstractUser):
         return (self.first_name + ' ' + self.last_name)
     
     objects = CustomUserManager()
+
+
+
+class LoginHistory(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="login_history", verbose_name="کاربر")
+    login_time = models.DateTimeField(auto_now_add=True, verbose_name="آخرین لاگین")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="آدرس آی پی")
+    user_agent = models.TextField(null=True, blank=True)
