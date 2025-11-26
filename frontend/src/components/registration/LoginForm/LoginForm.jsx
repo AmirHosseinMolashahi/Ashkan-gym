@@ -3,7 +3,7 @@ import style from './LoginForm.module.scss';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate  } from 'react-router-dom';
-import { useNotification } from '../../../context/notificationContext';
+import { useNotification } from '../../../context/NotificationContext';
 import { useLoading } from '../../../context/LoadingContext';
 import { UilEye, UilEyeSlash  } from '@iconscout/react-unicons';
 

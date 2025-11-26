@@ -224,12 +224,15 @@
 }
 
 .uploadIcon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
   bottom: 0;
   right: 0;
   background: #fff;
   border-radius: 50%;
-  padding: 6px;
+  padding: 0.5rem;
   cursor: pointer;
   font-size: 16px;
   border: 1px solid #ccc;

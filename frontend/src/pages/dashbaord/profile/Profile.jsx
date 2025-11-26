@@ -174,7 +174,7 @@ const EditProfile = () => {
 
             <div className={styles.inputWrapper}>
               <label>نام پدر</label>
-              <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر" readOnly/>
+              <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر"/>
             </div>
           </div>
           <div className={styles.inputContainer}>

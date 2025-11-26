@@ -123,31 +123,31 @@ class RegisterView(CreateAPIView):
 
 
 
-# class UpdateUserView(UpdateAPIView):
-#     queryset = CustomUser.objects.all()
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = UserUpdateSerializer
-
-#     def get_object(self):
-#         # برمی‌گرداند کاربر فعلی
-#         return self.request.user
-
-class UpdateUserView(APIView):
+class UpdateUserView(UpdateAPIView):
+    queryset = CustomUser.objects.all()
     permission_classes = [IsAuthenticated]
+    serializer_class = UserUpdateSerializer
 
-    def put(self, request):
-        serializer = UserUpdateSerializer(
-            instance=request.user,
-            data=request.data,
-            partial=True
-        )
+    def get_object(self):
+        # برمی‌گرداند کاربر فعلی
+        return self.request.user
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
+# class UpdateUserView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-        print("Errors:", serializer.errors)
-        return Response(serializer.errors, status=400)
+#     def put(self, request):
+#         serializer = UserUpdateSerializer(
+#             instance=request.user,
+#             data=request.data,
+#             partial=True
+#         )
+
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=200)
+
+#         print("Errors:", serializer.errors)
+#         return Response(serializer.errors, status=400)
 
 
 # class CoachView(APIView):

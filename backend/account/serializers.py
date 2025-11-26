@@ -27,17 +27,30 @@ class userSerializers(serializers.ModelSerializer):
             return jdatetime.datetime.fromgregorian(datetime=obj.last_login).strftime("%Y/%m/%d %H:%M")
         return None
     def get_birthdate_jalali(self, obj):
-        return jdatetime.datetime.fromgregorian(datetime=obj.birthdate).strftime("%Y/%m/%d")
+        if obj.birthdate:
+            return jdatetime.datetime.fromgregorian(datetime=obj.birthdate).strftime("%Y/%m/%d")
+        return None
     
 
 class RegisterSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True)
+
     class Meta:
         model = CustomUser
-        fields = ['national_id', 'password', 'father_name', 'gender']
+        fields = ['national_id', 'first_name', 'last_name', 'phone_number', 'password', 'confirm_password']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate(self, attrs):
+        # بررسی مطابقت رمز عبور و تایید آن
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "رمز عبور و تکرار آن یکسان نیست!"})
+        return attrs
+
     def create(self, validated_data):
-        return CustomUser.objects.create_user(**validated_data)  # پسورد هش می‌شه
+        # حذف confirm_password قبل از ایجاد کاربر
+        validated_data.pop('confirm_password', None)
+        user = CustomUser.objects.create_user(**validated_data)
+        return user
     
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -45,7 +58,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture']
+        fields = ['first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture', 'father_name']
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
@@ -54,6 +67,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'birthdate': {'required': False},
             'address': {'required': False},
             'profile_picture': {'required': False},
+            'father_name': {'required': False},
         }
     
     def validate_birthdate(self, value):
