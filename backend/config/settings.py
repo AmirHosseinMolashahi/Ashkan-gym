@@ -45,8 +45,10 @@ INSTALLED_APPS = [
 
     'django_jalali',
     'django_jalali.db',
-
+    
+    #my app
     'account',
+    'schedule',
 ]
 
 MIDDLEWARE = [

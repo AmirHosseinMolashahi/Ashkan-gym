@@ -7,6 +7,7 @@ import Dashbaord from './pages/dashbaord/Dashbaord';
 import Registration from './pages/registrations/Registration';
 import PrivateRoute from './wrapper/PrivateRoute';
 import EditProfile from './pages/dashbaord/profile/Profile';
+import Schedule from './pages/dashbaord/schedule/Schedule';
 
 function App() {
 
@@ -26,6 +27,11 @@ function App() {
           <Route path='/dashboard/profile' element={
             <PrivateRoute>
               <EditProfile />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/schedule' element={
+            <PrivateRoute>
+              <Schedule />
             </PrivateRoute>
           } />
         </Route>
