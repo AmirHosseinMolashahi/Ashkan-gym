@@ -16,11 +16,13 @@ const Schedule = () => {
     title: '',
     descriptions: '',
     time: '',
+    finished: false,
   }
 
   const [modal, setModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [editModal, setEditModal] = useState(false)
+  const [completeModal, setCompleteModal] =useState(false)
   const { notify } = useNotification()
   const [selectedId, setSelectedId] = useState(null);
 
@@ -58,6 +60,17 @@ const Schedule = () => {
       time: item.time_jalali,
     });
     setEditModal(!editModal);
+  }
+
+  const handleCompleteModal = (item) => {
+    setSelectedId(item.id)
+    setEditFormData({
+      title: item.title,
+      descriptions: item.descriptions,
+      time: item.time_jalali,
+      finished: true,
+    });
+    setCompleteModal(!completeModal);
   }
 
   const fethchReminders = async () => {
@@ -152,6 +165,22 @@ const Schedule = () => {
     }
   }
 
+  const handleFinished = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/schedule/update/${selectedId}/`, editFormData, {
+        headers: {'Content-Type': 'multipart/form-data'}
+      });
+      notify('یادآور با موفقیت به پایان رسید !', 'info')
+      fethchReminders()
+      handleCompleteModal(editFormData)
+    } catch(err) {
+      console.log(err)
+      notify('خطا در ویرایش یادآور!', 'error');
+    } finally {
+    }
+  }
+
   return (
     <div className={style.schedule}>
       {/* right part of the website */}
@@ -184,7 +213,7 @@ const Schedule = () => {
                         </div>
                         <hr />
                         <div className={style.remindersStatus}>
-                          {item.finished ? <UilCheckCircle /> : <UilHourglass /> }
+                          {item.finished ? <UilCheckCircle /> : <UilHourglass onClick={() => handleCompleteModal(item)} /> }
                         </div>
                       </div>
                     </div>
@@ -351,6 +380,24 @@ const Schedule = () => {
                 <button className={style.cancelBtn} onClick={handleEditModal}>لغو</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {completeModal && (
+        <div className={style.deleteModal}>
+          <div className={style.container}>
+            <div className={style.closeBtn} onClick={handleCompleteModal}>
+              <UilTimesCircle />
+            </div>
+            <div className={style.content}>
+              {selectedReminder
+                ? `آیا از تمام شدن "${selectedReminder.title}" مطمئن هستید؟`
+                : "آیا از تمام شدن این یادآور مطمئن هستید؟"}
+            </div>
+            <div className={style.buttonContainer}>
+              <button className={style.successBtn} onClick={handleFinished}>انجام شد</button>
+              <button className={style.statusBtn} onClick={handleCompleteModal}>لغو</button>
+            </div>
           </div>
         </div>
       )}
