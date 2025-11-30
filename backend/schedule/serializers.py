@@ -6,7 +6,7 @@ import jdatetime
 class RemindersSerializers(serializers.ModelSerializer):
     time = serializers.CharField(required=False, allow_null=True)
     time_jalali = serializers.SerializerMethodField()
-    finished = serializers.BooleanField(required=False, allow_null=True, read_only=True)
+    # finished = serializers.BooleanField(required=False, allow_null=True, read_only=True)
     id = serializers.IntegerField(required=False, allow_null=True, read_only=True)
     
 

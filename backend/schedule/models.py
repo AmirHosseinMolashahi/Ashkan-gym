@@ -9,7 +9,7 @@ class Schedule(models.Model):
     descriptions = models.TextField()
     time = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    finished = models.BooleanField(default=False)
+    finished = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
         return self.title + " " + self.user.get_full_name()
