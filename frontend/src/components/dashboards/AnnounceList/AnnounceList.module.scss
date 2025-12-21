@@ -1,0 +1,146 @@
+@use '../../../styles/constants.scss' as *;
+.announceList {
+  padding: 1rem;
+  color: $primary;
+
+  .listContainer {
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+
+      thead {
+        background: #f6f6f6;
+
+        th {
+          padding: 12px;
+          text-align: center;
+          font-weight: 600;
+          border-bottom: 2px solid #e3e3e3;
+        }
+      }
+
+      tbody {
+        tr {
+          transition: 0.2s;
+
+          &:hover {
+            background: #fafafa;
+          }
+
+          td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            span {
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              background-color: $success;
+            }
+          }
+          .prevButton {
+            svg {
+              width: 8rem;
+              cursor: pointer;
+            }
+          }
+          .actions {
+            svg {
+              cursor: pointer;
+              transition: all 300ms ease;
+
+              &:hover {
+                transform: scale(1.05);
+              }
+            }
+            }
+        }
+        .newAnnounce {
+          background-color: $new2;
+          &:hover {
+            background: $blue;
+          }
+        }
+      }
+      .viewAnnounce {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        button {
+          padding: 0;
+          background-color: transparent;
+        }
+      }
+    }
+    .pagination {
+      display: flex;
+      gap: 1rem;
+      button {
+          padding: 0;
+          background-color: transparent;
+      }
+  }
+  }
+
+  .prevModal {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 1rem;
+    .descriptions {
+      height: 10rem;
+      overflow-y: scroll;
+      border: 1px solid $secondary;
+      padding: 1rem;
+    }
+    
+    .recipients_list {
+      height: 10rem;
+      overflow-y: scroll;
+      border: 1px solid $secondary;
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        .list_item {
+          display: flex;
+          gap: 1rem;
+
+          .status {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+          }
+        }
+      }
+    }
+  }
+
+  .deleteModal {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .buttons {
+      display: flex;
+      gap: 2rem;
+
+      .deleteBtn {
+        background-color: $danger;
+        color: $secondary-white;
+      }
+    }
+  }
+}

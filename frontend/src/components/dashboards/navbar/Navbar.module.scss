@@ -9,8 +9,7 @@
 
     .container {
         display: flex;
-        align-items: center;
-        justify-content: left;
+        justify-content: space-between;
         gap: 2rem;
         padding: 1rem;
         @media (max-width:$sm){
@@ -19,12 +18,13 @@
         }
 
         h1 {
-          position: absolute;
-          right: 0;
-          top: 0;
+          color: $primary;
         }
-
-        .search {
+        .notifContainer {
+          display: flex;
+          justify-content: center;
+          gap: 2rem;
+          .search {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -79,7 +79,8 @@
           
         }
 
-        .notif, .user {
+        .icons {
+          position: relative;
           font-family: inherit;
           font-size: inherit;
           border: none;
@@ -87,19 +88,88 @@
           border-radius: 100%;
           width: fit-content;
           transition: all 300ms ease-in-out;
-          cursor: pointer;
-          @media (max-width: $sm){
-            position: relative;
-            padding: .5rem;
+          svg {
+            cursor: pointer;
+            color: #646464;
           }
-          >svg {
-              width: 1.7rem;
-              color: #646464;
+          .notifCounter {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            top: 1px;
+            right: 1px;
+            background-color: red;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 50%;
           }
+          .notifList {
+            position: absolute;
+            background-color: $secondary-white;
+            top: 4rem;
+            left:-0.2rem;
+            width: 30rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 10;
 
-          &:hover {
-            transform: scale(1.2);
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 1rem;
+
+              h3 {
+                color: $primary;
+              }
+              
+              button {
+                padding: 0;
+                background: transparent;
+                color: $light-grey;
+                text-decoration: underline;
+              }
+            }
+
+            .body {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              padding: 12px 0;
+              color: $primary;
+
+              &::before {
+                content: "";
+                position: absolute;
+                top: -8px;
+                left: 24px; /* محل نوک */
+                width: 16px;
+                height: 16px;
+                background: #fff;
+                transform: rotate(45deg);
+                box-shadow: -3px -3px 6px rgba(0,0,0,0.05);
+              }
+              ul {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                
+                li {
+                  padding: 1rem;
+                  list-style: none;
+                  box-shadow: -3px -3px 6px rgba(0,0,0,0.05);
+                }
+              }
+            }
           }
         }
+        }
+        
     }
 }

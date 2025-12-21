@@ -1,0 +1,17 @@
+@use '../../styles/constants.scss' as *;
+
+.dashboard {
+  .userInfo {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+    height: 18rem;
+    gap: 1rem;
+    .right {
+      flex: 2;
+    }
+    .left {
+      flex: 1
+    }
+  }
+}

@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "proxy": "https://127.0.0.1:8000",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,12 +12,16 @@
   },
   "dependencies": {
     "@iconscout/react-unicons": "^2.2.5",
+    "@reduxjs/toolkit": "^2.11.1",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.5",
     "react-multi-date-picker": "^4.5.2",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.6"
   },
   "devDependencies": {

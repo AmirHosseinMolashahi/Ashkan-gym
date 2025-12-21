@@ -21,6 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('account/', include('account.urls')),
     path('schedule/', include('schedule.urls')),
+    path('announcements/', include('announcements.urls')),
+    path("notifications/", include("notifications.urls")),
 ]
 
 from django.conf import settings

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import style from './LoginForm.module.scss';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
 import { useNavigate  } from 'react-router-dom';
-import { useNotification } from '../../../context/NotificationContext';
-import { useLoading } from '../../../context/LoadingContext';
+import { useToast } from '../../../context/NotificationContext';
 import { UilEye, UilEyeSlash  } from '@iconscout/react-unicons';
+import { useLoading } from '../../../context/LoadingContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { loginUser } from '../../../store/userSlice';
 
 
 const LoginForm = () => {
@@ -13,9 +14,9 @@ const LoginForm = () => {
   const [national_id, setNational_id] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false)
-  const { login, loading } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { notify } = useNotification();
+  const { notify } = useToast();
   const {showLoading, hideLoading} = useLoading();
 
   const [errors, setErrors] = useState({
@@ -29,12 +30,15 @@ const LoginForm = () => {
     e.preventDefault();
     showLoading()
     try {
-      await login(national_id, password);
+      await dispatch(
+        loginUser({national_id, password})
+      ).unwrap();
+      
       navigate('/dashboard')
       notify('با موفقیت وارد شدید!', 'success');
-    } catch (error){
-      notify(error.response.data.error, 'error');
-      const msg = error.response?.data?.error || "خطا";
+    } catch (err){
+      notify(err.error, 'error');
+      const msg = err.error || "خطا";
       console.log(msg)
 
       if (msg.includes("کد ملی")) {

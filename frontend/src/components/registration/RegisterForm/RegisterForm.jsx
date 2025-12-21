@@ -2,15 +2,15 @@ import React, { useState } from 'react'
 import style from './RegisterForm.module.scss';
 import { Link, useNavigate } from 'react-router-dom';
 import {useAuth} from '../../../context/AuthContext';
-import { useNotification } from '../../../context/NotificationContext';
 import api from '../../../hooks/api';
 import { useLoading } from '../../../context/LoadingContext';
 import { UilEye, UilEyeSlash  } from '@iconscout/react-unicons';
+import { useToast } from '../../../context/NotificationContext';
 
 const RegisterForm = () => {
   const navigate = useNavigate()
   const { login, loading } = useAuth();
-  const { notify } = useNotification();
+  const { notify } = useToast();
   const {showLoading, hideLoading} = useLoading();
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)

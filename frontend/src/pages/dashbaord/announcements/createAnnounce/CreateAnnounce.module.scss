@@ -1,0 +1,112 @@
+@use '../../../../styles/constants.scss'  as *;
+.createAnnounce {
+    height: calc(100vh - 90px);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+
+    .container {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: right;
+        gap:2rem;
+        height: 85vh;
+        min-height: 0;
+        flex: 1;
+
+        h1 {
+            color: $primary;
+        }
+
+        form {
+            // border: 1px solid $primary;
+            background-color: $white;
+            border-radius: 10px;
+            height: 100%;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            
+            .clearData {
+                position: absolute;
+                top: 0;
+                left: 0;
+                margin-top: 1rem;
+                margin-left: 1rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                border-radius: 10px;
+                background-color: $secondary;
+                transition: all 300ms ease;
+                color: #fff;
+                &:hover {
+                    cursor: pointer;
+                    transform: scale(1.02);
+                }
+            }
+
+            .formContainer {
+                padding: 2rem;
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+
+                .inputContainer {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: right;
+                    gap: 1rem;
+                    color: $primary;
+
+                    .formInput, textarea, .statusInput {
+                        padding: 0.6rem;
+                        border-radius: 6px;
+                        border: 1px solid #ccc;
+                        font-size: 0.95rem;
+                        transition: border 300ms ease-in;
+                        box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 6px 18px rgba(16,24,40,0.03);
+
+                        &:focus {
+                            border: 1px solid $blue;
+                        }
+                    }
+                    .formInput, .statusInput {
+                        width: 50%;
+                    }
+                    textarea {
+                        width: 70rem;
+                        max-width: 70rem;
+                        min-width: 20rem;
+                        height: 20rem;
+                        max-height: 20rem;
+                        min-height: 20rem;
+                        overflow: auto;
+                    }
+                    .statusInput {
+                        width: 50%;
+                    }
+                    .userSelectWrapper {
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            gap: 1rem;
+                        }
+                }
+
+                button {
+                    background-color: $blue;
+                    color: $white;
+                }
+            }
+        }
+    }
+}

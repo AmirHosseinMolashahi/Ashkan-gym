@@ -1,19 +1,20 @@
 import React from 'react'
-import { AuthProvider } from '../context/AuthContext'
-import { NotificationProvider } from '../context/notificationContext';
+import { ToastProvider } from '../context/NotificationContext'
 import { LoadingProvider } from '../context/LoadingContext';
 import GlobalLoader from '../components/GlobalComponents/Loader/GlobalLoader';
+import { Provider } from 'react-redux'
+import { store } from '../store';
 
 const Providers = ({children}) => {
   return (
-    <NotificationProvider>
-      <AuthProvider>
-        <LoadingProvider>
-          <GlobalLoader />
-          {children}
-        </LoadingProvider>
-      </AuthProvider>
-    </NotificationProvider>
+    <Provider store={store}>
+        <ToastProvider>
+          <LoadingProvider>
+            <GlobalLoader />
+            {children}
+          </LoadingProvider>
+        </ToastProvider>
+    </Provider>
   )
 }
 

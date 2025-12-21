@@ -1,27 +1,31 @@
 import React from 'react';
 import css from './Sidebar.module.scss';
 // import logoPic from '../../../assets/dashbaord/logo.jpg';
-import { UilHome, UilUser, UilSetting, UilSignOutAlt, UilCalendar, UilDumbbell , UilMegaphone   } from '@iconscout/react-unicons';
+import { UilHome, UilUser, UilSetting, UilSignOutAlt, UilCalendar, UilBell , UilMegaphone   } from '@iconscout/react-unicons';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useNotification } from '../../../context/notificationContext';
 import { useLoading } from '../../../context/LoadingContext';
+import { useToast } from '../../../context/NotificationContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../../../store/userSlice';
 
 
 const Sidebar = () => {
-  const { logout, user } = useAuth();
+  const {user, loading} = useSelector(state => state.auth);
+  const dispatch = useDispatch()
   const navigate = useNavigate();
-  const { notify } = useNotification();
+  const { notify } = useToast();
   const location = useLocation();
   const {showLoading, hideLoading} = useLoading();
   
   const isActive = (path) => location.pathname === path;
 
+
   const handleLogout = async () => {
     showLoading()
     try{
-      await logout();
-      navigate('/login');
+      await dispatch(logoutUser()).unwrap()
+      navigate('/registration/login');
       notify('با موفقیت خارج شدید!', 'info');
     } finally {
       hideLoading()
@@ -30,12 +34,14 @@ const Sidebar = () => {
 
   const navItem = [
     { title: "داشبورد", icon: <UilHome />, link: "/dashboard" },
-    { title: "کلاس ها", icon: <UilDumbbell  />, link: "/dashboard/transaction" },
+    { title: "اعلان ها", icon: <UilBell  />, link: "/dashboard/notifications" },
     { title: "تقویم", icon: <UilCalendar />, link: "/dashboard/schedule" },
     { title: "اطلاعیه ها", icon: <UilMegaphone  />, link: "/dashboard/announcements" },
     { title: "پروفایل", icon: <UilUser />, link: "/dashboard/profile" },
     { title: "خروج", icon: <UilSignOutAlt />, onClick: handleLogout }  // دیگه لینک نداره، onClick داره
   ];
+
+  if (loading) return <p>در حال بارگزاری</p>
 
   return (
     <div className={css.sidebar}>

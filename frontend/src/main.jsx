@@ -4,6 +4,7 @@ import './index.css'
 import './styles/global.scss';
 import App from './App.jsx'
 import Providers from './providers/Providers.jsx';
+import { store } from './store/index.js';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../../hooks/api';
 import styles from './Profile.module.scss';
-import { useNotification } from '../../../context/notificationContext';
-import { useAuth } from '../../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../utils/cropImage'; // تابع کمکی برای برش
@@ -12,7 +9,9 @@ import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
 import toPersianDigits from '../../../hooks/convertNumber';
 import roleConverter from '../../../hooks/roleConverter';
-
+import { useToast } from '../../../context/NotificationContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchUser, updateUser } from '../../../store/userSlice';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
@@ -28,8 +27,9 @@ const EditProfile = () => {
     role: '',
     previous_login_jalali: '',
   });
-  const { notify } = useNotification()
-  const { updateUser, user } = useAuth();
+  const dispatch = useDispatch();
+  const { user, loading } = useSelector(state => state.auth);
+  const { notify } = useToast();
   const [saved, setSaved] = useState(false);
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
@@ -39,19 +39,6 @@ const EditProfile = () => {
   const [imageToCrop, setImageToCrop] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get('account/user');
-        setFormData(res.data);
-      } catch (err) {
-        setMessage('خطا در دریافت اطلاعات کاربر');
-      }
-    };
-    fetchProfile();
-  }, []);
 
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -66,6 +53,19 @@ const EditProfile = () => {
       console.error("خطا در کراپ تصویر:", e);
     }
   };
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(fetchUser());
+    }
+  }, [dispatch, user]);
+
+  // 2. پر کردن فرم
+  useEffect(() => {
+    if (user) {
+      setFormData(user);
+    }
+  }, [user]);
 
 
 
@@ -105,135 +105,117 @@ const EditProfile = () => {
     }
 
     try {
-      console.log(formData)
-      await api.put('account/update/', form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await dispatch(updateUser(form)).unwrap()
+      await dispatch(fetchUser()).unwrap();
       notify('اطلاعات با موفقیت ذخیره شد 🙌', 'success');
-      updateUser();
       setSaved(true)
       setTimeout(() => setSaved(false), 2000);
+      navigate('/dashboard')
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       notify('خطا در ذخیره اطلاعات!', 'error');
     }
   };
 
+  if (loading) return <p>در حال بارگزاری</p> 
+
   return (
     
     <div className={styles.profile}>
       <div className={styles.container}>
-        <h2>ویرایش اطلاعات شخصی</h2>
-        <form onSubmit={handleSubmit} className={styles.form}>
-          {/* <div className={styles.profileContainer}>
-            <label>تصویر پروفایل</label>
-            <input type="file" accept="image/*" onChange={handleChange} />
-              {profileImage ? (
-                <img
-                  src={URL.createObjectURL(profileImage)}
-                  alt="Profile Preview"
-                  width={100}
-                  style={{ borderRadius: '50%', marginTop: 10 }}
-                />
-              )
-              : (
-                <img
-                  src={formData.profile_picture}
-                  alt="Profile Preview"
-                  width={100}
-                  📷
-                  style={{ borderRadius: '50%', marginTop: 10 }}/>
-              )}
-          </div> */}
-          <div className={styles.profileContainer}>
-            <div className={styles.centerWrapper}>
-              <div className={styles.profileImageWrapper}>
-                <img
-                  src={profileImage ? URL.createObjectURL(profileImage) : formData.profile_picture}
-                  alt="Profile Preview"
-                  className={styles.profileImage}
-                />
-                <label htmlFor="profile-upload" className={styles.uploadIcon}>
-                  <UilCameraPlus color='#333' size='1.2rem'/>
-                </label>
-                <input
-                  id="profile-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className={styles.hiddenInput}
+        <div className={styles.wrapper}>
+          <h2>ویرایش اطلاعات شخصی</h2>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.profileContainer}>
+              <div className={styles.centerWrapper}>
+                <div className={styles.profileImageWrapper}>
+                  <img
+                    src={profileImage ? URL.createObjectURL(profileImage) : formData.profile_picture}
+                    alt="Profile Preview"
+                    className={styles.profileImage}
+                  />
+                  <label htmlFor="profile-upload" className={styles.uploadIcon}>
+                    <UilCameraPlus color='#333' size='1.2rem'/>
+                  </label>
+                  <input
+                    id="profile-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChange}
+                    className={styles.hiddenInput}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputWrapper}>
+                <label>کدملی</label>
+                <input name="national_id" className={styles.formInput} value={formData.national_id} onChange={handleChange} placeholder="کد ملی" readOnly/>
+              </div>
+
+              <div className={styles.inputWrapper}>
+                <label>نام پدر</label>
+                <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر"/>
+              </div>
+            </div>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputWrapper}>
+                <label>نام</label>
+                <input name="first_name" className={styles.formInput} value={formData.first_name} onChange={handleChange} placeholder="نام" required/>
+              </div>
+
+              <div className={styles.inputWrapper}>
+                <label>نام خانوادگی</label>
+                <input name="last_name" className={styles.formInput} value={formData.last_name} onChange={handleChange} placeholder="نام خانوادگی" required/>
+              </div>
+            </div>
+            <div className={styles.inputContainer}>
+              <div className={styles.inputWrapper}>
+                <label>ایمیل</label>
+                <input type="email" name="email" className={styles.formInput} value={formData.email} onChange={handleChange} placeholder="ایمیل" required/>
+              </div>
+
+              <div className={styles.inputWrapper}>
+                <label>شماره تماس</label>
+                <input name="phone_number" className={styles.formInput} value={formData.phone_number} onChange={handleChange} placeholder="شماره تماس" required/>
+              </div>
+            </div>
+            <div className={styles.inputContainer} >
+              <div className={styles.inputWrapper}>
+                <label>آدرس</label>
+                <input name="address" className={styles.formInput} value={formData.address} onChange={handleChange} placeholder="آدرس" required/>
+              </div>
+
+              <div className={styles.inputWrapper}>
+                <label>تاریخ تولد</label>
+                {/* <input type="date" name="birthdate" value={formData.birthdate} onChange={handleChange} placeholder="تاریخ تولد" required/> */}
+                <DatePicker
+                  value={formData.birthdate_jalali}
+                  calendar={persian}
+                  locale={persian_en}
+                  onChange={(date) => {
+                    // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
+                    const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
+                    // console.log("miladi: ", miladi)
+                    setFormData({ ...formData, birthdate_jalali: miladi });
+                  }}
+                  render={(value, openCalendar) => (
+                  <input
+                    onFocus={openCalendar}
+                    value={value}           // این فارسی نمایش می‌دهد
+                    placeholder="تاریخ تولد"
+                    className={styles.formInput}
+                    readOnly
+                  />
+                )}
                 />
               </div>
             </div>
-          </div>
-          <div className={styles.inputContainer}>
-            <div className={styles.inputWrapper}>
-              <label>کدملی</label>
-              <input name="national_id" className={styles.formInput} value={formData.national_id} onChange={handleChange} placeholder="کد ملی" readOnly/>
-            </div>
-
-            <div className={styles.inputWrapper}>
-              <label>نام پدر</label>
-              <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر"/>
-            </div>
-          </div>
-          <div className={styles.inputContainer}>
-            <div className={styles.inputWrapper}>
-              <label>نام</label>
-              <input name="first_name" className={styles.formInput} value={formData.first_name} onChange={handleChange} placeholder="نام" required/>
-            </div>
-
-            <div className={styles.inputWrapper}>
-              <label>نام خانوادگی</label>
-              <input name="last_name" className={styles.formInput} value={formData.last_name} onChange={handleChange} placeholder="نام خانوادگی" required/>
-            </div>
-          </div>
-          <div className={styles.inputContainer}>
-            <div className={styles.inputWrapper}>
-              <label>ایمیل</label>
-              <input type="email" name="email" className={styles.formInput} value={formData.email} onChange={handleChange} placeholder="ایمیل" required/>
-            </div>
-
-            <div className={styles.inputWrapper}>
-              <label>شماره تماس</label>
-              <input name="phone_number" className={styles.formInput} value={formData.phone_number} onChange={handleChange} placeholder="شماره تماس" required/>
-            </div>
-          </div>
-          <div className={styles.inputContainer} >
-            <div className={styles.inputWrapper}>
-              <label>آدرس</label>
-              <input name="address" className={styles.formInput} value={formData.address} onChange={handleChange} placeholder="آدرس" required/>
-            </div>
-
-            <div className={styles.inputWrapper}>
-              <label>تاریخ تولد</label>
-              {/* <input type="date" name="birthdate" value={formData.birthdate} onChange={handleChange} placeholder="تاریخ تولد" required/> */}
-              <DatePicker
-                value={formData.birthdate_jalali}
-                calendar={persian}
-                locale={persian_en}
-                onChange={(date) => {
-                  // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
-                  const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
-                  // console.log("miladi: ", miladi)
-                  setFormData({ ...formData, birthdate_jalali: miladi });
-                }}
-                render={(value, openCalendar) => (
-                <input
-                  onFocus={openCalendar}
-                  value={value}           // این فارسی نمایش می‌دهد
-                  placeholder="تاریخ تولد"
-                  className={styles.formInput}
-                  readOnly
-                />
-              )}
-              />
-            </div>
-          </div>
-          <button type="submit" className={styles.submit}>
-            {saved ? "✅ ذخیره شد" : "ذخیره"}
-          </button>
-        </form>
+            <button type="submit" className={styles.submit}>
+              {saved ? "✅ ذخیره شد" : "ذخیره"}
+            </button>
+          </form>
+        </div>
       </div>
       {cropModalOpen && (
         <div className={styles.modal}>
@@ -257,31 +239,33 @@ const EditProfile = () => {
         </div>
       )}
       <div className={styles.secondInfo}>
-        <div className={styles.InfoItem}>
-          <div className={styles.header}>
-            <div>نقش</div>
-            <div><UilChatBubbleUser  /></div>
+        <div className={styles.secondWrapper}>
+          <div className={styles.InfoItem}>
+            <div className={styles.header}>
+              <div>نقش</div>
+              <div><UilChatBubbleUser  /></div>
+            </div>
+            <div className={styles.content}>
+              {roleConverter(formData.role)}
+            </div>
           </div>
-          <div className={styles.content}>
-            {roleConverter(formData.role)}
+          <div className={styles.InfoItem}>
+            <div className={styles.header}>
+              <div>آخرین ورود</div>
+              <div><UilSignInAlt  /></div>
+            </div>
+            <div className={styles.content}>
+              {toPersianDigits(formData.previous_login_jalali)}
+            </div>
           </div>
-        </div>
-        <div className={styles.InfoItem}>
-          <div className={styles.header}>
-            <div>آخرین ورود</div>
-            <div><UilSignInAlt  /></div>
-          </div>
-          <div className={styles.content}>
-            {toPersianDigits(formData.previous_login_jalali)}
-          </div>
-        </div>
-        <div className={styles.InfoItem}>
-          <div className={styles.header}>
-            <div>تغییر رمز</div>
-            <div><UilLockAlt /></div>
-          </div>
-          <div className={styles.content}>
-            <button>تغییر رمز عبور</button>
+          <div className={styles.InfoItem}>
+            <div className={styles.header}>
+              <div>تغییر رمز</div>
+              <div><UilLockAlt /></div>
+            </div>
+            <div className={styles.content}>
+              <button>تغییر رمز عبور</button>
+            </div>
           </div>
         </div>
       </div>

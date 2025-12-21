@@ -1,0 +1,9 @@
+@use '../../../../styles/constants.scss' as *;
+.detailBox {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: #fff;
+  border-radius: 10px;
+  color: $primary;
+}

@@ -5,10 +5,10 @@ import persian from "react-date-object/calendars/persian"
 import persian_fa from "react-date-object/locales/persian_fa"
 import { UilPlusCircle, UilTimesCircle, UilTrashAlt, UilEdit, UilCheckCircle, UilHourglass   } from '@iconscout/react-unicons'
 import DatePicker from "react-multi-date-picker";
-import { useNotification } from '../../../context/notificationContext';
 import api from '../../../hooks/api';
 import toPersianDigits from '../../../hooks/convertNumber';
 import Filter from '../../../components/dashboards/Filter/Filter';
+import { useToast } from '../../../context/NotificationContext';
 
 const Schedule = () => {
 
@@ -23,7 +23,7 @@ const Schedule = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [editModal, setEditModal] = useState(false)
   const [completeModal, setCompleteModal] =useState(false)
-  const { notify } = useNotification()
+  const { notify } = useToast();
   const [selectedId, setSelectedId] = useState(null);
 
   const [filters, setFilters] = useState({
@@ -80,7 +80,7 @@ const Schedule = () => {
         console.log(res.data)
       } catch (err) {
         console.log(err)
-        notify('خطا در ذخیره اطلاعات!', 'error');
+        notify('خطا در دریافت اطلاعات!', 'error');
       }
     };
 

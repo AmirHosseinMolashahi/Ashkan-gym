@@ -26,7 +26,7 @@ class LoginView(APIView):
             user_obj = CustomUser.objects.get(national_id=national_id)
         except CustomUser.DoesNotExist:
             return Response(
-                {'error': 'کد ملی اشتباه است'},
+                {'error': 'کد ملی وارد شده ثبت نشده است'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
@@ -61,7 +61,7 @@ class LoginView(APIView):
         res.set_cookie(
             key='access',
             value=str(refresh.access_token),
-            httponly=True,
+            httponly=False,
             samesite='Lax',
             secure=False,
             path='/'
@@ -112,9 +112,20 @@ class userView(RetrieveUpdateDestroyAPIView):
         return self.request.user
     
 class UsersView(ListAPIView):
-    queryset = CustomUser.objects.all()
     serializer_class = userSerializers
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = CustomUser.objects.all()
+
+        role = self.request.GET.get('role')
+
+        if role:
+            qs = qs.filter(role=role)
+
+        return qs
+
+
 
 class RegisterView(CreateAPIView):
     queryset = CustomUser.objects.all()

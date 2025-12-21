@@ -1,44 +1,43 @@
+// ToastNotificationContext.jsx
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import Notification from '../components/GlobalComponents/Notification/Notification';
 import styles from '../components/GlobalComponents/Notification/Notification.module.scss';
 
-const NotificationContext = createContext();
+const ToastContext = createContext();
 
-export const useNotification = () => useContext(NotificationContext);
+export const useToast = () => useContext(ToastContext);
 
-export const NotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([]);
+export const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
 
   const notify = useCallback((text, type = 'info', duration = 3000) => {
-    const id = Date.now() + Math.random(); // شناسه یکتا
-    const newNotif = { id, text, type, duration };
+    const id = Date.now() + Math.random();
 
-    setNotifications((prev) => [...prev, newNotif]);
+    setToasts(prev => [...prev, { id, text, type, duration }]);
 
-    // حذف خودکار
     setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      setToasts(prev => prev.filter(t => t.id !== id));
     }, duration);
   }, []);
 
   const handleClose = (id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setToasts(prev => prev.filter(t => t.id !== id));
   };
 
   return (
-    <NotificationContext.Provider value={{ notify }}>
+    <ToastContext.Provider value={{ notify }}>
       {children}
       <div className={styles.notificationWrapper}>
-        {notifications.map((n) => (
+        {toasts.map(t => (
           <Notification
-            key={n.id}
-            message={n.text}
-            type={n.type}
-            duration={n.duration}
-            onClose={() => handleClose(n.id)}
+            key={t.id}
+            message={t.text}
+            type={t.type}
+            duration={t.duration}
+            onClose={() => handleClose(t.id)}
           />
         ))}
       </div>
-    </NotificationContext.Provider>
+    </ToastContext.Provider>
   );
 };
