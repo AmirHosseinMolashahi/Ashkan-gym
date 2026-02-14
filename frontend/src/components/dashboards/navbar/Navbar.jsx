@@ -3,7 +3,8 @@ import style from './Navbar.module.scss';
 import { UilBell, UilUser } from '@iconscout/react-unicons'
 import api from '../../../hooks/api';
 import { useSelector } from "react-redux";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import NotifIcon from '../../../hooks/notifIcon';
 
 const Navbar = () => {
 
@@ -25,12 +26,6 @@ const Navbar = () => {
   }
 
   console.log(location.pathname)
-
-
-  const handleNavigate = () => {
-    navigate('/dashboard/notifications');
-    setNotifListDisplay(!notifListDisplay)
-  }
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -78,7 +73,7 @@ const Navbar = () => {
               <div className={style.notifList}>
                 <div className={style.header}>
                   <h3>اعلان های خوانده نشده</h3>
-                  <button onClick={() => handleNavigate()}>لیست اعلان ها</button>
+                  <button onClick={() => console.log('mark all as read')}>تغییر همه به خوانده شده!</button>
                 </div>
                 <div className={style.body}>
                     {unreadList.length > 0 ? (
@@ -86,7 +81,18 @@ const Navbar = () => {
                       {
                         unreadList.map((item, index) => {
                           return(
-                            <li key={index}>{item.title}</li>
+                            <li key={index}>
+                              <div className={style.icon}>
+                                {NotifIcon(item.category)}
+                              </div>
+                              <div className={style.info}>
+                                {item.title}
+                                <span>{item.created_at_jalali}</span>  
+                              </div>
+                              {item.is_read === false && (
+                                <span className={style.newDot}>.</span>
+                              )}
+                            </li>
                           )
                         })
                       }
@@ -94,6 +100,8 @@ const Navbar = () => {
                     ) : (
                       <p>در حال حاضر اعلانی برای نمایش وجود ندارد!</p>
                     )}
+                  <hr style={{backgroundColor: '#333'}}/>
+                  <div className={style.viewAllNotif}><Link to={'/dashboard/notifications'} onClick={() => setNotifListDisplay(!notifListDisplay)}>لیست اعلان ها</Link></div>
                 </div>
               </div>
             )}

@@ -22,7 +22,9 @@ urlpatterns = [
     path('account/', include('account.urls')),
     path('schedule/', include('schedule.urls')),
     path('announcements/', include('announcements.urls')),
-    path("notifications/", include("notifications.urls")),
+    path('notifications/', include('notifications.urls')),
+    path('training/', include('training.urls')),
+    path('registration/', include('registration.urls')),
 ]
 
 from django.conf import settings

@@ -16,6 +16,8 @@ class Notification(models.Model):
         ("announcements", "Announcements"),
         ("reminders", "Reminders"),
         ("tuition", "Tuition"),
+        ("courses", "Courses"),
+        ("registration", "Registration"),
     )
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="notifications")
@@ -29,6 +31,8 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'اعلان'
+        verbose_name_plural = 'اعلان ها'
 
     def __str__(self):
         return f"{self.user.username} - {self.message[:20]}"

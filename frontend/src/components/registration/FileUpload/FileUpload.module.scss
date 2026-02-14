@@ -1,0 +1,124 @@
+@use '../../../styles/constants.scss' as *;
+
+:root {
+  --c-action-primary: #2e44ff;
+  --c-action-primary-accent: #e9e5ff;
+  --c-action-secondary: #e5e5e5;
+  --c-text-primary: #0d0f21;
+  --c-text-secondary: #6a6b76;
+}
+
+.modal {
+  width: 100%;
+  max-width: 500px;
+  height: 600px;
+  //border: 1px solid #333;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+.logoCircle {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background-color: var(--c-action-primary-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    max-width: 1.5rem;
+  }
+}
+
+.btnClose {
+  border: none;
+  background: transparent;
+  width: 2.25rem;
+  height: 2.25rem;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--c-action-primary-accent);
+  }
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  select {
+    flex: 1;
+    padding: 6px;
+    margin-top: 2rem;
+  }
+}
+
+.modalTitle {
+  font-weight: 700;
+}
+
+.modalDescription {
+  color: var(--c-text-secondary);
+}
+
+.uploadArea {
+  margin-top: 1.25rem;
+  width: 100%;
+  padding: 3rem;
+  border: none;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23ccc' stroke-width='3' stroke-dasharray='6%2c14'/%3e%3c/svg%3e");
+
+  &:hover {
+    background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%232e44ff' stroke-width='3' stroke-dasharray='6%2c14'/%3e%3c/svg%3e");
+  }
+}
+
+.uploadAreaIcon {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.uploadAreaTitle {
+  margin-top: 1rem;
+  font-weight: 700;
+}
+
+.uploadAreaDescription {
+  color: var(--c-text-secondary);
+
+  strong {
+    color: var(--c-action-primary);
+  }
+}
+.modalFooter {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btnSecondary,
+.btnPrimary {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid var(--c-action-secondary);
+}
+
+.btnPrimary {
+  background-color: var(--c-action-primary);
+  color: #fff;
+  border-color: var(--c-action-primary);
+}

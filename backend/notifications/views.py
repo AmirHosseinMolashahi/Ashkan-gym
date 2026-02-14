@@ -34,7 +34,7 @@ class UnreadNotificationListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        data = Notification.objects.filter(user=self.request.user, is_read=False).order_by("-created_at")[:4]
+        data = Notification.objects.filter(user=self.request.user).order_by("-created_at")[:4]
         print(data)
         return data
 

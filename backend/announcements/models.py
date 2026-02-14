@@ -10,6 +10,8 @@ class AnnouncementRecipient(models.Model):
 
     class Meta:
         unique_together = ('announcement', 'user')
+        verbose_name = 'دریافت کننده اطلاعیه'
+        verbose_name_plural = 'دریافت کننده های اطلاعیه ها'
     
     def __str__(self):
         return self.announcement.title + '-- به: ' + self.user.get_full_name()

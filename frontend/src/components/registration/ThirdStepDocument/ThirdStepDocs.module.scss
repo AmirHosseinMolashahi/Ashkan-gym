@@ -1,0 +1,78 @@
+@use '../../../styles/constants.scss' as *;
+.wrapper {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+  .endRegister {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    button {
+      padding: 0;
+      background-color: transparent;
+      text-decoration: underline;
+      &:hover {
+        color: $blue;
+      }
+    }
+  }
+}
+
+.row {
+  margin-top: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  
+  li {
+    width: 100%;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  input[type="file"] {
+    flex: 2;
+  }
+
+  button {
+    background: $danger;
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+
+  button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+
+    &:disabled {
+      transition: none;
+      background-color: $secondary-white;
+      color: $secondary;
+      transform: none;
+    }
+  }
+
+  .submitBtn {
+    background-color: $blue;
+    color: $secondary-white;
+  }
+}

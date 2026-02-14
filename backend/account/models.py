@@ -95,3 +95,7 @@ class LoginHistory(models.Model):
     login_time = models.DateTimeField(auto_now_add=True, verbose_name="آخرین لاگین")
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="آدرس آی پی")
     user_agent = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'تاریخچه ورود'
+        verbose_name_plural = 'تاریخچه ورود ها'

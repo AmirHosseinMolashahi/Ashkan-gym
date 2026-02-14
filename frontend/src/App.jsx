@@ -17,6 +17,10 @@ import { addNotification, deleteNotification } from './store/notificationSlice';
 import { fetchNotifications, fetchUnreadCount, fetchUnreadNotifList } from "./store/notificationSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUser } from "./store/userSlice";
+import StudentRegisterations from './pages/dashbaord/studentRegistrations/StudentRegisterations';
+import Courses from './pages/dashbaord/courses/Courses';
+import CoursesDetail from './pages/dashbaord/courses/coursesDetail/CoursesDetail';
+import AthleteCourse from './pages/dashbaord/athleteCourse/AthleteCourse';
 
 function App() {
   const dispatch = useDispatch();
@@ -91,7 +95,7 @@ function App() {
       <Routes>
         <Route element={<HomeLayouts />}>
           <Route path='/' element={<Home />} />
-          <Route path="/registration/:type" element={<Registration />} />
+          <Route path="/registration/login" element={<Registration />} />
         </Route>
         <Route element={<DashboardLayouts />}>
           <Route path='/dashboard' element={
@@ -127,6 +131,26 @@ function App() {
           <Route path='/dashboard/notifications' element={
             <PrivateRoute>
               <NotifList />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/student-register' element={
+            <PrivateRoute>
+              <StudentRegisterations />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/courses' element={
+            <PrivateRoute>
+              <Courses />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/courses/:id' element={
+            <PrivateRoute>
+              <CoursesDetail />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/my-courses' element={
+            <PrivateRoute>
+              <AthleteCourse />
             </PrivateRoute>
           } />
         </Route>

@@ -1,0 +1,30 @@
+@use '../../../styles/constants.scss' as *;
+
+.thirdStep {
+  color: $primary;
+  height: 25rem;
+  position: relative;
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2rem;
+    .listContainer {
+      display: flex;
+      justify-content: center;
+      gap: 5rem;
+      .listWrapper {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+    .addClassBtn {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      background-color: $blue;
+      color: $secondary-white;
+    }
+  }
+}

@@ -1,0 +1,31 @@
+@use '../../../styles/constants.scss' as *;
+.courses {
+  color: $primary;
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem;
+    .header {
+      display: flex;
+      justify-content: space-between;
+
+      button {
+        background-color: $blue;
+        color: $secondary-white;
+      }
+    }
+    .counterCard {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(1, 1fr);
+      gap: 2rem;
+    }
+    .classCard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(1, 1fr);
+      gap: 2rem;
+    }
+  }
+}

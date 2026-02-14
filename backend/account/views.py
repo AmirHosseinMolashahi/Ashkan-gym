@@ -8,10 +8,13 @@ from django.contrib.auth import authenticate
 from rest_framework import status
 from .models import CustomUser, LoginHistory
 from .serializers import userSerializers, RegisterSerializer, UserUpdateSerializer
-from .permissions import IsManager
+from .permissions import IsManager, IsCoachOrManager
 from django.contrib.auth.models import update_last_login
 from .utils import get_client_ip
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from registration.models import Registration
+from notifications.utils import create_and_send_notification
 
 class LoginView(APIView):
     authentication_classes = []
@@ -95,6 +98,7 @@ class RefreshTokenView(APIView):
         except Exception as e:
             return Response({'error': 'توکن نامعتبر'}, status=403)
 
+
 class LogoutView(APIView):
     def post(self, request):
         res = Response({"message": "خروج موفقیت‌آمیز"}, status=200)
@@ -110,7 +114,34 @@ class userView(RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
-    
+
+class CompleteProfileView(RetrieveUpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+    lookup_url_kwarg = 'user_id'
+
+    def get_queryset(self):
+        return CustomUser.objects.all()
+
+    def perform_update(self, serializer):
+        user = serializer.save()
+
+        # آپدیت مرحله ثبت نام
+        registration = Registration.objects.filter(user=user).first()
+        if registration:
+            registration.current_step = 2
+            registration.save()
+        
+        # ارسال نوتیف
+        create_and_send_notification(
+                user=user,
+                title=f"اطلاعات تکمیلی شما ثبت شد.",
+                message=f"اطلاعات تکمیلی شما ثبت شد. با رفتن با بخش پروفایل میتوانید تغییرات مدنظر خود را اعمال کنید.",
+                type="info",
+                category="registration",
+            )
+
+
 class UsersView(ListAPIView):
     serializer_class = userSerializers
     permission_classes = [IsAuthenticated]
@@ -126,11 +157,13 @@ class UsersView(ListAPIView):
         return qs
 
 
-
 class RegisterView(CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated,IsCoachOrManager]
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 
@@ -142,67 +175,3 @@ class UpdateUserView(UpdateAPIView):
     def get_object(self):
         # برمی‌گرداند کاربر فعلی
         return self.request.user
-
-# class UpdateUserView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def put(self, request):
-#         serializer = UserUpdateSerializer(
-#             instance=request.user,
-#             data=request.data,
-#             partial=True
-#         )
-
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=200)
-
-#         print("Errors:", serializer.errors)
-#         return Response(serializer.errors, status=400)
-
-
-# class CoachView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         try:
-#             coach = Coach.objects.get(user=request.user)
-#             serializer = coachSerializers(coach)
-#             return Response(serializer.data)
-#         except Coach.DoesNotExist:
-#             return Response({"coach": None})
-
-# class CoachesView(ListCreateAPIView):
-#     queryset = Coach.objects.all()
-#     permission_classes = [IsAuthenticated, IsManager]
-#     serializer_class = coachSerializers
-
-#     def post(self, request):
-#         serializer = coachUpdateSerializers(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({'message': 'کلاس با موفقیت ایجاد شد'}, status=status.HTTP_201_CREATED)
-#         print("⛔️ Validation Error:", serializer.errors)
-#         return Response({'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-# class CoachUpdateView(RetrieveUpdateAPIView):
-#     queryset = Coach.objects.all()
-#     serializer_class = coachUpdateSerializers
-#     lookup_field = 'id'  # از URL مقدار می‌گیره
-
-#     def put(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({'message': 'مربی با موفقیت به‌روزرسانی شد'}, status=status.HTTP_200_OK)
-#         print("⛔️ Validation Error:", serializer.errors)
-#         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class CoachDeleteView(DestroyAPIView):
-#     queryset = Coach.objects.all()
-#     serializer_class = coachUpdateSerializers
-#     permission_classes = [IsAuthenticated, IsManager]  # می‌تونی اینجا پرمیشن خاص بذاری
-#     lookup_field = 'id' 
-

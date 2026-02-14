@@ -98,9 +98,9 @@ const LoginForm = () => {
             <span>ورود</span>
           </button>
         </form>
-        <div className={style.registerLink}>
+        {/* <div className={style.registerLink}>
           <p>حساب کاربری ندارید؟ <Link to="/registration/register">ثبت نام</Link></p>
-        </div>
+        </div> */}
       </div>
     </div>
   )

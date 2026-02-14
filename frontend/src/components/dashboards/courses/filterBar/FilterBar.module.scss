@@ -1,0 +1,63 @@
+@use '../../../../styles/constants.scss' as *;
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.filterBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: #f3f6fb;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #2f6bff;
+  }
+}
+
+.searchBox {
+  flex: 1;
+  position: relative;
+  
+  input {
+    width: 93%;
+    height: 40px;
+    padding: 0 40px 0 14px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    font-size: 14px;
+
+    &:focus {
+      outline: none;
+      border-color: #2f6bff;
+    }
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #999;
+}

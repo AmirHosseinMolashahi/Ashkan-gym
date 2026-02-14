@@ -1,0 +1,107 @@
+@use '../../../../styles/constants.scss' as *;
+.classContent {
+  padding: 1rem 0;
+  display: flex;
+  gap: 1rem;
+
+  .rightContent {
+    flex: 2.2;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    .rightContItem {
+      background-color: #fff;
+      border-radius: 10px;
+
+      ul {
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem;
+
+        li {
+          font-size: 14px;
+          display: flex;
+          gap: .5rem;
+          flex-direction: column;
+
+          .payment {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: .5rem;
+            border-radius: 20px;
+            padding: .2rem;
+            font-size: 11px;
+            background-color: #4ad2ff;
+            color: #0c2a6b;
+
+            &.unpaid {
+              background-color: #ff4ad5;
+              color: #6a0c6b;
+            }
+
+          }
+        }
+
+        .attendance {
+          display: flex;
+          flex-direction: column;
+          gap: .5rem;
+
+          span {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: .5rem;
+            border-radius: 20px;
+            padding: .2rem;
+            font-size: 11px;
+          }
+
+          .present {
+            background-color: $new;
+            color: #1b8346;
+          }
+          .absent {
+            background-color: #c61e1e;
+            color: #6b0c0c;
+          }
+
+        }
+      }
+    }
+  }
+  .leftContent {
+    flex: .8;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 10px;
+    gap: 1rem;
+    .leftContHeader {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+
+    .leftContItem {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      ul {
+        list-style: none;
+        li {
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+      .itemDetail {
+        color: $light-grey;
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+@use '../../../styles/constants.scss' as *;
+.stepper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+
+  .stepWrapper {
+    display: flex;
+    align-items: center;
+
+    .circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      transition: background 0.3s ease;
+
+      &.active {
+        background: #4f7cff;
+        color: #fff;
+      }
+
+      &.completed {
+        background: #4f7cff;
+        color: #fff;
+      }
+    }
+
+    .line {
+      width: 70px;
+      height: 2px;
+      background: #e0e0e0;
+      margin: 0 10px;
+      overflow: hidden;
+
+      .progress {
+        display: block;
+        height: 100%;
+        width: 100%;
+        background: #4f7cff;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.4s ease;
+
+        &.filled {
+          transform: scaleX(1);
+        }
+      }
+    }
+  }
+}

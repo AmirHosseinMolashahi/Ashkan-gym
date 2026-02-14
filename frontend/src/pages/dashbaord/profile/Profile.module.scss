@@ -1,137 +1,220 @@
 @use '../../../styles/constants.scss' as *;
 .profile {
-  height: calc(100vh - 90px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
   color: $primary;
   min-height: 0;
   .container {
-    height: 85vh;
-    flex:2;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
     min-height: 0;
-
     .wrapper {
-      padding: 2rem;
-      h2 {
-        text-align: center;
-        margin-bottom: 1.5rem;
-      }
-
-      .form {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-
-        .inputContainer {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 2rem;
-          .inputWrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            label {
-              font-weight: 600;
-              margin-bottom: 0.2rem;
-          }
-
-          .formInput,
-          select {
-              padding: 0.6rem;
-              border-radius: 6px;
-              border: 1px solid #ccc;
-              font-size: 0.95rem;
-            } 
-          } 
-        }
-        .submit {
-          width: 100%;
-          margin-top: 1rem;
-          background-color: #1e88e5;
-          color: white;
-          padding: 0.75rem;
-          border: none;
-          border-radius: 6px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: all 300ms ease;
-
-          &:hover {
-            background-color: #1565c0;
-          }
-      }  
-
-    }
-      .message {
-        text-align: center;
-        margin-bottom: 1rem;
-        color: green;
-        font-weight: bold;
-      }
-    }
-  }
-  .secondInfo {
-    height: 85vh;
-    flex: 1;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    .secondWrapper {
-      padding: 2rem;
       display: flex;
       flex-direction: column;
-      gap: 2rem;
-      .InfoItem {
+      justify-content: center;
+      gap: 1rem;
+      .avatarInfo {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
         align-items: center;
+        gap: 2rem;
+        background-color: $blue;
+        padding: 1rem;
         border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        .header {
-          width: 100%;
-          display: flex;
-          background-color: $blue;
-          justify-content: space-between;
-          align-items: center;
-          border-top-right-radius: 10px;
-          border-top-left-radius: 10px;
-          div {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem 2rem;
-            color: $secondary-white;
-            font-weight: bold;
-          }
+        .info {
+          color: $white;
         }
-        .content {
+      }
+      .content {
+        display: flex;
+        gap: 1rem;
+        .rightContent {
+          flex: 2;
           display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 1rem 2rem;
+          flex-direction: column;
+          gap: 1rem;
+          // .form {
+          //   display: flex;
+          //   flex-direction: column;
+          //   gap: 1rem;
 
-          button {
-            border: 0;
-            padding: 1rem;
-            background-color: $blue;
-            color: $secondary-white;
-            font-weight: bold;
+          //   .inputContainer {
+          //     display: flex;
+          //     justify-content: center;
+          //     align-items: center;
+          //     gap: 2rem;
+          //     .inputWrapper {
+          //       width: 100%;
+          //       display: flex;
+          //       flex-direction: column;
+          //       gap: 0.5rem;
+          //       label {
+          //         font-weight: 600;
+          //         margin-bottom: 0.2rem;
+          //     }
+
+          //     .formInput,
+          //     select {
+          //         padding: 0.6rem;
+          //         border-radius: 6px;
+          //         border: 1px solid #ccc;
+          //         font-size: 0.95rem;
+          //       } 
+          //     } 
+          //   }
+          //   .submit {
+          //     background-color: #1e88e5;
+          //     color: white;
+          //     padding: 0.75rem;
+          //     border: none;
+          //     border-radius: 6px;
+          //     font-size: 1rem;
+          //     cursor: pointer;
+          //     transition: all 300ms ease;
+
+          //     &:hover {
+          //       background-color: #1565c0;
+          //     }
+          // }  
+
+          // }
+          .personalInfo, .changePassword {
+            display: flex;
+            flex-direction: column;
+            background-color: $white;
             border-radius: 10px;
-            font-size: 16px;
-            transition: all 300ms ease;
-            &:hover {
-              cursor: pointer;
-              transform: scale(1.05);
+            padding: 1rem;
+            .infoHeader {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              button {
+                color: $blue;
+                padding: 0;
+                svg {
+                  fill: $blue;
+                }
+              }
+              h3 {
+                display: flex;
+                align-items: center;
+              }
+            }
+            .infoContent {
+              ul {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                list-style: none;
+                li {
+                  display: flex;
+                  flex-direction: column;
+                  gap: .5rem;
+
+                  :nth-child(1) {
+                    font-weight: bold;
+                  }
+
+                  .formInput {
+                    background-color: transparent;
+                    border: none;
+                    border-bottom: 1px solid $primary;
+                    font-size: 16px;
+                    transition: all 300ms ease;
+                    width: 100%;
+                    font-weight: 300;
+                  }
+                }
+              }
             }
           }
+
+          .changePassword {
+            .inputWrapper {
+              margin-top: 0.5rem;
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+
+              input {
+                padding: 0.7rem;
+                border: 1px solid $primary;
+                border-radius: 10px;
+                width: 70%;
+                background-color: transparent;
+              }
+            }
+            button {
+              margin-top: 0.7rem;
+              background-color: $blue;
+              color: $white;
+            }
+          }
+        }
+
+        .leftContent {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+
+          .profileInfo {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-color: $white;
+            border-radius: 10px;
+            padding: 1rem;
+            gap: 1rem;
+
+            .profileInfoContent  {
+              .userStatus {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+
+                li {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                }
+              }
+              .recentActivity {
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+
+                li {
+                  display: flex;
+                  align-items: center;
+                  gap: .5rem;
+                  align-items: center;
+
+                  .activityIcon {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: .2rem;
+                    border-radius: 50%;
+                  }
+
+                  .activityInfo {
+                    :nth-child(1){
+                      font-weight: bold;
+                    }
+                    :nth-child(2) {
+                      font-size: 14px;
+                    }
+                  }
+                }
+              } 
+            }
+          }
+        }
+        
+        
+        .message {
+          text-align: center;
+          margin-bottom: 1rem;
+          color: green;
+          font-weight: bold;
         }
       }
     }
@@ -229,6 +312,7 @@
   object-fit: cover;
   border-radius: 50%;
   display: block;
+  border: 5px solid white;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
@@ -247,6 +331,21 @@
   border: 1px solid #ccc;
   transition: 0.3s;
 }
+.checkUpload {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: #fff;
+  border-radius: 50%;
+  padding: 0.2rem;
+  cursor: pointer;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  transition: 0.3s;
+}
 
 .uploadIcon:hover {
   background-color: #f0f0f0;
@@ -258,3 +357,68 @@
 .hiddenInput {
   display: none;
 }
+
+// check box style
+.ikxBAC {
+    appearance: none;
+    background-color: #dfe1e4;
+    border-radius: 72px;
+    border-style: none;
+    flex-shrink: 0;
+    height: 20px;
+    margin: 0;
+    position: relative;
+    width: 30px;
+  }
+
+.ikxBAC::before {
+    bottom: -6px;
+    content: "";
+    left: -6px;
+    position: absolute;
+    right: -6px;
+    top: -6px;
+  }
+
+.ikxBAC,
+.ikxBAC::after {
+    transition: all 100ms ease-out;
+  }
+
+.ikxBAC::after {
+    background-color: #fff;
+    border-radius: 50%;
+    content: "";
+    height: 14px;
+    left: 3px;
+    position: absolute;
+    top: 3px;
+    width: 14px;
+  }
+
+input[type=checkbox] {
+    cursor: default;
+  }
+
+.ikxBAC:hover {
+    background-color: #c9cbcd;
+    transition-duration: 0s;
+  }
+
+.ikxBAC:checked {
+    background-color: #6e79d6;
+  }
+
+.ikxBAC:checked::after {
+    background-color: #fff;
+    left: 13px;
+  }
+
+:focus:not(.focus-visible) {
+    outline: 0;
+  }
+
+.ikxBAC:checked:hover {
+    background-color: #535db3;
+  }
+// end of checkBox style

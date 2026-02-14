@@ -1,0 +1,306 @@
+@use '../../../../styles/constants.scss' as *;
+
+.coursesDetail {
+  color: $white;
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    .header {
+      padding: 1.5rem;
+      background-color: $blue;
+      border-radius: 10px;
+      .headerContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1rem;
+        .topHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .btnContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+
+            .addUser {
+              border: none;
+              color: $blue;
+            }
+
+            .editClass {
+              background-color: rgba($color: $primary, $alpha: 0.7);
+              color: $white;
+            }
+          }
+        }
+        .mainHeader {
+          ul {
+            display: flex;
+            gap: 3rem;
+            align-items: center;
+            list-style: none;
+            li {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items:center;
+            }
+          }
+        }
+      }
+    }
+    .tabWrapper{
+      background-color: #fff;
+      border-radius: 10px;
+      .tabs {
+        display: flex;
+        margin-bottom: 16px;
+        border: 1px solid transparent;
+        border-bottom-color: #d1d1d1;
+
+        ul {
+          list-style: none;
+          display: flex;
+          gap: 2rem;
+          li {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: .5rem;
+            cursor: pointer;
+            padding: 1rem;
+            color:#888;
+            transition: all 300ms ease;
+            border: 2px solid transparent;
+
+            &.active {
+              color: #2563eb;
+              font-weight: bold;
+              border-bottom: 2px solid #2563eb;
+              padding-bottom: 6px;
+            }
+          } 
+        }
+      }
+    }
+    
+    .cardContainer {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      color: $primary;
+      
+      .detailCard {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background-color: #fff;
+        gap: 1.5rem;
+
+        .detailCardcontent {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          .timeList {
+            display: flex;
+            gap: 1rem;
+            flex-direction: column;
+            list-style: none;
+            li {
+              display: flex;
+              gap: 1rem;
+              svg {
+                fill: $blue;
+              }
+            }
+          }
+          .payList {
+            display: flex;
+            gap: 1rem;
+            flex-direction: column;
+            list-style: none;
+
+            li {
+              display: flex;
+              justify-content: space-between;
+            }
+          }
+          .nextSession {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-direction: column;
+            list-style: none;
+            li {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+            }
+            .date {
+              padding: 1rem 5rem;
+              background-color: #d5e1fc;
+              border-radius: 10px;
+              font-weight: bold;
+              :nth-child(1){
+                color: $blue;
+              }
+            }
+            .time {
+              font-weight: bold;
+              font-size: 18px;
+            }
+          }
+          .progressWrapper {
+            width: 100%;
+            height: 6px;
+            background: #e6e6e6;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .progressBar {
+            height: 100%;
+            background: linear-gradient(90deg, #2f6bff, #6b9bff);
+            transition: width 0.4s ease;
+          }
+        }
+      }
+    }
+  }
+}
+.paid {
+  color: $success;
+}
+
+.pending {
+  color: $danger;
+}
+
+.unpaid {
+  color: $red;
+}
+
+
+//modal
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  h2 { 
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1e293b;
+  }
+  .subtitle {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 8px 0 24px;
+  }
+
+  .searchWrapper {
+    margin-bottom: 20px;
+    position: relative;
+    
+    .serachContainer {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        outline: none;
+        &:focus {
+          border-color: #3b82f6;
+        }
+      }
+      
+      .searchIcon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+      }
+    }
+  }
+
+  .resultsList {
+    max-height: 300px;
+    overflow-y: auto;
+    
+    .label {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 12px;
+    }
+  }
+
+  .studentItem {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover { border-color: #cbd5e1; }
+    
+    &.active {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    img { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; }
+
+    .info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      .name { font-weight: 600; color: #1e293b; }
+      .id { font-size: 0.8rem; color: #64748b; }
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #3b82f6;
+    }
+  }
+
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .cancelBtn { background: #f1f5f9; border: none; color: #475569; }
+    .addBtn { 
+      background: #3b82f6; border: none; color: white; 
+      &:disabled { background: #94a3b8; cursor: not-allowed; }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+@use '../../../styles/constants.scss' as *;
+
+.athleteCourse {
+  color: $primary;
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    .classInfoCard {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .classInfoList {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      .classList {
+        .headerContainer {
+          display: flex;
+          gap: 1rem;
+          align-items: center;
+
+          button {
+            background-color: transparent;
+
+            &.active {
+              background-color: $blue;
+              color: $white;
+            }
+          }
+        }
+      }
+    }
+  }
+}

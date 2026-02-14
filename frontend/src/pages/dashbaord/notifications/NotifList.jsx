@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import style from './NotifList.module.scss';
 import api from '../../../hooks/api';
 import toPersianDigits from '../../../hooks/convertNumber';
-import { UilTrashAlt, UilAngleLeft , UilAngleRight, UilMegaphone, UilCalendar, UilUsdCircle } from '@iconscout/react-unicons'
+import { UilTrashAlt, UilAngleLeft , UilAngleRight, UilMegaphone, UilCalendar, UilUsdCircle, UilSignin, UilLaptop } from '@iconscout/react-unicons'
 import Modal from '../../../components/GlobalComponents/Modal/Modal';
 import { useToast } from '../../../context/NotificationContext';
 import { useSelector, useDispatch } from "react-redux";
@@ -21,6 +21,8 @@ const NotifList = () => {
     announcements : <UilMegaphone  />,
     reminders : <UilCalendar />,
     tuition: <UilUsdCircle />,
+    courses: <UilLaptop />,
+    registration: <UilSignin />,
   }
 
 

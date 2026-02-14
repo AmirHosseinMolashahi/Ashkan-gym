@@ -7,5 +7,10 @@ class IsOwner(BasePermission):
 
 class IsManager(BasePermission):
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS or request.user.is_manager == True:
+        if request.method in SAFE_METHODS or request.user.role == 'manager':
+            return True
+
+class IsCoachOrManager(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS or request.user.role in ['coach', 'manager']:
             return True
