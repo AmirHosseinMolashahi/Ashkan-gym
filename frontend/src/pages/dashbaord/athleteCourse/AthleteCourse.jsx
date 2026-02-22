@@ -8,6 +8,7 @@ import api from '../../../hooks/api';
 import MyClassInfo from '../../../components/dashboards/athleteCourse/MyClassInfo/MyClassInfo';
 import ThisMonthSession from '../../../components/dashboards/athleteCourse/thisMonthSession/ThisMonthSession';
 import LastMonthSession from '../../../components/dashboards/athleteCourse/lastMonthSession/LastMonthSession';
+import AttendanceStatus from '../../../components/dashboards/athleteCourse/attendanceStatus/AttendanceStatus';
 import toPersianDigits from '../../../hooks/convertNumber';
 
 const AthleteCourse = () => {
@@ -19,11 +20,12 @@ const AthleteCourse = () => {
   const [myClasses, setMyClasses] = useState([])
   const [ activeList, setActiveList ] = useState(1)
   const [ nextSession, setNextSession ] = useState(null)
-  const [ lastMonthClass, setLastMonthClass] = useState([])
+  const [ athleteInfo, setAthleteInfo ] = useState(null)
 
   const fetchUserClasses = async () => {
     try {
       const res = await api.get('/training/my-classes/');
+      console.log(res.data)
       setMyClasses(res.data)
     } catch (err) {
       console.log(err)
@@ -39,11 +41,11 @@ const AthleteCourse = () => {
     }
   }
 
-  const fetchLastMonthSession = async () => {
+  const fetchAthleteInfo = async () => {
     try {
-      const res = await api.get('/training/my-classes/last-month/');
+      const res = await api.get('/training/my-classes/info/')
       console.log(res.data)
-      setLastMonthClass(res.data)
+      setAthleteInfo(res.data)
     } catch (err) {
       console.log(err)
     }
@@ -52,7 +54,7 @@ const AthleteCourse = () => {
   useEffect(() => {
     fetchUserClasses();
     fetchNextSession();
-    fetchLastMonthSession();
+    fetchAthleteInfo();
   }, [])
 
   return (
@@ -72,8 +74,8 @@ const AthleteCourse = () => {
           <MyClassCard
             icon={<UilStatistics />}
             title='درصد حضور در ماه'
-            body='92%'
-            footer='+ 4% از ماه گذشته'
+            body={`${athleteInfo?.attendance_percentage} %`}
+            footer={`${athleteInfo?.trend === 'up' ? '+' : '-'} ${athleteInfo?.attendance_difference} از ماه گذشته`}
           />
           <MyClassCard
             icon={<UilCreditCard />} 
@@ -92,18 +94,18 @@ const AthleteCourse = () => {
           <div className={style.classList}>
             <div className={style.headerContainer}>
               <button className={activeList === 1 ? style.active : ''} onClick={() => setActiveList(1)}>همه کلاس ها</button>
-              <button className={activeList === 2 ? style.active : ''} onClick={() => setActiveList(2)}>این ماه</button>
-              <button className={activeList === 3 ? style.active : ''} onClick={() => setActiveList(3)}>ماه قبل</button>
+              <button className={activeList === 2 ? style.active : ''} onClick={() => setActiveList(2)}>این ماه ({month})</button>
+              <button className={activeList === 3 ? style.active : ''} onClick={() => setActiveList(3)}>گزارش حضور و غیاب</button>
             </div>
             <hr style={{marginTop: '1rem'}}/>
             { activeList === 1 && (
-              <MyClassInfo myClasses={myClasses} />
+              <MyClassInfo myClasses={myClasses} athleteInfo={athleteInfo}/>
             )}
             { activeList === 2 && (
-              <ThisMonthSession myClasses={myClasses} />
+              <ThisMonthSession myClasses={myClasses} athleteInfo={athleteInfo}/>
             )}
             { activeList === 3 && (
-              <LastMonthSession myClasses={lastMonthClass}/>
+              <AttendanceStatus myClasses={myClasses}/>
             )}
           </div>
         </div>

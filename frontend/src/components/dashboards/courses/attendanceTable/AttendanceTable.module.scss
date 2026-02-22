@@ -22,6 +22,11 @@
         button {
           padding: .5rem;
         }
+        p {
+          font-size: 16px;
+          font-weight: bold;
+          color: $primary;
+        }
       }
 
       input, select {
@@ -50,10 +55,31 @@
           display: flex;
           justify-content: center;
           align-items: center;
+
           input {
             padding: 8px 12px;
             border-radius: 8px;
             border: 1px solid #ddd;
+          }
+
+          .inputWrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            .searchInput {
+              width: 100%;
+              padding: 8px 12px;
+              border-radius: 8px;
+              border: 1px solid #ddd;
+            }
+            .clearSearch {
+              position: absolute;
+              left: 0;
+              margin-left: 2px;
+              cursor: pointer;
+              padding: .5rem;
+              color: $primary;
+            }
           }
 
           button {
@@ -68,9 +94,17 @@
               color: $success;
               border: 1px solid $success;
             }
+            &.late {
+              color: $warning;
+              border: 1px solid $warning;
+            }
             &.end {
               color: $blue;
               border: 1px solid $blue;
+            }
+            &.finished {
+              background-color: $blue;
+              color: #fff;
             }
           }
 
@@ -129,6 +163,12 @@
                       border-color: #1c9c5d;
                       color: #1c9c5d;
                     }
+                    &.active {
+                      button {
+                        background-color: #1c9c5d;
+                        color: #fff;
+                      }
+                    }
                   }
                   .absent {
                     button {
@@ -136,12 +176,24 @@
                       border-color: #e02424;
                       color: #e02424;
                     }
+                    &.active {
+                      button {
+                        background-color: #e02424;
+                        color: #fff;
+                      }
+                    }
                   }
                   .late {
                     button {
                       background-color: transparent;
                       border-color: #f59e0b;
                       color: #f59e0b;
+                    }
+                    &.active {
+                      button {
+                        background-color: #f59e0b;
+                        color: #fff;
+                      }
                     }
                   }
                 }

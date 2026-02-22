@@ -21,6 +21,8 @@ import StudentRegisterations from './pages/dashbaord/studentRegistrations/Studen
 import Courses from './pages/dashbaord/courses/Courses';
 import CoursesDetail from './pages/dashbaord/courses/coursesDetail/CoursesDetail';
 import AthleteCourse from './pages/dashbaord/athleteCourse/AthleteCourse';
+import Payment from './pages/dashbaord/payment/Payment';
+import PaymentAthletes from './pages/dashbaord/payment/paymentAthletes/PaymentAthletes';
 
 function App() {
   const dispatch = useDispatch();
@@ -151,6 +153,16 @@ function App() {
           <Route path='/dashboard/my-courses' element={
             <PrivateRoute>
               <AthleteCourse />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/payment' element={
+            <PrivateRoute>
+              <Payment />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/payment/courses/:courseId' element={
+            <PrivateRoute>
+              <PaymentAthletes />
             </PrivateRoute>
           } />
         </Route>

@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react'
 import style from './MyClassInfo.module.scss'
-import {UilCheckCircle, UilTimesCircle, UilCheck  } from '@iconscout/react-unicons';
+import {UilCheckCircle, UilTimesCircle, UilCheck, UilClock } from '@iconscout/react-unicons';
 import useCurrentDateTime from '../../../../hooks/currentDateTime';
 import api from '../../../../hooks/api';
 
-const MyClassInfo = ({myClasses}) => {
+const MyClassInfo = ({myClasses, athleteInfo}) => {
 
   const {date, weekday, month} = useCurrentDateTime()
 
@@ -33,14 +33,19 @@ const MyClassInfo = ({myClasses}) => {
                 <ul>
                   <li><img src={item.course.avatar} alt="" style={{width: '64px', height: '64px'}} /></li>
                   <li>
-                    <h3>کلاس {item.course.title}</h3>
-                    <p>هر {item.course.schedule} - مربی: {item.course.coach.full_name}
-                    </p>
+                    <div className={style.classInfo}>
+                      <h3>کلاس {item.course.title}</h3>
+                      <p>هر {item.course.schedule} - مربی: {item.course.coach.full_name}</p>
+                    </div>
+                    <div className={style.attendance}>
+                      <span className={style.present}><UilCheckCircle /> {item.attendance_summary.present_count} جلسه حضور</span>
+                      <span className={style.late}><UilClock /> {item.attendance_summary.late_count} جلسه تاخیر</span>
+                      <span className={style.absent}><UilTimesCircle /> {item.attendance_summary.absent_count} جلسه غیبت</span>
+                    </div>
                   </li>
-                  <li className={style.attendance}>
-                    <h3>حضور و غیاب</h3>
-                    <span className={style.present}><UilCheckCircle /> 10 جلسه حضور</span>
-                    <span className={style.absent}><UilTimesCircle /> 2 جلسه غیبت</span>
+                  <li>
+                    <h3>درصد حضور</h3>
+                    <span>{item.attendance_summary.attendance_percentage} %</span>
                   </li>
                   <li>
                     <h3>شهریه‌ی {month} ماه</h3>
@@ -67,11 +72,11 @@ const MyClassInfo = ({myClasses}) => {
           <ul>
             <li>
               <p>کلاس های فعال شما</p>
-              <h3>{myClasses?.length}</h3>
+              <h3>{athleteInfo?.total_courses}</h3>
             </li>
             <li>
               <p>تاریخ ثبت نام</p>
-              <h3>{myClasses[0]?.joined_at_jalali}</h3>
+              <h3>{myClasses[0]?.joined_at_jalali.split(' ', 1)}</h3>
             </li>
           </ul>
           <p className={style.itemDetail}>برای ثبت نام کلاس جدید به مدیر باشگاه مراجعه شود.</p>
@@ -81,19 +86,19 @@ const MyClassInfo = ({myClasses}) => {
           <ul>
             <li>
               <p>جلسات این ماه</p>
-              <h3>{thisMonthAllSession.count}</h3>
+              <h3>{athleteInfo?.total_sessions}</h3>
             </li>
             <li>
               <p>حضور</p>
-              <h3 style={{color: '#2ECC71'}}>20</h3>
+              <h3 style={{color: '#2ECC71'}}>{athleteInfo?.total_present}</h3>
             </li>
             <li>
               <p>غیبت</p>
-              <h3 style={{color: '#C1121F'}}>2</h3>
+              <h3 style={{color: '#C1121F'}}>{athleteInfo?.total_absent}</h3>
             </li>
             <li>
               <p>باقی مانده</p>
-              <h3 style={{color: '#3b82f6'}}>8</h3>
+              <h3 style={{color: '#3b82f6'}}>{athleteInfo?.remaining_sessions}</h3>
             </li>
           </ul>
           <p className={style.itemDetail}>حضور و غیاب برای هر ماه به صورت جداگانه محاسبه میشوند.</p>

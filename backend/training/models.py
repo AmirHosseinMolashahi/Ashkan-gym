@@ -125,12 +125,20 @@ class TimeTable(models.Model):
 
 
 class Session(models.Model):
+
+    STATUS_CHOICES = (
+        ('finished', 'Finished'),
+        ('unfinished', 'Unfinished'),
+    )
+
     time_table = models.ForeignKey(
         TimeTable,
         on_delete=models.CASCADE,
         related_name='sessions'
     )
     date = models.DateField(verbose_name='تاریخ جلسه')
+
+    attendance_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='unfinished')
 
     def __str__(self):
         return self.time_table.course.title
@@ -164,7 +172,8 @@ class Attendance(models.Model):
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        null=True
+        null=True,
+        blank=True
     )
 
     note = models.TextField(max_length=256)

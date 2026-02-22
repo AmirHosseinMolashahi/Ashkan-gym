@@ -25,6 +25,7 @@ urlpatterns = [
     path('notifications/', include('notifications.urls')),
     path('training/', include('training.urls')),
     path('registration/', include('registration.urls')),
+    path("payment/", include("payment.urls")),
 ]
 
 from django.conf import settings

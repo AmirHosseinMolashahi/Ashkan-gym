@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'notifications',
     'training',
     'registration',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -162,7 +163,7 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "Asia/Tehran"
 
 LANGUAGE_CODE = 'fa'  # فارسی
 

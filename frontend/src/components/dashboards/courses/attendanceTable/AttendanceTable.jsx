@@ -3,88 +3,166 @@ import styles from "./AttendanceTable.module.scss";
 import { UilFilter, UilCheck, UilTimes, UilClock } from '@iconscout/react-unicons'
 import toPersianDigits from "../../../../hooks/convertNumber";
 import api from "../../../../hooks/api";
+import useCurrentDateTime from "../../../../hooks/currentDateTime";
+import { useToast } from "../../../../context/NotificationContext";
+import AttendanceToolbar from "./AttendanceToolbar";
+import AttendanceRow from "./AttendanceRow";
 
 const PAGE_SIZE = 5;
 
-const AttendanceTable = ({ sessions }) => {
+const AttendanceTable = ({ course_id }) => {
+  const [ sessions, setSessions ] = useState([])
   const [ students, setStudents ] = useState([])
   const [ search, setSearch] = useState("");
   const [ paymentFilter, setPaymentFilter] = useState("all");
   const [ page, setPage] = useState(1);
   const [ sessionAttendance, setSessionAttendance ] = useState([])
+  const [ selectedSession, setSelectedSession ] = useState(null)
+  const { notify } = useToast()
+  const {date, weekday, month} = useCurrentDateTime()
+
+  const monthFromDate = Number(
+    date.split('/')[1].replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+  );
+  const yearFromDate = Number(
+    date.split('/')[0].replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+  );
+
+  const [ selectedMonth, setSelectedMonth ] = useState(monthFromDate)
 
   const filteredData = useMemo(() => {
-    return students.filter(s => {
+    return sessionAttendance.filter(s => {
+      const fullName =
+        s.student.full_name ||
+        `${s.student.first_name || ""} ${s.student.last_name || ""}`.trim();
+      const email = s.student.email || "";
+
       const matchSearch =
-        s.student.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        s.student.email.toLowerCase().includes(search.toLowerCase());
+        fullName.toLowerCase().includes(search.toLowerCase()) ||
+        email.toLowerCase().includes(search.toLowerCase());
 
       const matchPayment =
         paymentFilter === "all" || s.paymentStatus === paymentFilter;
 
       return matchSearch && matchPayment;
     });
-  }, [students, search, paymentFilter]);
+  }, [sessionAttendance, search, paymentFilter]);
 
-  const fetchSessionAttendance = async () => {
+  const fetchCourseSessions = async (month_id = selectedMonth) => {
     try {
-      const res = await api.get()
+      const res = await api.get(`/training/session/${course_id}/?year=${yearFromDate}&month=${month_id}`);
+      console.log(res.data)
+      setSessions(res.data)
     } catch (err) {
       console.log(err)
     }
   }
 
+  const fetchSessionAttendance = async (id) => {
+    try {
+      const res = await api.get(`/training/session/${id}/attendance/`);
+      console.log(res.data)
+      setSessionAttendance(res.data)
+    } catch (err) {
+      console.log(err)
+    }
+  };
+
   useEffect(() => {
-    fetchSessionAttendance();
+    fetchCourseSessions();
   }, [])
+
+  const selectedSessionObject = useMemo(() => {
+    return sessions.find(s => s.id === Number(selectedSession));
+  }, [selectedSession, sessions]);
+
+  // const handleStatusChange = (studentId, newStatus) => {
+  //   setSessionAttendance(prev =>
+  //     prev.map(item =>
+  //       item.student === studentId
+  //         ? { ...item, status: newStatus }
+  //         : item
+  //     )
+  //   );
+  // };
+  
+  const updateAttendanceItem = (studentId, updates) => {
+    setSessionAttendance(prev =>
+      prev.map(item =>
+        item.student === studentId
+          ? { ...item, ...updates }
+          : item
+      )
+    );
+  };
+
+  const handleStatusChange = (studentId, newStatus) => {
+    updateAttendanceItem(studentId, { status: newStatus });
+  };
+
+  const handleNoteChange = (studentId, newNote) => {
+    updateAttendanceItem(studentId, { note: newNote });
+  };
+
+  const handleAllStatusChange = (params) => {
+    const newStatus =
+      params === 'p' ? 'present' :
+      params === 'l' ? 'late' :
+      'absent';
+    setSessionAttendance(prev =>
+      prev.map(item => ({
+        ...item,
+        status: newStatus,
+      }))
+    );
+  }
+
+
+  const submitAttendance = async () => {
+    try {
+      const payload = sessionAttendance.map(item => ({
+        student: item.student,
+        status: item.status,
+        note: item.note || ""
+      }));
+
+      await api.put(
+        `/training/session/${selectedSession}/attendance/bulk/`,
+        payload
+      );
+
+      notify('حضور و غیاب با موفقیت ثبت شد!', 'success');
+      fetchCourseSessions();
+    } catch (err) {
+      console.log(err);
+      notify('حضور و غیاب ثبت نشد!!', 'error');
+    }
+  };
+
+
   
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
-        {/* Toolbar */}
-        <div className={styles.toolbar}>
-          <div className={styles.left}>
-            <button><UilFilter /> </button>
-            <select
-              value={paymentFilter}
-              onChange={e => {
-                setPaymentFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="">انتخاب جلسه تمرین</option>
-              {sessions.map((item, index) => {
-                return (
-                  <option key={index} value={item.id}>{item.day_of_week} - {item.date_jalali}</option>
-                )
-              })}
-            </select>
-          </div>
-
-        </div>
-        <div className={styles.actionContainer}>
-          <ul>
-            <li>
-              <input
-                placeholder="جستجوی ورزشکار..."
-                value={search}
-                onChange={e => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-              />
-            </li>
-            <li>
-              <button className={styles.present}>حاضری برای همه</button>
-            </li>
-            <li>
-              <button className={styles.absent}>غیبت برای همه</button>
-            </li>
-            <li className={styles.endBtn}>
-              <button className={styles.end}>اتمام حضور و غیاب</button>
-            </li>
-          </ul>
-        </div>
+      <AttendanceToolbar
+        sessions={sessions}
+        selectedSession={selectedSession}
+        setSelectedSession={setSelectedSession}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        fetchCourseSessions={fetchCourseSessions}
+        fetchSessionAttendance={fetchSessionAttendance}
+        search={search}
+        setSearch={setSearch}
+        sessionAttendance={sessionAttendance}
+        selectedSessionObject={selectedSessionObject}
+        submitAttendance={submitAttendance}
+        handleAllStatusChange={handleAllStatusChange}
+        paymentFilter={paymentFilter}
+        setPaymentFilter={setPaymentFilter}
+        setPage={setPage}
+        setSessionAttendance={setSessionAttendance}
+      />
 
         {/* Table */}
         <div className={styles.tableContainer}>
@@ -99,33 +177,16 @@ const AttendanceTable = ({ sessions }) => {
             </thead>
 
             <tbody>
-              {students?.map((item, index) => {
-                return (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>
-                     <div className={styles.students}>
-                       <img src={item.student.profile_picture} />
-                        <div>
-                          <strong>{item.student.first_name} {item.student.last_name}</strong>
-                          <p>{toPersianDigits(item.student.national_id)}</p>
-                        </div>
-                     </div>
-                    </td>
-                    <td>
-                      <ul>
-                        <li className={styles.present}><button>حاضر <UilCheck /></button></li>
-                        <li className={styles.absent}><button>غایب <UilTimes /></button></li>
-                        <li className={styles.late}><button>تاخیر <UilClock /></button></li>
-                      </ul>
-                    </td>
-                    <td className={styles.note}>
-                      <input type="text" placeholder="توضیحات"/>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
+              {sessionAttendance?.map((item, index) => (
+                <AttendanceRow
+                  key={item.student ?? index}
+                  item={item}
+                  index={index}
+                  onStatusChange={handleStatusChange}
+                  onNoteChange={handleNoteChange}
+                />
+              ))}
+            </tbody> 
           </table>
         </div>
 

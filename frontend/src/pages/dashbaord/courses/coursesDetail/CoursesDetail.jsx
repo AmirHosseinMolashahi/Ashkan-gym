@@ -13,7 +13,6 @@ const CoursesDetail = () => {
   const { id } = useParams()
   const [ courseDetail, setCourseDetail ] = useState(null)
   const [ courseStudents, setCourseStudents ] = useState([])
-  const [ courseSession, setCourseSession ] = useState([])
   const [ addStudentModal, setAddStudentsModal ] = useState(false)
   const [ athletes, setAthletes ] = useState([])
   const [ activeTab, setActiveTab] = useState(1)
@@ -32,21 +31,14 @@ const CoursesDetail = () => {
   const fetchCourseStudentsList = async () => {
     try {
       const res = await api.get(`/training/courses/detail/${id}/students/`);
+      console.log(res.data)
       setCourseStudents(res.data)
     } catch (err) {
       console.log(err)
     }
   }
 
-  const fetchCourseSessions = async () => {
-    try {
-      const res = await api.get(`/training/courses/detail/${id}/sessions/current-month/`);
-      console.log(res.data)
-      setCourseSession(res.data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
+  
 
   const fetchAthletes = async () => {
     try {
@@ -61,7 +53,6 @@ const CoursesDetail = () => {
     fetchCourseDetail();
     fetchCourseStudentsList();
     fetchAthletes();
-    fetchCourseSessions();
   }, [])
 
 
@@ -244,7 +235,7 @@ const CoursesDetail = () => {
             <StudentsSection students={courseStudents} />
           )}
           { activeTab === 2 && (
-            <AttendanceTable students={courseStudents} sessions={courseSession} />
+            <AttendanceTable course_id={id} />
           )}
           { activeTab === 3 && (
             <p>payment</p>

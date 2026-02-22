@@ -91,9 +91,23 @@
           p {
             font-size: 14px;
           }
-
           &.present {
+            background-color: #d5ffe7;
+            border-color: #77ffb2;
+          }
+          &.absent {
+            background-color: #ffd5d5;
+            border-color: $danger;
+          }
+          &.late {
+            background-color: #fff7d5;
+            border-color: #f6ff77;
+          }
+          &.next {
             border-color: $success;
+          }
+          &.allNext {
+            border-color: $secondary;
           }
         }
       }
@@ -132,9 +146,8 @@
             div {
               width: 24px;
               height: 24px;
-              background-color: transparent;
               border-radius: 10px;
-              border: 1px solid $success;
+              border: 1px solid $secondary;
               &.present {
                 background-color: #d5ffe7;
                 border-color: #77ffb2;
@@ -142,6 +155,13 @@
               &.absent {
                 background-color: #ffd5d5;
                 border-color: $danger;
+              }
+              &.late {
+                background-color: #fff7d5;
+                border-color: #f6ff77;
+              }
+              &.next {
+                border-color: $success;
               }
               &.allNext {
                 border-color: $secondary;
@@ -157,5 +177,24 @@
         border-radius: 10px;
       }
     }
+  }
+
+  .present {
+    background-color: #d5ffe7;
+    border-color: #77ffb2;
+  }
+  .absent {
+    background-color: #ffd5d5;
+    border-color: $danger;
+  }
+  .late {
+    background-color: #fff7d5;
+    border-color: #f6ff77;
+  }
+  .next {
+    border-color: $success;
+  }
+  .allNext {
+    border-color: $secondary;
   }
 }

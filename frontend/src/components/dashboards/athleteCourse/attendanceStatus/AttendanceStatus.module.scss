@@ -1,0 +1,173 @@
+@use '../../../../styles/constants.scss' as *;
+.container {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  
+  .left {
+    flex: 2;
+    background-color: #fff;
+    border-radius: 10px;
+
+    .leftContainer {
+      padding: 1rem;
+      h1 {
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+
+      .subtitle {
+        color: #6b7280;
+        margin-bottom: 20px;
+      }
+
+      .select {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 24px;
+        background: white;
+      }
+
+      // .card {
+      //   background: white;
+      //   padding: 24px;
+      //   border-radius: 12px;
+      //   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      // }
+    }
+  }
+  
+  .right {
+    flex: 1;
+  }
+}
+
+.smallText {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.monthList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.monthItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  transition: 0.2s;
+
+  &:hover {
+    background: #fafafa;
+    cursor: pointer;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #6b7280;
+  }
+}
+
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.excellent {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.good {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.low {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.footerText {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* Right Side */
+
+.summaryCard {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+  }
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.statBox {
+  flex: 1;
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+
+  h3 {
+    margin: 0;
+    font-size: 22px;
+    color: #065f46;
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+  }
+}
+
+.legend {
+  font-size: 13px;
+  color: #6b7280;
+  padding-left: 16px;
+
+  li {
+    margin-bottom: 6px;
+  }
+}

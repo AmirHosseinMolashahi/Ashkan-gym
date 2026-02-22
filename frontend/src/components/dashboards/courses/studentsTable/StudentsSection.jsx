@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import styles from "./StudentsSection.module.scss";
-import { UilImport, UilEye, UilEdit, UilTrashAlt } from '@iconscout/react-unicons'
+import { UilImport, UilEye, UilEdit, UilTrashAlt, UilTimes } from '@iconscout/react-unicons'
 import toPersianDigits from "../../../../hooks/convertNumber";
+import useCurrentDateTime from "../../../../hooks/currentDateTime";
 
 const PAGE_SIZE = 5;
 
@@ -9,12 +10,18 @@ export default function StudentsSection({ students }) {
   const [search, setSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const {date, weekday, month} = useCurrentDateTime()
 
   const filteredData = useMemo(() => {
     return students.filter(s => {
+      const fullName =
+        s.student.full_name ||
+        `${s.student.first_name || ""} ${s.student.last_name || ""}`.trim();
+      const email = s.student.email || "";
+
       const matchSearch =
-        s.student.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        s.student.email.toLowerCase().includes(search.toLowerCase());
+        fullName.toLowerCase().includes(search.toLowerCase()) ||
+        email.toLowerCase().includes(search.toLowerCase());
 
       const matchPayment =
         paymentFilter === "all" || s.paymentStatus === paymentFilter;
@@ -44,14 +51,20 @@ export default function StudentsSection({ students }) {
             </select>
           </div>
 
-          <input
-            placeholder="جستجوی ورزشکار..."
-            value={search}
-            onChange={e => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
+          <div className={styles.inputWrapper}>
+            <input
+              placeholder="جستجوی ورزشکار..."
+              value={search}
+              className={styles.searchInput}
+              onChange={e => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+            />
+            { search && (
+              <span className={styles.clearSearch} onClick={() => setSearch("")}><UilTimes /></span>
+            )}
+          </div>
         </div>
 
         {/* Table */}
@@ -62,14 +75,14 @@ export default function StudentsSection({ students }) {
                 <th>ردیف</th>
                 <th>ورزشکار</th>
                 <th>تلفن</th>
-                <th>حضور غیاب</th>
+                <th>حضور غیاب ({month} ماه)</th>
                 <th>وضعیت شهریه</th>
                 <th>تغییرات</th>
               </tr>
             </thead>
 
             <tbody>
-              {students.map((item, index) => {
+              {filteredData.map((item, index) => {
                 return (
                   <tr key={index}>
                     <td>{index + 1}</td>
@@ -84,10 +97,7 @@ export default function StudentsSection({ students }) {
                     </td>
                     <td>{toPersianDigits(item.student.phone_number)}</td>
                     <td>
-                      <strong>{item.attendancePercent}%</strong>
-                      <span className={styles.muted}>
-                        ({item.attended}/{item.total})
-                      </span>
+                      <strong>{item.attendance_percentage}%</strong>
                     </td>
                     <td>
                       <span className={`${styles.badge} ${styles[item.paymentStatus]}`}>

@@ -22,17 +22,33 @@
         }
       }
 
-      input, select {
+      select {
         padding: 8px 12px;
         border-radius: 8px;
         border: 1px solid #ddd;
       }
-      input {
-        width: 30%;
-      }
 
       button {
         margin-right: 8px;
+      }
+      .inputWrapper {
+        position: relative;
+        width: 30%;
+        display: flex;
+        .searchInput {
+          width: 100%;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        }
+        .clearSearch {
+          position: absolute;
+          left: 0;
+          margin-left: 2px;
+          cursor: pointer;
+          padding: .5rem;
+          color: $primary;
+        }
       }
     }
     .tableContainer {

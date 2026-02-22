@@ -4,7 +4,7 @@ import InfoBox from '../../components/dashboards/InfoBox/InfoBox'
 import DetailBox from '../../components/dashboards/InfoBox/detailBox/DetailBox';
 import { useNavigate } from 'react-router-dom';
 import DashCard from '../../components/dashboards/dashboardCard/DashCard';
-import { UilUserPlus, UilChatBubbleUser } from '@iconscout/react-unicons'
+import { UilUserPlus, UilChatBubbleUser, UilCreditCard  } from '@iconscout/react-unicons'
 import RoleGuard from '../../wrapper/roleGuard';
 import { useSelector } from 'react-redux';
 
@@ -44,6 +44,16 @@ const Dashbaord = () => {
             iconColor='#e9ffeb'
             icon={<UilChatBubbleUser fill='#39ff2f' />}
             onClick={() => navigate('/dashboard/courses')}
+          />
+        </RoleGuard>
+        <RoleGuard user={user} allowedRoles={['manager', 'coach']}>  
+          <DashCard 
+            title='مدیریت شهریه ها'
+            description='نمایش وضعیت پرداخت ها'
+            buttonText='ورود'
+            iconColor='#ffe9e9'
+            icon={<UilCreditCard fill='#ff2f2f' />}
+            onClick={() => navigate('/dashboard/payment')}
           />
         </RoleGuard>
         <RoleGuard user={user} allowedRoles={['athlete']}>

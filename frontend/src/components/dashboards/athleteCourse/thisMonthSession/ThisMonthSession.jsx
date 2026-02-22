@@ -4,24 +4,24 @@ import useCurrentDateTime from '../../../../hooks/currentDateTime';
 import toPersianDigits from '../../../../hooks/convertNumber';
 import api from '../../../../hooks/api';
 
-const ThisMonthSession = ({myClasses}) => {
+const ThisMonthSession = ({myClasses, athleteInfo}) => {
 
   const {date, weekday, month} = useCurrentDateTime()
 
-  const [thisMonthAllSession, setThisMonthAllSession] = useState(0)
+  // const [thisMonthAllSession, setThisMonthAllSession] = useState(0)
 
-  const fetchThisMonthSession = async () => {
-    try {
-      const res = await api.get(`/training/my-classes/sessions/?year=${myClasses[0].sessions[0].date_jalali.split('/')[0]}&month=${myClasses[0].sessions[0].date_jalali.split('/')[1]}`)
-      setThisMonthAllSession(res.data)
-    } catch (err) {
-      console.log(err);
-    }
-  }
+  // const fetchThisMonthSession = async () => {
+  //   try {
+  //     const res = await api.get(`/training/my-classes/sessions/?year=${myClasses[0].sessions[0].date_jalali.split('/')[0]}&month=${myClasses[0].sessions[0].date_jalali.split('/')[1]}`)
+  //     setThisMonthAllSession(res.data)
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
 
-  useEffect(() => {
-      fetchThisMonthSession();
-    }, [])
+  // useEffect(() => {
+  //     fetchThisMonthSession();
+  //   }, [])
   
 
   return (
@@ -43,12 +43,49 @@ const ThisMonthSession = ({myClasses}) => {
                 <p>جلسات {month} ماه</p>
                 <ul className={style.sessionDate}>
                   {item.sessions.map((s, i) => {
-                    return (
-                        <li key={i} className={item.next_session.date === s.date ? style.present : ''}>
+                    if (s.attendance_status === "unfinished") {
+                      return (
+                        <li key={i} className={item.next_session.date === s.date ? style.next : ""}>
                           <p>{s.day_of_week}</p>
-                          <h4>{toPersianDigits(s.date_jalali.split('/')[2])}</h4>
+                          <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
                         </li>
-                      )
+                      );
+                    } else {
+                      if (s.attendance_status_user === "absent") {
+                        return (
+                          <li key={i} className={style.absent}>
+                            <p>{s.day_of_week}</p>
+                            <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
+                          </li>
+                        );
+                      }
+
+                      if (s.attendance_status_user === "present") {
+                        return (
+                          <li key={i} className={style.present}>
+                            <p>{s.day_of_week}</p>
+                            <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
+                          </li>
+                        );
+                      }
+
+                      if (s.attendance_status_user === "late") {
+                        return (
+                          <li key={i} className={style.late}>
+                            <p>{s.day_of_week}</p>
+                            <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
+                          </li>
+                        );
+                      } else {
+                        return (
+                          <li key={i} className={item.next_session.date === s.date ? style.next : ""}>
+                            <p>{s.day_of_week}</p>
+                            <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
+                          </li>
+                        )
+                      }
+                    }
+                    return null;
                   })}
                 </ul>
               </div>
@@ -75,6 +112,9 @@ const ThisMonthSession = ({myClasses}) => {
               <div className={style.listItem}>غایب <div className={style.absent}></div></div>
             </li>
             <li>
+              <div className={style.listItem}>حضور با تاخیر <div className={style.late}></div></div>
+            </li>
+            <li>
               <div className={style.listItem}>کلاس بعدی <div className={style.next}></div></div>
             </li>
             <li>
@@ -87,11 +127,11 @@ const ThisMonthSession = ({myClasses}) => {
           <ul>
             <li>
               <p>جلسات این ماه</p>
-              <h3>{thisMonthAllSession.count}</h3>
+              <h3>{athleteInfo?.total_sessions}</h3>
             </li>
             <li>
               <p>درصد حضور</p>
-              <h3>84%</h3>
+              <h3>{athleteInfo?.attendance_percentage} %</h3>
             </li>
           </ul>
           <p className={style.itemDetail}>برای دیدن اطلاعات هر جلسه بر روی آن جلسه کلیک کنین.</p>

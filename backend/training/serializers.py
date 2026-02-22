@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Course, Enrollment, AgeRange, TimeTable, Session
 from account.models import CustomUser
 from django.db import transaction
+from django.db.models import Count, Q
 from datetime import timedelta, date
 from notifications.utils import create_and_send_notification
 from .models import Session, Attendance
@@ -132,6 +133,9 @@ class CoursesDetailSerializers(serializers.ModelSerializer):
 #سریالایزر اطلاعات ثبت نام شده
 class EnrollmentSerializer(serializers.ModelSerializer):
     student = StudentSerializer()
+    attendance_percentage = serializers.SerializerMethodField()
+    total_sessions = serializers.IntegerField(read_only=True)
+    present_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Enrollment
@@ -140,7 +144,16 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'student',
             'status',
             'joined_at',
+            'attendance_percentage',
+            'total_sessions',
+            'present_count',
         )
+
+    def get_attendance_percentage(self, obj):
+        if obj.total_sessions == 0:
+            return 0
+
+        return round(obj.attendance_percentage, 1)
 
 #سریالایزر ثبت نام ورزشکار
 class AddEnrollmentSerializer(serializers.Serializer):
@@ -182,7 +195,7 @@ class AddEnrollmentSerializer(serializers.Serializer):
         return enrollments
 
 
-# اطلاعات ثبت نامی
+# اطلاعات ثبت نامی های یک کلاس
 class EnrollmentListSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source='student.get_full_name',
@@ -216,7 +229,7 @@ class SessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Session
-        fields = ('id', 'date', 'day_of_week', 'start_time', 'end_time', 'date_jalali')
+        fields = ('id', 'date', 'day_of_week', 'start_time', 'end_time', 'date_jalali', 'attendance_status',)
     
     def get_date_jalali(self, obj):
         if obj.date:
@@ -228,6 +241,9 @@ class UserEnrollmnetsSerializers(serializers.ModelSerializer):
     joined_at_jalali = serializers.SerializerMethodField()
     sessions = serializers.SerializerMethodField()
     next_session = serializers.SerializerMethodField()
+    attendance_summary = serializers.SerializerMethodField()
+    remaining_sessions = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = Enrollment
@@ -241,12 +257,52 @@ class UserEnrollmnetsSerializers(serializers.ModelSerializer):
     def get_sessions(self, obj):
         start_date, end_date = get_current_shamsi_month_range()
 
-        qs = Session.objects.filter(
+        sessions = Session.objects.filter(
             time_table__course=obj.course,
             date__range=(start_date, end_date)
-        ).select_related('time_table').order_by('date')
+        ).order_by('date')
 
-        return SessionSerializer(qs, many=True).data
+        return StudentSessionSerializer(
+            sessions,
+            many=True,
+            context=self.context
+        ).data
+    
+    def get_remaining_sessions(self, obj):
+        start_date, end_date = get_current_shamsi_month_range()
+
+        return Session.objects.filter(
+            time_table__course=obj.course,
+            date__range=(start_date, end_date),
+            attendance_status='unfinished'
+        ).count()
+    
+    def get_attendance_summary(self, obj):
+        start_date, end_date = get_current_shamsi_month_range()
+
+        user = obj.student
+
+        qs = Attendance.objects.filter(
+            session__time_table__course=obj.course,
+            session__date__range=(start_date, end_date),
+            student__student=user
+        )
+
+        summary = qs.aggregate(
+            present_count=Count('id', filter=Q(status='present')),
+            absent_count=Count('id', filter=Q(status='absent')),
+            late_count=Count('id', filter=Q(status='late')),
+            total=Count('id')
+        )
+        total = summary['total'] or 0
+        present = summary['present_count'] or 0
+        late = summary['late_count'] or 0
+
+        summary['attendance_percentage'] = (
+            round(((present + late) / total) * 100, 1) if total > 0 else 0
+        )
+
+        return summary
 
     def get_next_session(self, obj):
         today = datetime.date.today()
@@ -301,8 +357,102 @@ class PrevMonthSessionSerializer(serializers.ModelSerializer):
 
     def get_prev_month_name(self, obj):
         return get_previous_shamsi_month_name()
+    
+#سریالایزر ورزشکار
+#سریالایزر برای هر جلسه ورزشکار به همراه وضعیت حضور و غیاب
+class StudentSessionSerializer(serializers.ModelSerializer):
+    day_of_week = serializers.CharField(
+        source='time_table.get_day_of_week_display'
+    )
+    date_jalali = serializers.SerializerMethodField()
+    attendance_status_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Session
+        fields = (
+            'id',
+            'date',
+            'date_jalali',
+            'attendance_status',
+            'attendance_status_user',
+            'day_of_week',
+        )
+
+    def get_date_jalali(self, obj):
+        if obj.date:
+            return jdatetime.datetime.fromgregorian(
+                datetime=obj.date
+            ).strftime("%Y/%m/%d")
+        return None
+
+    def get_attendance_status_user(self, obj):
+        user = self.context['request'].user
+        attendance = obj.attendances.filter(
+            student__student=user
+        ).first()
+        return attendance.status if attendance else None
+
+
+
+class MonthlyAttendanceSummarySerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    month = serializers.IntegerField()
+    month_name = serializers.CharField()
+    total_sessions = serializers.IntegerField()
+    present_count = serializers.IntegerField()
+    attendance_percentage = serializers.FloatField()
+    attendance_percentage_status = serializers.CharField()
+
+
+# سریالایزر مربی
 
 class SessionAttendanceSerializers(serializers.ModelSerializer):
+    student_name = serializers.CharField(
+        source='student.student',  # اگر Enrollment به Student وصله
+        read_only=True
+    )
+    profile_picture = serializers.ImageField(
+        source='student.student.profile_picture',
+        read_only=True
+    )
+    national_id = serializers.IntegerField(
+        source='student.student.national_id',
+        read_only=True
+    )
     class Meta:
         model = Attendance
-        fields = '__all__'
+        fields = [
+            'id',
+            'student',
+            'national_id',
+            'student_name',
+            'profile_picture',
+            'status',
+            'note',
+        ]
+
+
+class AttendanceBulkUpdateSerializer(serializers.Serializer):
+    student = serializers.IntegerField()
+    status = serializers.ChoiceField(
+        choices=['present', 'absent', 'late']
+    )
+    note = serializers.CharField(required=False, allow_blank=True, max_length=256)
+
+
+class AthleteDashboardSerializer(serializers.Serializer):
+    year = serializers.IntegerField()
+    month = serializers.IntegerField()
+    month_name = serializers.CharField()
+
+    total_courses = serializers.IntegerField()
+    total_sessions = serializers.IntegerField()
+    total_present = serializers.IntegerField()
+    total_absent = serializers.IntegerField()
+    remaining_sessions = serializers.IntegerField()
+
+    attendance_percentage = serializers.FloatField()
+
+    previous_attendance_percentage = serializers.FloatField(allow_null=True)
+    attendance_difference = serializers.FloatField(allow_null=True)
+    trend = serializers.CharField(allow_null=True)

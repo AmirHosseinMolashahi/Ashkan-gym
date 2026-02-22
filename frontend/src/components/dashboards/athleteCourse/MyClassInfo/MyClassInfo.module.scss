@@ -24,8 +24,16 @@
         li {
           font-size: 14px;
           display: flex;
+          align-items: center;
+          justify-content: center;
           gap: .5rem;
           flex-direction: column;
+
+          .classInfo {
+            display: flex;
+            flex-direction: column;
+            justify-content: right;
+          }
 
           .payment {
             display: flex;
@@ -44,32 +52,35 @@
             }
 
           }
-        }
-
-        .attendance {
-          display: flex;
-          flex-direction: column;
-          gap: .5rem;
-
-          span {
+          .attendance {
             display: flex;
-            justify-content: center;
-            align-items: center;
             gap: .5rem;
-            border-radius: 20px;
-            padding: .2rem;
-            font-size: 11px;
-          }
 
-          .present {
-            background-color: $new;
-            color: #1b8346;
-          }
-          .absent {
-            background-color: #c61e1e;
-            color: #6b0c0c;
-          }
+            span {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              gap: .3rem;
+              border-radius: 20px;
+              padding: .2rem;
+              font-size: 11px;
+              padding-left: .4rem;
+            }
 
+            .present {
+              background-color: $new;
+              color: #1b8346;
+            }
+            .absent {
+              background-color: #ff7676;
+              color: #6b0c0c;
+            }
+            .late {
+              background-color: #fff45f;
+              color: #6b580c;
+            }
+
+          }
         }
       }
     }

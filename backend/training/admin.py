@@ -33,6 +33,15 @@ admin.site.register(TimeTable, TimeTableAdmin)
 class SessionAdmin(admin.ModelAdmin):
     list_display = ['time_table', 'date']
 
+    actions = ("attendance_status_change",) # Necessary 
+
+    @admin.action(description="پایان همه کلاس ها")
+    def attendance_status_change(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.attendance_status = "finished"
+            obj.save()
+            messages.success(request, "Successfully")
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -57,6 +66,15 @@ class SessionAdmin(admin.ModelAdmin):
 class AttendanceAdmin(admin.ModelAdmin):
     model = Attendance
     list_display = ['session', 'student']
+
+    actions = ("status_change",) # Necessary 
+
+    @admin.action(description="Change status")
+    def status_change(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.status = ""
+            obj.save()
+            messages.success(request, "Successfully")
 
     def get_urls(self):
         urls = super().get_urls()
