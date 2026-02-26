@@ -127,16 +127,31 @@
 }
 
 .classInfo {
-  h4 {
-    margin-bottom: 0.3rem;
-    font-size: 1.1rem;
+  .classTitle {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    h4 {
+      margin-bottom: 0.3rem;
+      font-size: 1.1rem;
+    }
+
+    p {
+      color: #6b7280;
+      margin-bottom: 0.8rem;
+    }
+    .badge {
+      padding: .5rem;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px
+    }
   }
 
-  p {
-    color: #6b7280;
-    margin-bottom: 0.8rem;
-  }
 }
+
 
 .rowMeta {
   display: flex;

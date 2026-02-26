@@ -69,7 +69,11 @@ class CustomUser(AbstractUser):
     father_name = models.CharField(verbose_name='نام پدر')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name='نقش', default='athlete')
     profile_picture = models.ImageField(upload_to=user_directory_path, verbose_name='عکس پروفایل', default='default/man-user.jpg')
-    previous_login = models.DateTimeField(auto_now=True, verbose_name='ورود قبلی')
+    previous_login = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='ورود قبلی'
+    )
 
     USERNAME_FIELD = 'national_id'   # اینجا مهم‌ترین بخش است
     REQUIRED_FIELDS = []             # چون username حذف شده

@@ -109,6 +109,8 @@ const Payment = () => {
       return {
         id: course.id,
         title: course.title,
+        active: course.is_active,
+        coach: course.coach,
         schedule: course.schedule || "—",
         athletes: course.enrollment_count ?? 0,
         month: monthLabel,
@@ -251,7 +253,12 @@ const Payment = () => {
               {classRows?.map((item) => (
                 <article key={item.id} className={style.classRow}>
                   <div className={style.classInfo}>
-                    <h4>{item.title}</h4>
+                    <div className={style.classTitle}>
+                      <h4>{item.title} </h4> <span className={`${style.badge} ${item.active ? style.good : style.danger}`}>{item.active ? 'فعال' : 'غیر فعال'}</span>
+                    </div>
+                    <div className={style.classCoach}>
+                      <h5>مربی: {item.coach.full_name}</h5>
+                    </div>
                     <p>
                       {item.schedule} – {toPersianDigits(String(item?.athletes))} ورزشکار
                     </p>
@@ -268,16 +275,18 @@ const Payment = () => {
                     <span className={`${style.stateBadge} ${style[item.stateType]}`}>
                       {item.stateLabel}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => 
-                        navigate(
-                          `/dashboard/payment/courses/${item.id}?year=${selectedYear}&month=${selectedMonth}`
-                        )
-                      }
-                      >
-                        صفحه پرداخت ورزشکارها<UilArrowLeft />
-                    </button>
+                    {item.active && (
+                      <button
+                        type="button"
+                        onClick={() => 
+                          navigate(
+                            `/dashboard/payment/courses/${item.id}?year=${selectedYear}&month=${selectedMonth}`
+                          )
+                        }
+                        >
+                          صفحه پرداخت ورزشکارها<UilArrowLeft />
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}

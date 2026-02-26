@@ -224,10 +224,11 @@ class StudentCountView(APIView):
         user = self.request.user
 
         if user.role == 'manager':
-            count = Enrollment.objects.all().count()
-
-        if user.role == 'coach':
-            count = Enrollment.objects.filter(course__coach=user,status='active')
+            count = Enrollment.objects.count()
+        elif user.role == 'coach':
+            count = Enrollment.objects.filter(course__coach=user, status='active').count()
+        else:
+            count = 0
 
         return Response({"students": count})
 
@@ -405,11 +406,22 @@ class AvailableMonthSessionView(ListAPIView):
         start_date = start_shamsi.togregorian()
         end_date = end_shamsi.togregorian()
 
-        return Session.objects.filter(
+        qs = Session.objects.filter(
             time_table__course=course,
             date__gte=start_date,
             date__lt=end_date
-        ).order_by('-date')
+        )
+
+        # برای ماه جاری فقط جلسات گذشته یا امروز نمایش داده شوند
+        today_gregorian = timezone.localdate()
+        today_shamsi = jdatetime.date.fromgregorian(date=today_gregorian)
+
+        if year == today_shamsi.year and month == today_shamsi.month:
+            qs = qs.filter(date__lte=today_gregorian)
+
+        return qs.order_by('-date')
+
+
 
 
 # این ویو واسه مربیه و حضور غیاب هایی که از قبل انجام شده است رو میبینه

@@ -4,17 +4,31 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, ListAPIView, ListCreateAPIView, DestroyAPIView, RetrieveUpdateAPIView
-from django.contrib.auth import authenticate
 from rest_framework import status
-from .models import CustomUser, LoginHistory
-from .serializers import userSerializers, RegisterSerializer, UserUpdateSerializer
-from .permissions import IsManager, IsCoachOrManager
+from rest_framework.pagination import PageNumberPagination
+
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
-from .utils import get_client_ip
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from django.db.models import Q, Count
+
+from .models import CustomUser, LoginHistory
+from .serializers import (
+    userSerializers,
+    RegisterSerializer,
+    UserUpdateSerializer,
+    ManagerUserUpdateSerializer,
+)
+
+from .permissions import IsManager, IsCoachOrManager
+from .utils import get_client_ip
+from .models import CustomUser, LoginHistory
+
 from registration.models import Registration
 from notifications.utils import create_and_send_notification
+
+from datetime import timedelta
 
 class LoginView(APIView):
     authentication_classes = []
@@ -49,7 +63,7 @@ class LoginView(APIView):
 
         user.previous_login = user.last_login
         user.last_login = timezone.now()
-        user.save()
+        user.save(update_fields=["previous_login", "last_login"])
 
         ip = get_client_ip(request)
         LoginHistory.objects.create(
@@ -155,6 +169,110 @@ class UsersView(ListAPIView):
             qs = qs.filter(role=role)
 
         return qs
+
+
+class AllUsersPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 100
+
+
+class AllUsersManagementView(ListAPIView):
+    serializer_class = userSerializers
+    permission_classes = [IsAuthenticated, IsManager]
+    pagination_class = AllUsersPagination
+
+    def get_queryset(self):
+        qs = CustomUser.objects.all().order_by("-date_joined")
+
+        role = self.request.query_params.get("role")
+        is_active = self.request.query_params.get("is_active")
+        search = self.request.query_params.get("search")
+
+        if role and role != "all":
+            qs = qs.filter(role=role)
+
+        if is_active in ["true", "false"]:
+            qs = qs.filter(is_active=(is_active == "true"))
+
+        if search:
+            qs = qs.filter(
+                Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+                | Q(national_id__icontains=search)
+                | Q(phone_number__icontains=search)
+                | Q(email__icontains=search)
+            )
+
+        return qs
+
+
+class UserManagementSummaryView(APIView):
+    permission_classes = [IsAuthenticated, IsManager]
+
+    def get(self, request):
+        now = timezone.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        # بازه ماه قبل برای مقایسه
+        prev_month_end = month_start - timedelta(microseconds=1)
+        prev_month_start = prev_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        total_users = CustomUser.objects.count()
+        inactive_users = CustomUser.objects.filter(is_active=False).count()
+        new_this_month = CustomUser.objects.filter(date_joined__gte=month_start).count()
+        new_prev_month = CustomUser.objects.filter(
+            date_joined__gte=prev_month_start,
+            date_joined__lte=prev_month_end
+        ).count()
+
+        # کاربران فعال امروز (بر اساس لاگ ورود)
+        active_today = LoginHistory.objects.filter(
+            login_time__gte=today_start
+        ).values("user_id").distinct().count()
+
+        return Response({
+            "total_users": total_users,
+            "active_today": active_today,
+            "new_this_month": new_this_month,
+            "new_prev_month": new_prev_month,
+            "inactive_users": inactive_users,
+        })
+
+
+class UserManagementDetailView(RetrieveUpdateAPIView):
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated, IsManager]
+    lookup_url_kwarg = 'user_id'
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return userSerializers
+        return ManagerUserUpdateSerializer
+
+
+class ManagerDeleteUserView(DestroyAPIView):
+    queryset = CustomUser.objects.all()
+    permission_classes = [IsAuthenticated, IsManager]
+    lookup_url_kwarg = "user_id"
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        # مدیر نتونه خودش رو حذف کنه
+        if user.id == request.user.id:
+            return Response(
+                {"detail": "شما نمی‌توانید حساب خودتان را حذف کنید."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.delete()
+        return Response(
+            {"detail": "کاربر با موفقیت حذف شد."},
+            status=status.HTTP_200_OK,
+        )
+
 
 
 class RegisterView(CreateAPIView):

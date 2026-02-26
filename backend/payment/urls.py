@@ -5,7 +5,9 @@ from .views import (
     CoachInvoiceUpdateView,
     AthleteInvoiceListView,
     AthleteInvoiceDetailView,
+    AthletePaymentListView,
 )
+
 
 urlpatterns = [
     # مربی
@@ -15,4 +17,5 @@ urlpatterns = [
     # ورزشکار
     path("me/invoices/", AthleteInvoiceListView.as_view(), name="athlete-invoice-list"),
     path("me/invoices/<int:invoice_id>/", AthleteInvoiceDetailView.as_view(), name="athlete-invoice-detail"),
+    path("me/payments/", AthletePaymentListView.as_view(), name="athlete-payment-list"),
 ]

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Profile.module.scss';
-import { Link, useNavigate } from 'react-router-dom';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../utils/cropImage'; // تابع کمکی برای برش
-import { UilCameraPlus, UilSignInAlt, UilChatBubbleUser, UilLockAlt, UilEdit, UilUserPlus, UilCheckCircle, UilCheck  } from '@iconscout/react-unicons'
+import { UilCameraPlus, UilLockAlt, UilEdit, UilCheckCircle, UilCheck  } from '@iconscout/react-unicons'
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
@@ -35,7 +34,21 @@ const EditProfile = () => {
   const { user, loading } = useSelector(state => state.auth);
   const { notify } = useToast();
   const { showLoading, hideLoading } = useLoading()
-  const navigate = useNavigate();
+  const [activities, setActivities] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+
+  // helper ساده برای زمان نسبی
+  const timeAgoFa = (dateStr) => {
+    if (!dateStr) return '';
+    const diffSec = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diffSec < 60) return `${toPersianDigits(diffSec)} ثانیه قبل`;
+    const min = Math.floor(diffSec / 60);
+    if (min < 60) return `${toPersianDigits(min)} دقیقه قبل`;
+    const hour = Math.floor(min / 60);
+    if (hour < 24) return `${toPersianDigits(hour)} ساعت قبل`;
+    const day = Math.floor(hour / 24);
+    return `${toPersianDigits(day)} روز قبل`;
+  };
   
   const [profileImage, setProfileImage] = useState(null); // برای نمایش
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -88,6 +101,20 @@ const EditProfile = () => {
     }
   }
 
+  // 3) گرفتن activity ها
+  const fetchRecentActivities = async () => {
+    setActivityLoading(true);
+    try {
+      const res = await api.get('/activity/recent/?limit=6');
+      setActivities(res.data || []);
+    } catch (err) {
+      console.log(err);
+      setActivities([]);
+    } finally {
+      setActivityLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) {
       dispatch(fetchUser());
@@ -98,6 +125,7 @@ const EditProfile = () => {
   useEffect(() => {
     if (user) {
       setFormData(user);
+      fetchRecentActivities();
     }
     fetchUserCourse();
     fetchStudentCount();
@@ -186,7 +214,7 @@ const EditProfile = () => {
       await dispatch(fetchUser()).unwrap();
       notify('اطلاعات با موفقیت ذخیره شد 🙌', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setIsEditingPersonal(false);
+      setIsEditingContact(false);
     } catch (err) {
       notify('خطا در ذخیره اطلاعات ❌', 'error');
     } finally {
@@ -248,93 +276,19 @@ const EditProfile = () => {
               </div>
             </div>
             <div className={styles.info}>
-              <h1>{user.full_name}</h1>
-              <p>{roleConverter(user.role)}</p>
+              <h1>{user?.full_name}</h1>
+              <p>{roleConverter(user?.role)}</p>
               <p>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
             </div>
           </div>
           <div className={styles.content}>
             <div className={styles.rightContent}>
-              {/* <form onSubmit={handleSubmit} className={styles.form}>
-                <div className={styles.profileContainer}>
-                  
-                </div>
-                <div className={styles.inputContainer}>
-                  
-                  <div className={styles.inputWrapper}>
-                    <label>کدملی</label>
-                    <input name="national_id" className={styles.formInput} value={formData.national_id} onChange={handleChange} placeholder="کد ملی" readOnly/>
-                  </div>
-
-                  <div className={styles.inputWrapper}>
-                    <label>نام پدر</label>
-                    <input name="father_name" className={styles.formInput} value={formData.father_name} onChange={handleChange} placeholder="نام پدر"/>
-                  </div>
-                </div>
-                <div className={styles.inputContainer}>
-                  <div className={styles.inputWrapper}>
-                    <label>نام</label>
-                    <input name="first_name" className={styles.formInput} value={formData.first_name} onChange={handleChange} placeholder="نام" required/>
-                  </div>
-
-                  <div className={styles.inputWrapper}>
-                    <label>نام خانوادگی</label>
-                    <input name="last_name" className={styles.formInput} value={formData.last_name} onChange={handleChange} placeholder="نام خانوادگی" required/>
-                  </div>
-                </div>
-                <div className={styles.inputContainer}>
-                  <div className={styles.inputWrapper}>
-                    <label>ایمیل</label>
-                    <input type="email" name="email" className={styles.formInput} value={formData.email} onChange={handleChange} placeholder="ایمیل" required/>
-                  </div>
-
-                  <div className={styles.inputWrapper}>
-                    <label>شماره تماس</label>
-                    <input name="phone_number" className={styles.formInput} value={formData.phone_number} onChange={handleChange} placeholder="شماره تماس" required/>
-                  </div>
-                </div>
-                <div className={styles.inputContainer} >
-                  <div className={styles.inputWrapper}>
-                    <label>آدرس</label>
-                    <input name="address" className={styles.formInput} value={formData.address} onChange={handleChange} placeholder="آدرس" required/>
-                  </div>
-
-                  <div className={styles.inputWrapper}>
-                    <label>تاریخ تولد</label>
-                    {/* <input type="date" name="birthdate" value={formData.birthdate} onChange={handleChange} placeholder="تاریخ تولد" required/>
-                    <DatePicker
-                      value={formData.birthdate_jalali}
-                      calendar={persian}
-                      locale={persian_en}
-                      onChange={(date) => {
-                        // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
-                        const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
-                        // console.log("miladi: ", miladi)
-                        setFormData({ ...formData, birthdate_jalali: miladi });
-                      }}
-                      render={(value, openCalendar) => (
-                      <input
-                        onFocus={openCalendar}
-                        value={value}           // این فارسی نمایش می‌دهد
-                        placeholder="تاریخ تولد"
-                        className={styles.formInput}
-                        readOnly
-                      />
-                    )}
-                    />
-                  </div>
-                </div>
-                <button type="submit" className={styles.submit}>
-                  {saved ? "✅ ذخیره شد" : "ذخیره"}
-                </button>
-              </form> */}
               <div className={styles.personalInfo}>
                 <div className={styles.infoHeader}>
                   <h3>اطلاعات شخصی</h3>
                   <button onClick={() => {
                     if (isEditingPersonal) {
                       handleSavePersonal()
-                      console.log('nigga')
                     }
                     setIsEditingPersonal(!isEditingPersonal);
                   }}> 
@@ -515,10 +469,10 @@ const EditProfile = () => {
                   <ul className={styles.userStatus}>
                     <li>
                       <p>تاریخ ثبت نام</p>
-                      <p>{user.joined_at}</p>
+                      <p>{user?.joined_at}</p>
                     </li>
                     <li>
-                      {user.role === 'manager' ? (
+                      {user?.role === 'manager' ? (
                         <>
                           <p>کلاس ها</p>
                           <p>{userCourse ? userCourse : 'کلاسی موجود نیست'}</p>
@@ -530,9 +484,9 @@ const EditProfile = () => {
                         </>
                       )}
                     </li>
-                    {user.role !== 'athlete' && (
+                    {user?.role !== 'athlete' && (
                       <li>
-                        {user.role === 'manager' ? (
+                        {user?.role === 'manager' ? (
                           <>
                             <p>تعداد ورزشکاران</p>
                             <p>{studentCount ? studentCount : 'X'}</p>
@@ -554,33 +508,27 @@ const EditProfile = () => {
                 </div>
                 <div className={styles.profileInfoContent}>
                   <ul className={styles.recentActivity}>
-                    <li>
-                      <div className={styles.activityIcon} style={{backgroundColor: '#e9f0ff'}}>
-                        <UilCheckCircle fill='#2f6bff' />
-                      </div>
-                      <div className={styles.activityInfo}>
-                        <p>تایید حضور غیاب کلاس</p>
-                        <p>2 ساعت قبل</p>
-                      </div>
-                    </li>
-                    <li>
-                      <div className={styles.activityIcon} style={{backgroundColor: '#e9ffeb'}}>
-                        <UilEdit fill='#39ff2f'/>
-                      </div>
-                      <div className={styles.activityInfo}>
-                        <p>تغییر ساعت کلاس</p>
-                        <p>3 ساعت قبل</p>
-                      </div>
-                    </li>
-                    <li>
-                      <div className={styles.activityIcon} style={{backgroundColor: '#ffe9fe'}}>
-                        <UilUserPlus fill='#ff2fee' />
-                      </div>
-                      <div className={styles.activityInfo}>
-                        <p>ثبت نام ورزشکار جدید</p>
-                        <p>4 ساعت قبل</p>
-                      </div>
-                    </li>
+                    {activityLoading && <li>در حال دریافت فعالیت‌ها...</li>}
+
+                    {!activityLoading && activities.length === 0 && (
+                      <li>فعلاً فعالیتی ثبت نشده است.</li>
+                    )}
+
+                    {!activityLoading &&
+                      activities.map((item) => (
+                        <li key={item?.id}>
+                          <div
+                            className={styles.activityIcon}
+                            style={{ backgroundColor: '#e9f0ff' }}
+                          >
+                            <UilCheckCircle fill="#2f6bff" />
+                          </div>
+                          <div className={styles.activityInfo}>
+                            <p>{item?.description || item?.verb}</p>
+                            <p>{timeAgoFa(item?.created_at)}</p>
+                          </div>
+                        </li>
+                      ))}
                   </ul>
                 </div>
               </div>

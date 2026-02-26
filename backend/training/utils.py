@@ -72,7 +72,7 @@ def generate_shamsi_month_attendances(year=None, month=None):
             Attendance(
                 session=session,
                 student=enrollment,
-                status='absent',
+                status='',
                 note=''
             )
             for enrollment in enrollments

@@ -23,6 +23,9 @@ import CoursesDetail from './pages/dashbaord/courses/coursesDetail/CoursesDetail
 import AthleteCourse from './pages/dashbaord/athleteCourse/AthleteCourse';
 import Payment from './pages/dashbaord/payment/Payment';
 import PaymentAthletes from './pages/dashbaord/payment/paymentAthletes/PaymentAthletes';
+import StudentPayment from './pages/dashbaord/studentPayment/studentPayment';
+import UserManagement from './pages/dashbaord/userManagement/UserManagement';
+import ManagerEditUser from './pages/dashbaord/userManagement/managerEditUser/ManagerEditUser';
 
 function App() {
   const dispatch = useDispatch();
@@ -163,6 +166,21 @@ function App() {
           <Route path='/dashboard/payment/courses/:courseId' element={
             <PrivateRoute>
               <PaymentAthletes />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/student-payment' element={
+            <PrivateRoute>
+              <StudentPayment />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/user-management' element={
+            <PrivateRoute>
+              <UserManagement />
+            </PrivateRoute>
+          } />
+          <Route path='/dashboard/user-management/:id/edit' element={
+            <PrivateRoute>
+              <ManagerEditUser />
             </PrivateRoute>
           } />
         </Route>

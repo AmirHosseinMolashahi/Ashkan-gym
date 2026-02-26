@@ -4,6 +4,7 @@ from account.models import CustomUser
 from django.db import transaction
 from django.db.models import Count, Q
 from datetime import timedelta, date
+from django.utils import timezone
 from notifications.utils import create_and_send_notification
 from .models import Session, Attendance
 from .utils import get_current_shamsi_month_range, get_previous_shamsi_month_range, get_previous_shamsi_month_name
@@ -42,6 +43,8 @@ class StudentSerializer(serializers.ModelSerializer):
             'email',
             'profile_picture',
             'phone_number',
+            'role',
+            'is_active'
         )
     def get_full_name(self, obj):
         return obj.get_full_name()
@@ -162,18 +165,121 @@ class AddEnrollmentSerializer(serializers.Serializer):
     )
     course = serializers.IntegerField()
 
+    def _jalali_month_bounds_from_gregorian(self, greg_date):
+        """
+        ورودی: تاریخ میلادی
+        خروجی: (jalali_year, jalali_month, period_start_gregorian, period_end_gregorian)
+        """
+        jdate = jdatetime.date.fromgregorian(date=greg_date)
+        year = jdate.year
+        month = jdate.month
+
+        start_j = jdatetime.date(year, month, 1)
+        if month == 12:
+            next_j = jdatetime.date(year + 1, 1, 1)
+        else:
+            next_j = jdatetime.date(year, month + 1, 1)
+
+        period_start = start_j.togregorian()
+        period_end = (next_j - jdatetime.timedelta(days=1)).togregorian()
+
+        return year, month, period_start, period_end
+
+    def _create_attendance_for_new_enrollment(self, enrollment):
+        """
+        فقط از تاریخ عضویت تا انتهای همان ماه attendance بساز.
+        """
+        join_date = timezone.localdate(enrollment.joined_at)
+        _, _, period_start, period_end = self._jalali_month_bounds_from_gregorian(join_date)
+
+        effective_start = max(join_date, period_start)
+
+        sessions = Session.objects.filter(
+            time_table__course=enrollment.course,
+            date__gte=effective_start,
+            date__lte=period_end
+        )
+
+        attendance_objects = [
+            Attendance(
+                session=session,
+                student=enrollment,
+                status=None,
+                note=''
+            )
+            for session in sessions
+        ]
+
+        Attendance.objects.bulk_create(attendance_objects, ignore_conflicts=True)
+
+    def _create_prorated_invoice_for_new_enrollment(self, enrollment):
+        """
+        invoice همان ماه را بر اساس تعداد جلسات باقی‌مانده از تاریخ عضویت تا آخر ماه بساز.
+        مبلغ = ceil(full_price * remaining_sessions / total_month_sessions)
+        """
+        from payment.models import Invoice  # import local برای جلوگیری از circular import
+
+        join_date = timezone.localdate(enrollment.joined_at)
+        year, month, period_start, period_end = self._jalali_month_bounds_from_gregorian(join_date)
+        effective_start = max(join_date, period_start)
+
+        total_month_sessions = Session.objects.filter(
+            time_table__course=enrollment.course,
+            date__gte=period_start,
+            date__lte=period_end
+        ).count()
+
+        remaining_sessions = Session.objects.filter(
+            time_table__course=enrollment.course,
+            date__gte=effective_start,
+            date__lte=period_end
+        ).count()
+
+        if total_month_sessions > 0:
+            amount = (enrollment.course.price * remaining_sessions + total_month_sessions - 1) // total_month_sessions
+        else:
+            amount = 0
+
+        # سررسید: روز 7 همان ماه (اگر ماه کوتاه بود، آخرین روز همان ماه)
+        if month == 12:
+            next_j = jdatetime.date(year + 1, 1, 1)
+        else:
+            next_j = jdatetime.date(year, month + 1, 1)
+
+        last_day = (next_j - jdatetime.timedelta(days=1)).day
+        due_day = min(7, last_day)
+        due_date = jdatetime.date(year, month, due_day).togregorian()
+
+        Invoice.objects.update_or_create(
+            enrollment=enrollment,
+            period_year=year,
+            period_month=month,
+            defaults={
+                "amount": amount,
+                "due_date": due_date,
+                "period_start": period_start,
+                "period_end": period_end,
+                "base_monthly_fee": enrollment.course.price,
+                "days_in_period": (period_end - period_start).days + 1,
+                "billed_days": (period_end - effective_start).days + 1 if effective_start <= period_end else 0,
+                "status": "unpaid",
+            }
+        )
+
+    @transaction.atomic
     def create(self, validated_data):
-        print(validated_data['students'])
         student_ids = validated_data['students']
         course_id = validated_data['course']
 
         students = CustomUser.objects.filter(id__in=student_ids)
         course = Course.objects.get(id=course_id)
 
-        existing_ids = Enrollment.objects.filter(
-            course=course,
-            student__in=students
-        ).values_list('student_id', flat=True)
+        existing_ids = set(
+            Enrollment.objects.filter(
+                course=course,
+                student__in=students
+            ).values_list('student_id', flat=True)
+        )
 
         enrollments = [
             Enrollment(student=s, course=course)
@@ -181,18 +287,22 @@ class AddEnrollmentSerializer(serializers.Serializer):
             if s.id not in existing_ids
         ]
 
-        Enrollment.objects.bulk_create(enrollments)
+        created_enrollments = Enrollment.objects.bulk_create(enrollments)
 
-        for s in students:
-            if s.id not in existing_ids:
-                create_and_send_notification(
-                    user=s,
-                    title=f"به کلاس '{course.title}' اضافه شدید",
-                    message=f"شما به کلاس {course.title} اضافه شدید و میتوانید با رفتن به بخش کلاس ها وضعیت را چک کنید.",
-                    type="info",
-                    category="courses",
-                )
-        return enrollments
+        for enrollment in created_enrollments:
+            self._create_attendance_for_new_enrollment(enrollment)
+            self._create_prorated_invoice_for_new_enrollment(enrollment)
+
+            create_and_send_notification(
+                user=enrollment.student,
+                title=f"به کلاس '{course.title}' اضافه شدید",
+                message=f"شما به کلاس {course.title} اضافه شدید و می‌توانید با رفتن به بخش کلاس‌ها وضعیت را چک کنید.",
+                type="info",
+                category="courses",
+            )
+
+        return created_enrollments
+
 
 
 # اطلاعات ثبت نامی های یک کلاس

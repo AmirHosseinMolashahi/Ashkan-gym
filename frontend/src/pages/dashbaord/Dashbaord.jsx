@@ -4,7 +4,7 @@ import InfoBox from '../../components/dashboards/InfoBox/InfoBox'
 import DetailBox from '../../components/dashboards/InfoBox/detailBox/DetailBox';
 import { useNavigate } from 'react-router-dom';
 import DashCard from '../../components/dashboards/dashboardCard/DashCard';
-import { UilUserPlus, UilChatBubbleUser, UilCreditCard  } from '@iconscout/react-unicons'
+import { UilUserPlus, UilChatBubbleUser, UilCreditCard, UilUsersAlt  } from '@iconscout/react-unicons'
 import RoleGuard from '../../wrapper/roleGuard';
 import { useSelector } from 'react-redux';
 
@@ -64,6 +64,26 @@ const Dashbaord = () => {
             iconColor='#ffeee9ff'
             icon={<UilChatBubbleUser fill='#ff632f' />}
             onClick={() => navigate('/dashboard/my-courses')}
+          />
+        </RoleGuard>
+        <RoleGuard user={user} allowedRoles={['athlete']}>  
+          <DashCard 
+            title='وضعیت شهریه ها'
+            description='نمایش وضعیت پرداخت ها'
+            buttonText='ورود'
+            iconColor='#ffe9e9'
+            icon={<UilCreditCard fill='#ff2f2f' />}
+            onClick={() => navigate('/dashboard/student-payment')}
+          />
+        </RoleGuard>
+        <RoleGuard user={user} allowedRoles={['manager']}>  
+          <DashCard 
+            title='مدیریت کاربران'
+            description='نمایش کاربر ها و فعالیت های اخیر'
+            buttonText='ورود'
+            iconColor='#ffe9fc'
+            icon={<UilUsersAlt  fill='#ff2fe7' />}
+            onClick={() => navigate('/dashboard/user-management')}
           />
         </RoleGuard>
         {/* <DashCard />

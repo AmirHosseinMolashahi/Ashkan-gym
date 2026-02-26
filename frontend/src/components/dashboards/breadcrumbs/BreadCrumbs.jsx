@@ -18,6 +18,8 @@ const Breadcrumbs = () => {
     detail: "جزئیات",
     "my-courses": "کلاس های من",
     payment: "شهریه ها",
+    'student-payment': "شهریه ها",
+    'user-management': "مدیریت کاربران",
   };
 
   return (

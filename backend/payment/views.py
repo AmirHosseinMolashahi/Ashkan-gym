@@ -11,7 +11,11 @@ from rest_framework.views import APIView
 from account.permissions import IsCoachOrManager
 from training.models import Course
 from .models import Invoice, Payment
-from .serializers import CoachInvoiceSerializer, AthleteInvoiceSerializer
+from .serializers import (
+        CoachInvoiceSerializer,
+        AthleteInvoiceSerializer,
+        AthletePaymentReportSerializer,
+)
 
 
 class CoachInvoiceListView(ListAPIView):
@@ -209,3 +213,35 @@ class AthleteInvoiceDetailView(APIView):
         )
         serializer = AthleteInvoiceSerializer(invoice)
         return Response(serializer.data)
+
+class AthletePaymentListView(ListAPIView):
+    """
+    گزارش همه پرداخت‌های ورزشکار لاگین‌شده.
+    فیلترهای اختیاری:
+      - year
+      - month
+      - course_id
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = AthletePaymentReportSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        year = self.request.query_params.get("year")
+        month = self.request.query_params.get("month")
+        course_id = self.request.query_params.get("course_id")
+
+        qs = Payment.objects.filter(
+            invoice__enrollment__student=user
+        ).select_related(
+            "invoice__enrollment__course"
+        )
+
+        if year:
+            qs = qs.filter(invoice__period_year=int(year))
+        if month:
+            qs = qs.filter(invoice__period_month=int(month))
+        if course_id:
+            qs = qs.filter(invoice__enrollment__course_id=int(course_id))
+
+        return qs.order_by("-paid_at", "-created_at")

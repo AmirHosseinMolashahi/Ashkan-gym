@@ -28,8 +28,11 @@ class userSerializers(serializers.ModelSerializer):
     
     def get_previous_login_jalali(self, obj):
         if obj.previous_login:
-            return jdatetime.datetime.fromgregorian(datetime=obj.last_login).strftime("%Y/%m/%d %H:%M")
+            return jdatetime.datetime.fromgregorian(
+                datetime=obj.previous_login
+            ).strftime("%Y/%m/%d %H:%M")
         return None
+
     def get_birthdate_jalali(self, obj):
         if obj.birthdate:
             return jdatetime.datetime.fromgregorian(datetime=obj.birthdate).strftime("%Y/%m/%d")
@@ -122,24 +125,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     def get_national_id(self, obj):
         return obj.national_id
-    # def update(self, instance, validated_data):
-    #     # اگر birth_date در validated_data وجود دارد، اینجا دیگر میلادی شده
-    #     return super().update(instance, validated_data)
 
-# class coachSerializers(serializers.ModelSerializer):
-#     user = userSerializers()
-
-#     class Meta:
-#         model = Coach
-#         fields = ['id', 'is_active', 'account', 'user']
-
-
-# class coachUpdateSerializers(serializers.ModelSerializer):
-#     # آیدی کاربر برای نوشتن
-#     user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
-#     # نمایش اطلاعات کامل کاربر در GET
-#     user_detail = userSerializers(source='user', read_only=True)
-
-#     class Meta:
-#         model = Coach
-#         fields = ['id', 'is_active', 'user', 'user_detail']
+class ManagerUserUpdateSerializer(UserUpdateSerializer):
+    class Meta(UserUpdateSerializer.Meta):
+        fields = UserUpdateSerializer.Meta.fields + ['role', 'is_active']
+        extra_kwargs = {
+            **UserUpdateSerializer.Meta.extra_kwargs,
+            'role': {'required': False},
+            'is_active': {'required': False},
+        }

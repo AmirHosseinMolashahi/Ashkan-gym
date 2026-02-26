@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'daphne',
     'channels',
+    'django_celery_beat',
     
     'django.contrib.admin',
     'django.contrib.auth',
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
     'training',
     'registration',
     'payment',
+    "activity",
 ]
 
 MIDDLEWARE = [
@@ -69,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'activity.middleware.ActivityMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -96,9 +99,13 @@ ASGI_APPLICATION = 'config.asgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "ashkan_gym",
+        "USER": "postgres",
+        "PASSWORD": "#Amir#dev#3391",
+        "HOST": "127.0.0.1",
+        "PORT": "5432",
     }
 }
 
@@ -159,11 +166,17 @@ CHANNEL_LAYERS = {
 }
 
 
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Tehran'
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 
-TIME_ZONE = "Asia/Tehran"
+TIME_ZONE = 'Asia/Tehran'
+USE_TZ = True
 
 LANGUAGE_CODE = 'fa'  # فارسی
 
