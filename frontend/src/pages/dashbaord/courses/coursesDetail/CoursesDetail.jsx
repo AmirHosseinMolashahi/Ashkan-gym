@@ -32,6 +32,8 @@ const CoursesDetail = () => {
   const [ addTimeTableModal, setAddTimeTableModal ] = useState(false)
   const [scheduleRows, setScheduleRows] = useState(initialSchedule);
 
+  const [ editTimeTableModal, setEditTimeTableModal ] = useState(false)
+
 
 
   const [ athletes, setAthletes ] = useState([])
@@ -146,6 +148,33 @@ const CoursesDetail = () => {
       notify('جدول زمانی با موفقیت ایجاد شد!', 'success')
       setAddTimeTableModal(false);
       fetchCourseDetail();
+      setScheduleRows(initialSchedule);
+    } catch (err) {
+      console.log(err)
+      if (err.response?.data?.detail) {
+        notify(err.response?.data?.detail, 'error')
+      } else {
+        notify('خطا در ایجاد جدول زمانی!', 'error')
+      }
+    }
+  };
+
+  const handleUpdateSchedule = async () => {
+    const payload = scheduleRows
+      .filter((r) => r.enabled)
+      .map((r) => ({
+        day_id: r.id,
+        day: r.day,
+        start_time: r.start ? r.start.format("HH:mm") : "",
+        end_time: r.end ? r.end.format("HH:mm") : "",
+      }));
+    
+    try {
+      await api.post(`/training/courses/${id}/timetable/bulk-create/`, payload);
+      notify('جدول زمانی با موفقیت ایجاد شد!', 'success')
+      setAddTimeTableModal(false);
+      fetchCourseDetail();
+      setScheduleRows(initialSchedule);
     } catch (err) {
       console.log(err)
       if (err.response?.data?.detail) {
@@ -369,9 +398,18 @@ const CoursesDetail = () => {
 
       {addTimeTableModal && (
         <AddTimeTable 
-          addTimeTamleModal={addTimeTableModal}
-          setAddTimeTableModal={setAddTimeTableModal}
+          timeTableModal={addTimeTableModal}
+          setTimeTableModal={setAddTimeTableModal}
           handleSaveSchedule={() => handleSaveSchedule}
+          scheduleRows={scheduleRows}
+          setScheduleRows={setScheduleRows}/>
+      )}
+
+      {editTimeTableModal && (
+        <AddTimeTable 
+          timeTableModal={editTimeTableModal}
+          setTimeTableModal={setEditTimeTableModal}
+          handleSaveSchedule={() => handleUpdateSchedule}
           scheduleRows={scheduleRows}
           setScheduleRows={setScheduleRows}/>
       )}

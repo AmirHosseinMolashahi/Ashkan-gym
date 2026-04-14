@@ -7,7 +7,7 @@ import TimePicker from "react-multi-date-picker/plugins/time_picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
 
-const AddTimeTable = ({addTimeTamleModal, setAddTimeTableModal, handleSaveSchedule, scheduleRows, setScheduleRows}) => {
+const AddTimeTable = ({timeTableModal, setTimeTableModal, handleSaveSchedule, scheduleRows, setScheduleRows}) => {
 
   const handleToggleDay = (id) => {
     setScheduleRows((prev) =>
@@ -26,7 +26,7 @@ const AddTimeTable = ({addTimeTamleModal, setAddTimeTableModal, handleSaveSchedu
   };
 
   return (
-   <Modal handleModal={() => setAddTimeTableModal(false)} width="560px" height="auto">
+   <Modal handleModal={() => setTimeTableModal(false)} width="560px" height="auto">
     <div className={style.timetableModal}>
       <h2>اضافه کردن جدول زمانی</h2>
       <p>روز های هفته را انتخاب و ساعت شروع و پایان را تنظیم کنید!</p>
@@ -87,7 +87,7 @@ const AddTimeTable = ({addTimeTamleModal, setAddTimeTableModal, handleSaveSchedu
       </div>
 
       <div className={style.actions}>
-        <button className={style.cancelBtn} onClick={() => setAddTimeTableModal(false)}>
+        <button className={style.cancelBtn} onClick={() => setTimeTableModal(false)}>
           لغو
         </button>
         <button className={style.saveBtn} onClick={handleSaveSchedule()}>
