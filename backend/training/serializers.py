@@ -1,13 +1,17 @@
 from rest_framework import serializers
-from .models import Course, Enrollment, AgeRange, TimeTable, Session
-from account.models import CustomUser
+
 from django.db import transaction
 from django.db.models import Count, Q
-from datetime import timedelta, date
 from django.utils import timezone
-from notifications.utils import create_and_send_notification
-from .models import Session, Attendance
+
+
+from .models import Course, Enrollment, AgeRange, TimeTable, Session,  Attendance
 from .utils import get_current_shamsi_month_range, get_previous_shamsi_month_range, get_previous_shamsi_month_name
+
+from notifications.utils import create_and_send_notification
+from account.models import CustomUser
+
+from datetime import timedelta, date
 import jdatetime
 import datetime
 
@@ -76,6 +80,10 @@ class CourseListSerializers(serializers.ModelSerializer):
     )
     schedule = serializers.SerializerMethodField()
     session_duration = serializers.SerializerMethodField()
+    next_session = serializers.SerializerMethodField()
+    payment_status = serializers.SerializerMethodField()
+    attendance_percentage_month = serializers.SerializerMethodField()
+
     
     class Meta:
         model = Course
@@ -120,6 +128,78 @@ class CourseListSerializers(serializers.ModelSerializer):
         if hours > 0:
             return f"{hours} ساعت و {minutes} دقیقه"
         return f"{minutes} دقیقه"
+    
+    def get_next_session(self, obj):
+        today = timezone.localdate()
+
+        session = (
+            Session.objects
+            .filter(
+                time_table__course=obj,
+                date__gte=today
+            )
+            .select_related('time_table')
+            .order_by('date')
+            .first()
+        )
+
+        if not session:
+            return None
+
+        return {
+            "id": session.id,
+            "date": session.date,
+            "date_jalali": jdatetime.date.fromgregorian(date=session.date).strftime("%Y/%m/%d"),
+            "day_of_week": session.time_table.get_day_of_week_display(),
+            "start_time": session.time_table.start_time,
+            "end_time": session.time_table.end_time,
+        }
+    
+    def get_payment_status(self, obj):
+        from payment.models import Invoice
+
+        today = timezone.localdate()
+        j_today = jdatetime.date.today()
+        year, month = j_today.year, j_today.month
+
+        invoices = Invoice.objects.filter(
+            enrollment__course=obj,
+            enrollment__status='active',
+            period_year=year,
+            period_month=month
+        )
+
+        summary = invoices.aggregate(
+            total_count=Count('id'),
+            paid_count=Count('id', filter=Q(status='paid')),
+            partially_paid_count=Count('id', filter=Q(status='partially_paid')),
+            unpaid_count=Count('id', filter=Q(status='unpaid')),
+            overdue_count=Count('id', filter=Q(status='unpaid', due_date__lt=today)),
+        )
+
+        total = summary["total_count"] or 0
+        paid = summary["paid_count"] or 0
+        summary["paid_percent"] = round((paid / total) * 100, 1) if total > 0 else 0
+
+        return summary
+
+    def get_attendance_percentage_month(self, obj):
+        start_date, end_date = get_current_shamsi_month_range()
+
+        qs = Attendance.objects.filter(
+            session__time_table__course=obj,
+            session__date__range=(start_date, end_date),
+            session__attendance_status='finished',
+        )
+
+        total = qs.exclude(status__isnull=True).count()
+        present_like = qs.filter(status__in=['present', 'late']).count()
+
+        if total == 0:
+            return 0
+
+        return round((present_like / total) * 100, 1)
+
 
 #سریالایزر اطلاعات کلاس 2
 class CoursesDetailSerializers(serializers.ModelSerializer):
@@ -132,6 +212,70 @@ class CoursesDetailSerializers(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
+
+
+# سریالایزر ایجاد کلاس
+class CourseCreateSerializer(serializers.ModelSerializer):
+    coach = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.filter(role="coach")
+    )
+    age_ranges = serializers.PrimaryKeyRelatedField(
+        queryset=AgeRange.objects.all(),
+        many=True
+    )
+
+    class Meta:
+        model = Course
+        fields = (
+            "id",
+            "title",
+            "avatar",
+            "coach",
+            "gender",
+            "price",
+            "description",
+            "is_active",
+            "age_ranges",
+            "class_status",
+        )
+
+    def validate_price(self, value):
+        if value < 0:
+            raise serializers.ValidationError("قیمت نمی‌تواند منفی باشد.")
+        return value
+
+
+class TimeTableBulkItemSerializer(serializers.Serializer):
+    day_id = serializers.IntegerField(min_value=1, max_value=7)  # 1=شنبه ... 7=جمعه
+    start_time = serializers.CharField()
+    end_time = serializers.CharField()
+
+    def _normalize_digits(self, value: str) -> str:
+        trans = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+        return str(value).translate(trans).replace("：", ":")
+
+    def validate(self, attrs):
+        start_raw = self._normalize_digits(attrs["start_time"])
+        end_raw = self._normalize_digits(attrs["end_time"])
+
+        try:
+            start_time = datetime.datetime.strptime(start_raw, "%H:%M").time()
+        except ValueError:
+            raise serializers.ValidationError({"start_time": "فرمت باید HH:MM باشد."})
+
+        try:
+            end_time = datetime.datetime.strptime(end_raw, "%H:%M").time()
+        except ValueError:
+            raise serializers.ValidationError({"end_time": "فرمت باید HH:MM باشد."})
+
+        if start_time >= end_time:
+            raise serializers.ValidationError("ساعت پایان باید بعد از ساعت شروع باشد.")
+
+        attrs["day_of_week"] = attrs["day_id"]   # برای مدل TimeTable
+        attrs["start_time"] = start_time
+        attrs["end_time"] = end_time
+        return attrs
+
 
 #سریالایزر اطلاعات ثبت نام شده
 class EnrollmentSerializer(serializers.ModelSerializer):

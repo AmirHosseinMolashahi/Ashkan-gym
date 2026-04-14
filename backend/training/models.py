@@ -120,6 +120,12 @@ class TimeTable(models.Model):
         return self.course.title + age_ranges + " در " + str(self.day_of_week)
     
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["course", "day_of_week", "start_time", "end_time"],
+                name="unique_timetable_course_day_start_end",
+            ),
+        ]
         verbose_name = 'جدول زمانی'
         verbose_name_plural = 'جدول های زمانی'
 

@@ -9,6 +9,7 @@ const ClassCard = ({
   students,
   schedule,
   hours,
+  class_status,
   onView,
 }) => {
   return (
@@ -24,7 +25,11 @@ const ClassCard = ({
       </div>
 
       <h3 className={style.title}>{title}</h3>
-      <h4 className={style.coachName}>مربی: {coach}</h4>
+      <h4 className={style.coachName}>مربی: {coach}
+        {class_status === 'private' ? (
+          <span className={`${style.badge} ${style.scheduled}`}> خصوصی </span>
+        ) : '' }
+      </h4>
       <p className={style.subtitle}>
         {age_ranges.map((i, n) => {
           return(<span> {i.title} </span>)

@@ -1,0 +1,377 @@
+﻿@use '../../../../styles/constants.scss' as *;
+
+.addClassPage {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --primary: #2563eb;
+
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 20px;
+  color: var(--text);
+  overflow-x: hidden;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  .topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+
+  .backLink {
+    border: 0;
+    background: transparent;
+    color: #4b5563;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  .pageTitle {
+    font-size: clamp(26px, 4vw, 34px);
+    margin: 8px 0 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .topActions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    height: 42px;
+    border-radius: 10px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btnSecondary {
+    background: #fff;
+    border-color: var(--line);
+    color: #374151;
+  }
+
+  .btnPrimary {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .contentGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+
+  .leftCol,
+  .rightCol {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    min-width: 0;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+  }
+
+  .subtitle {
+    margin: 6px 0 18px;
+    color: var(--muted);
+    font-size: 13px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+    line-height: 1.5;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+
+    > * {
+      min-width: 0;
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+    min-width: 0;
+    max-width: 100%;
+    max-height: 20rem;
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      line-height: 1.4;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    input,
+    textarea,
+    select {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      color: #111827;
+      line-height: 1.4;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+  }
+
+  .priceInput {
+    position: relative;
+    width: 100%;
+
+    span {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6b7280;
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    input {
+      padding-right: 52px;
+      width: 100%;
+    }
+  }
+
+  .uploadBox {
+    border: 1px dashed #d1d5db;
+    border-radius: 10px;
+    min-height: 210px;
+    width: 100%;
+    display: block;
+    cursor: pointer;
+    overflow: hidden;
+
+    input {
+      display: none;
+    }
+  }
+
+  .uploadContent {
+    min-height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+    padding: 18px;
+
+    small,
+    strong {
+      max-width: 100%;
+      word-break: break-word;
+    }
+  }
+
+  .uploadIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    color: #6b7280;
+    flex-shrink: 0;
+  }
+
+  .fileName {
+    color: #111827;
+  }
+
+  .activeRow {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .switch {
+    padding: 0;
+    width: 46px;
+    min-width: 46px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #d1d5db;
+    position: relative;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+
+    span {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      transition: 0.2s;
+    }
+  }
+
+  .on {
+    background: var(--primary);
+
+    span {
+      right: 22px;
+    }
+  }
+
+
+  .multiSelect {
+  position: relative;
+}
+
+.multiTrigger {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 12px;
+  background: #fff;
+  text-align: right;
+  cursor: pointer;
+}
+
+.multiMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.multiOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+
+.chips {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: #f9fafb;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  background-color: $danger;
+  color: $secondary-white;
+}
+
+.deleteModal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .buttons {
+    display: flex;
+    gap: 2rem;
+
+    .deleteBtn {
+      background-color: $danger;
+      color: $secondary-white;
+    }
+  }
+}
+
+
+  @media (max-width: 992px) {
+    .contentGrid {
+      grid-template-columns: 1fr;
+    }
+
+    .grid2 {
+      grid-template-columns: 1fr;
+    }
+
+    .topBar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .topActions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+}

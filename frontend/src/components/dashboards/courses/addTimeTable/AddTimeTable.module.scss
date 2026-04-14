@@ -1,0 +1,135 @@
+.timetableModal {
+  display: flex;
+  flex-direction: column;
+  color: #1e293b;
+  direction: rtl;
+
+  h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 8px 0 20px;
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .daysList {
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .dayRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eef2f7;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .dayCheck {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 130px;
+    font-size: 15px;
+
+    input[type='checkbox'] {
+      width: 16px;
+      height: 16px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    span {
+      font-weight: 500;
+    }
+  }
+
+  .timeInputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .timeField {
+    position: relative;
+
+    &.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    input {
+      width: 120px;
+      height: 40px;
+      border: 1px solid #dbe3ef;
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 0 30px 0 10px;
+      font-size: 14px;
+      color: #334155;
+      outline: none;
+
+      &:focus {
+        border-color: #3b82f6;
+        background: #fff;
+      }
+
+      &:disabled {
+        color: #94a3b8;
+        background: #f1f5f9;
+        cursor: not-allowed;
+      }
+    }
+
+    svg {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      pointer-events: none;
+    }
+  }
+
+  .to {
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    height: 42px;
+    border-radius: 8px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .cancelBtn {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #e2e8f0;
+  }
+
+  .saveBtn {
+    background: #2563eb;
+    color: #fff;
+  }
+}

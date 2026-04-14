@@ -18,6 +18,11 @@ from .views import (
             AttendanceBulkUpdateView,
             StudentCourseMonthlySummaryView,
             AthleteDashboardView,
+            CourseCreateView,
+            CourseFormOptionsView,
+            TimeTableBulkCreateView,
+            CourseUpdateView,
+            CourseDeleteView,
             )
 
 app_name = 'training'
@@ -29,6 +34,12 @@ urlpatterns = [
   path('courses/detail/<int:course_id>/sessions/current-month/',ThisMonthSessionView.as_view(), name='course-session' ),
   path('courses/count/', UserCoursesCount.as_view(), name='courses-count'),
   path('courses/students/count/', StudentCountView.as_view(), name='student-count'),
+  path("courses/form-options/", CourseFormOptionsView.as_view(), name="course-form-options"),
+  path("courses/add/", CourseCreateView.as_view(), name="course-add"),
+  path("courses/<int:course_id>/timetable/bulk-create/", TimeTableBulkCreateView.as_view(), name="course-add-time-table"),
+  path("courses/<int:id>/edit/", CourseUpdateView.as_view(), name='course-update'),
+  path("courses/<int:id>/delete/", CourseDeleteView.as_view(), name='course-delete'),
+
 
   path('enrollment/', EnrollmentListView.as_view(), name='enrollment-list'),
   path('enrollment/add/', AddEnrollmentView.as_view(), name='add-enrollment'),

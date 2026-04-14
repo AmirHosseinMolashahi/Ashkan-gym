@@ -20,6 +20,7 @@ const Breadcrumbs = () => {
     payment: "شهریه ها",
     'student-payment': "شهریه ها",
     'user-management': "مدیریت کاربران",
+    'add': "اضافه کردن",
   };
 
   return (

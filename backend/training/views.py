@@ -9,15 +9,15 @@ import jdatetime
 from collections import defaultdict
 
 from rest_framework import status
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from account.permissions import IsCoachOrManager
+from account.permissions import IsCoachOrManager, IsManager
 from account.models import CustomUser
 
-from .models import Course, Enrollment, TimeTable, Session, Attendance
+from .models import Course, Enrollment, TimeTable, Session, Attendance, AgeRange
 from .utils import get_current_shamsi_month_range, get_previous_shamsi_month_range, get_shamsi_month_range, PERSIAN_MONTHS 
 from .serializers import (
     CourseListSerializers,
@@ -30,11 +30,14 @@ from .serializers import (
     UserEnrollmnetsSerializers,
     SessionSerializer,
     AgeRangeSerializers,
+    CoachMiniSerializer,
     PrevMonthSessionSerializer,
     SessionAttendanceSerializers,
     AttendanceBulkUpdateSerializer,
     MonthlyAttendanceSummarySerializer,
     AthleteDashboardSerializer,
+    CourseCreateSerializer,
+    TimeTableBulkItemSerializer
     )
 # Create your views here.
 
@@ -67,8 +70,106 @@ class CoursesListView(ListAPIView):
 class CoursesDetailView(RetrieveAPIView):
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsCoachOrManager]
-    serializer_class = CoursesDetailSerializers
+    serializer_class = CourseListSerializers
     lookup_field = 'id'
+
+
+class CourseFormOptionsView(APIView):
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+
+    def get(self, request):
+        coaches = CustomUser.objects.filter(role="coach", is_active=True).only(
+            "id", "first_name", "last_name"
+        )
+        age_ranges = AgeRange.objects.all().only("id", "key", "title")
+
+        return Response({
+            "coaches": CoachMiniSerializer(coaches, many=True).data,
+            "age_ranges": AgeRangeSerializers(age_ranges, many=True).data,
+            "gender_choices": [
+                {"value": "male", "label": "آقایان"},
+                {"value": "female", "label": "بانوان"},
+                {"value": "both", "label": "عمومی"},
+            ],
+            "class_status_choices": [
+                {"value": "public", "label": "عمومی"},
+                {"value": "private", "label": "خصوصی"},
+            ],
+        })
+
+class CourseCreateView(CreateAPIView):
+    permission_classes = [IsAuthenticated, IsManager]
+    serializer_class = CourseCreateSerializer
+
+
+class TimeTableBulkCreateView(APIView):
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+
+    @transaction.atomic
+    def post(self, request, course_id):
+        course = get_object_or_404(Course, id=course_id)
+        user = request.user
+
+        # coach فقط برای کلاس خودش
+        if user.role == "coach" and course.coach_id != user.id:
+            raise PermissionDenied("شما اجازه ایجاد جدول زمانی برای این کلاس را ندارید.")
+
+        serializer = TimeTableBulkItemSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        rows = serializer.validated_data
+
+        # جلوگیری از تکرار روز داخل همین درخواست
+        day_values = [r["day_of_week"] for r in rows]
+        if len(day_values) != len(set(day_values)):
+            return Response(
+                {"detail": "روزهای تکراری در لیست ارسالی وجود دارد."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        objects = [
+            TimeTable(
+                course=course,
+                day_of_week=row["day_of_week"],
+                start_time=row["start_time"],
+                end_time=row["end_time"],
+            )
+            for row in rows
+        ]
+
+        for row in rows:
+            has_conflict = TimeTable.objects.filter(
+                day_of_week=row["day_of_week"],
+                start_time__lt=row["end_time"],
+                end_time__gt=row["start_time"],
+            ).exclude(course=course).exists()   # اگر می‌خواهی حتی داخل همان course هم تداخل نداشته باشد، exclude را بردار
+
+            if has_conflict:
+                return Response(
+                    {"detail": "این بازه زمانی با کلاس دیگری تداخل دارد."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        created = TimeTable.objects.bulk_create(objects)
+
+        return Response(
+            TimeTableSerializer(created, many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class CourseUpdateView(UpdateAPIView):
+    queryset = Course.objects.all()
+    permission_classes = [IsAuthenticated, IsManager]
+    serializer_class = CourseCreateSerializer
+    lookup_field = 'id'
+
+
+class CourseDeleteView(DestroyAPIView):
+    queryset = Course.objects.all()
+    permission_classes = [IsAuthenticated, IsManager]
+    lookup_field = 'id'
+
+
 
 #نمایش لیست همه‌ی کاربر ها به مدیر و نمایش لیست هر شخص ثبت نام شده به مربی
 class AthleteListView(ListAPIView):

@@ -7,6 +7,9 @@ import { useParams } from 'react-router-dom'
 import Modal from '../../../../components/GlobalComponents/Modal/Modal';
 import { useToast } from '../../../../context/NotificationContext';
 import AttendanceTable from '../../../../components/dashboards/courses/attendanceTable/AttendanceTable';
+import { useSelector } from 'react-redux';
+import AddTimeTable from '../../../../components/dashboards/courses/addTimeTable/AddTimeTable';
+import { useNavigate } from 'react-router-dom';
 
 const CoursesDetail = () => {
 
@@ -14,14 +17,35 @@ const CoursesDetail = () => {
   const [ courseDetail, setCourseDetail ] = useState(null)
   const [ courseStudents, setCourseStudents ] = useState([])
   const [ addStudentModal, setAddStudentsModal ] = useState(false)
+  const navigate = useNavigate();
+
+  const initialSchedule = [
+    { id: 1, day: 'شنبه', enabled: false, start: '', end: '' },
+    { id: 2, day: 'یکشنبه', enabled: false, start: '', end: '' },
+    { id: 3, day: 'دوشنبه', enabled: false, start: '', end: '' },
+    { id: 4, day: 'سه شنبه', enabled: false, start: '', end: '' },
+    { id: 5, day: 'چهارشنبه', enabled: false, start: '', end: '' },
+    { id: 6, day: 'پنچ شنبه', enabled: false, start: '', end: '' },
+    { id: 7, day: 'جمعه', enabled: false, start: '', end: '' },
+  ];
+  
+  const [ addTimeTableModal, setAddTimeTableModal ] = useState(false)
+  const [scheduleRows, setScheduleRows] = useState(initialSchedule);
+
+
+
   const [ athletes, setAthletes ] = useState([])
   const [ activeTab, setActiveTab] = useState(1)
+  const { user } = useSelector(
+      state => state.auth
+    )
 
   const { notify } = useToast()
 
   const fetchCourseDetail = async () => {
     try {
       const res = await api.get(`/training/courses/detail/${id}/`);
+      console.log(res.data)
       setCourseDetail(res.data)
     } catch (err) {
       console.log(err)
@@ -31,7 +55,6 @@ const CoursesDetail = () => {
   const fetchCourseStudentsList = async () => {
     try {
       const res = await api.get(`/training/courses/detail/${id}/students/`);
-      console.log(res.data)
       setCourseStudents(res.data)
     } catch (err) {
       console.log(err)
@@ -106,6 +129,36 @@ const CoursesDetail = () => {
       notify('خطا در اضافه کردن ورزشکار', 'error')
     }
   }
+
+
+  const handleSaveSchedule = async () => {
+    const payload = scheduleRows
+      .filter((r) => r.enabled)
+      .map((r) => ({
+        day_id: r.id,
+        day: r.day,
+        start_time: r.start ? r.start.format("HH:mm") : "",
+        end_time: r.end ? r.end.format("HH:mm") : "",
+      }));
+    
+    try {
+      await api.post(`/training/courses/${id}/timetable/bulk-create/`, payload);
+      notify('جدول زمانی با موفقیت ایجاد شد!', 'success')
+      setAddTimeTableModal(false);
+      fetchCourseDetail();
+    } catch (err) {
+      console.log(err)
+      if (err.response?.data?.detail) {
+        notify(err.response?.data?.detail, 'error')
+      } else {
+        notify('خطا در ایجاد جدول زمانی!', 'error')
+      }
+    }
+  };
+
+  const nextSession = courseDetail?.next_session;
+  const paymentStatus = courseDetail?.payment_status;
+
   return (
     <div className={style.coursesDetail}>
       <div className={style.container}>
@@ -121,7 +174,9 @@ const CoursesDetail = () => {
                     <>اضافه کردن ورزشکار <UilUserPlus /></>
                   )}
                 </button>
-                <button className={style.editClass}><UilEdit /></button>
+                <button className={style.editClass} onClick={() => navigate(`/dashboard/courses/${id}/edit`)}>
+                  <UilEdit />
+                </button>
               </div>
             </div>
             <p>
@@ -145,7 +200,7 @@ const CoursesDetail = () => {
                 </li>
                 <li>
                   <p>میانگین حضور در کلاس</p>
-                  <h1>75%</h1>
+                  <h1>{courseDetail?.attendance_percentage_month ?? 0}%</h1>
                 </li>
               </ul>
             </div>
@@ -154,19 +209,35 @@ const CoursesDetail = () => {
         <div className={style.cardContainer}>
           <div className={style.detailCard}>
             <h3>
-              زمان بندی کلاس
+              زمان بندی کلاس <span>{user.role === 'manager' ? (
+                <button><UilEdit /></button>
+              ) : (
+                ''
+              )}</span>
             </h3>
             <div className={style.detailCardcontent}>
-              <ul className={style.timeList}>
-                <li>
-                  <UilCalendar />
-                  <p>شنبه - دوشنبه - چهارشنبه</p>
-                </li>
-                <li>
-                  <UilClockFive />
-                  <p>از 17:45 تا 19:00</p>
-                </li>
-              </ul>
+              {courseDetail?.timeTable.length !== 0 ? (
+                <div className={style.detailCardWrapper}>
+                  <ul className={style.timeList}>
+                    <li>
+                      <UilCalendar />
+                      <p>{courseDetail?.timeTable?.map(item => (item.day_label + ' '))}</p>
+                    </li>
+                    <li>
+                      <UilClockFive />
+                      <p>{courseDetail?.timeTable[0]?.start_time} تا {courseDetail?.timeTable[0]?.end_time}</p>
+                    </li>
+                  </ul>
+                </div>
+              ) : (
+                user.role === 'manager' ? (
+                  <button className={style.addTimeTableBtn} onClick={() => setAddTimeTableModal(true)}>
+                    ایجاد جدول زمانی +
+                  </button>
+                ) : (
+                  <p>جدول زمانی ایجاد نشده است!</p>
+                )
+              )}
             </div>
           </div>
           <div className={style.detailCard}>
@@ -174,25 +245,27 @@ const CoursesDetail = () => {
               وضعیت پرداخت شهریه
             </h3>
             <div className={style.detailCardcontent}>
-              <ul className={style.payList}>
-                <li>
-                  <p>تعداد پرداختی این ماه</p>
-                  <p className={style.paid}>9</p>
-                </li>
-                <li>
-                  <p>در انتظار پرداخت</p>
-                  <p className={style.pending}>4</p>
-                </li>
-                <li>
-                  <p>شهریه عقب افتاده</p>
-                  <p className={style.unpaid}>3</p>
-                </li>
-              </ul>
-              <div className={style.progressWrapper}>
-                <div
-                  className={style.progressBar}
-                  style={{ width: `65%` }}
-                />
+              <div className={style.detailCardWrapper}>
+                <ul className={style.payList}>
+                  <li>
+                    <p>تعداد پرداختی این ماه</p>
+                    <p className={style.paid}>{paymentStatus?.paid_count ?? 0}</p>
+                  </li>
+                  <li>
+                    <p>در انتظار پرداخت</p>
+                    <p className={style.pending}>{paymentStatus?.partially_paid_count ?? 0}</p>
+                  </li>
+                  <li>
+                    <p>شهریه عقب افتاده</p>
+                    <p className={style.unpaid}>{paymentStatus?.overdue_count ?? 0}</p>
+                  </li>
+                </ul>
+                <div className={style.progressWrapper}>
+                  <div
+                    className={style.progressBar}
+                    style={{ width: `${paymentStatus?.paid_percent ?? 0}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -203,11 +276,13 @@ const CoursesDetail = () => {
             <div className={style.detailCardcontent}>
               <ul className={style.nextSession}>
                 <li className={style.date}>
-                  <h1>چهارشنبه</h1>
-                  <p>11 دی</p>
+                  <h1>{nextSession?.day_of_week ?? '—'}</h1>
+                  <p>{nextSession?.date_jalali ?? 'جلسه‌ای ثبت نشده'}</p>
                 </li>
                 <li className={style.time}>
-                  <p>از 17:45 تا 19:00</p>
+                  <p>
+                    از {nextSession?.start_time?.slice(0, 5) ?? '--:--'} تا {nextSession?.end_time?.slice(0, 5) ?? '--:--'}
+                  </p>
                 </li>
               </ul>
             </div>
@@ -290,6 +365,15 @@ const CoursesDetail = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {addTimeTableModal && (
+        <AddTimeTable 
+          addTimeTamleModal={addTimeTableModal}
+          setAddTimeTableModal={setAddTimeTableModal}
+          handleSaveSchedule={() => handleSaveSchedule}
+          scheduleRows={scheduleRows}
+          setScheduleRows={setScheduleRows}/>
       )}
     </div>
   )

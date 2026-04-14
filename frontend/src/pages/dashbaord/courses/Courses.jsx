@@ -52,7 +52,7 @@ const Courses = () => {
             <p>مدیریت کلاس ها و ورزشکاران</p>
           </div>
           {user.role === 'manager' && (
-            <button>
+            <button onClick={() => navigate('/dashboard/courses/add')}>
               اضافه کردن کلاس +
             </button>
           )}
@@ -97,6 +97,7 @@ const Courses = () => {
                 students={item.enrollment_count}
                 schedule={item.schedule ? toPersianDigits(item.schedule) : 'ایجاد نشده است!'}
                 hours={item.session_duration}
+                class_status={item.class_status}
                 onView={() => navigate(`/dashboard/courses/${item.id}`)}
               />
             )
