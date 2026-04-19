@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: ashkan_gym
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "#Amir#dev#3391"
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build: ./frontend
+    command: npm run dev -- --host
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
+  celery_worker:
+    build: ./backend
+    command: celery -A config worker --loglevel=info --pool=solo
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+      - db
+
+  celery_beat:
+    build: ./backend
+    command: celery -A config beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+      - db

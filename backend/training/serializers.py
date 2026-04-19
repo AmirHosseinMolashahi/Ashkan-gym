@@ -47,7 +47,7 @@ class StudentSerializer(serializers.ModelSerializer):
             'email',
             'profile_picture',
             'phone_number',
-            'role',
+            'roles',
             'is_active'
         )
     def get_full_name(self, obj):
@@ -63,6 +63,8 @@ class TimeTableSerializer(serializers.ModelSerializer):
         source='get_day_of_week_display',
         read_only=True
     )
+    start_time = serializers.TimeField(format="%H:%M", input_formats=["%H:%M"])
+    end_time = serializers.TimeField(format="%H:%M", input_formats=["%H:%M"])
 
     class Meta:
         model = TimeTable
@@ -217,7 +219,7 @@ class CoursesDetailSerializers(serializers.ModelSerializer):
 # سریالایزر ایجاد کلاس
 class CourseCreateSerializer(serializers.ModelSerializer):
     coach = serializers.PrimaryKeyRelatedField(
-        queryset=CustomUser.objects.filter(role="coach")
+        queryset=CustomUser.objects.filter(roles__name="coach")
     )
     age_ranges = serializers.PrimaryKeyRelatedField(
         queryset=AgeRange.objects.all(),
@@ -246,6 +248,7 @@ class CourseCreateSerializer(serializers.ModelSerializer):
 
 
 class TimeTableBulkItemSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
     day_id = serializers.IntegerField(min_value=1, max_value=7)  # 1=شنبه ... 7=جمعه
     start_time = serializers.CharField()
     end_time = serializers.CharField()
@@ -270,10 +273,13 @@ class TimeTableBulkItemSerializer(serializers.Serializer):
 
         if start_time >= end_time:
             raise serializers.ValidationError("ساعت پایان باید بعد از ساعت شروع باشد.")
+        
 
         attrs["day_of_week"] = attrs["day_id"]   # برای مدل TimeTable
         attrs["start_time"] = start_time
         attrs["end_time"] = end_time
+
+        attrs.pop("day_id")  # چون دیگه نیازی بهش نداریم
         return attrs
 
 

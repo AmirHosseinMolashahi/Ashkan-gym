@@ -163,6 +163,39 @@
             gap: 1rem;
 
             .profileInfoContent  {
+              .docList {
+                display: flex;
+                flex-direction: column;
+                gap: .5rem;
+              }
+              .docItem {
+                display: flex;
+                align-items: center;
+                border-top: 1px solid #f0f2f4;
+                padding: .7rem;
+                gap: .5rem;
+                &:first-child {
+                  border-top: none;
+                }
+              }
+              .docInfo {
+                display: flex;
+                align-items: center;
+                gap: .5rem;
+              }
+              .docActions {
+                display: flex;
+                gap: .5rem;
+
+                svg {
+                  cursor: pointer;
+                  transition: .2s;
+
+                  &:hover {
+                    color: #2563eb;
+                  }
+                }
+              }
               .userStatus {
                 list-style: none;
                 display: flex;

@@ -40,7 +40,7 @@ class CoachInvoiceListView(ListAPIView):
 
         # اطمینان از این‌که مربی واقعاً مربی آن کلاس است
         course = get_object_or_404(Course, id=course_id)
-        if user.role == "coach" and course.coach != user:
+        if user.roles.filter(name="coach").exists() and course.coach != user:
             return Invoice.objects.none()
 
         qs = Invoice.objects.filter(
@@ -87,7 +87,7 @@ class CoachInvoiceUpdateView(APIView):
         )
 
         # مربی فقط اگر مربی همان کلاس باشد
-        if user.role == "coach" and invoice.enrollment.course.coach != user:
+        if user.roles.filter(name="coach").exists() and invoice.enrollment.course.coach != user:
             return Response(
                 {"detail": "شما به این صورت‌حساب دسترسی ندارید."},
                 status=status.HTTP_403_FORBIDDEN,

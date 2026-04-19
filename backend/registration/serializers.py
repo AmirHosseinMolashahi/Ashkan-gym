@@ -27,3 +27,10 @@ class RegistrationDocumentBulkSerializer(serializers.Serializer):
             RegistrationDocument.objects.bulk_create(objs)
 
         return objs
+
+
+class RegistrationDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RegistrationDocument
+        fields = ['id', 'document', 'doc_type', 'uploaded_at', 'registration']
+        read_only_fields = ['registration']

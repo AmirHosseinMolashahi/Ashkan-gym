@@ -1,15 +1,21 @@
 from django.shortcuts import render
-from .models import RegistrationDocument, Registration
-from rest_framework.permissions import IsAuthenticated
-from account.permissions import IsCoachOrManager
-from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from .serializers import RegistrationDocumentBulkSerializer
-from rest_framework.response import Response
-from rest_framework import status
+
 import json
+
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+
+from account.permissions import IsCoachOrManager
 from notifications.utils import create_and_send_notification
+
+from .models import RegistrationDocument, Registration
+from .serializers import RegistrationDocumentBulkSerializer, RegistrationDocumentSerializer
 from account.models import CustomUser
+from account.permissions import IsManager
 
 # Create your views here.
 
@@ -61,25 +67,44 @@ class UploadRegistrationDocumentsView(APIView):
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# برای هر کاربر، لیست مدارکی که بارگذاری کرده رو نشون میده
+class UserDocsListView(ListAPIView):
+    serializer_class = RegistrationDocumentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        return RegistrationDocument.objects.filter(
+            registration__user=user
+        )
+    
+
+#ویو برای مدیر که مدارک یک کاربر رو ببینه و اضافه کنه
+class ManagerAddDocsView(ListCreateAPIView):
+    serializer_class = RegistrationDocumentSerializer
+    permission_classes = [IsManager]
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']  # از url parameter می‌گیریم
+        return RegistrationDocument.objects.filter(
+            registration__user__id=user_id
+        )
+
+    def perform_create(self, serializer):
+        user_id = self.kwargs['user_id']
+        registration = Registration.objects.get(user__id=user_id)  # ثبت‌نام کاربر
+        serializer.save(registration=registration)
 
 
+# ویو برای مدیر که کمدارک رو آپدیت یا حذف کنه
+class ManagerUpdateDocsView(RetrieveUpdateDestroyAPIView):
+    serializer_class = RegistrationDocumentSerializer
+    permission_classes = [IsManager]
+    queryset = RegistrationDocument.objects.all()
 
-# def post(self, request, id):
-#         print(request.data)
-#         registration = get_object_or_404(Registration, user_id=id)
-
-#         serializer = RegistrationDocumentBulkSerializer(
-#             data=request.data,
-#             context={'registration': registration}
-#         )
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(
-#                 {"message": "مدارک با موفقیت آپلود شدند"},
-#                 status=status.HTTP_201_CREATED
-#             )
-#         print(serializer.errors)
-#         return Response(
-#             serializer.errors,
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        return RegistrationDocument.objects.filter(
+            registration__user__id=user_id
+        )

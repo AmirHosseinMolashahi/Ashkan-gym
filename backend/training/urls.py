@@ -21,8 +21,10 @@ from .views import (
             CourseCreateView,
             CourseFormOptionsView,
             TimeTableBulkCreateView,
+            TimeTableUpdateView,
             CourseUpdateView,
             CourseDeleteView,
+
             )
 
 app_name = 'training'
@@ -37,6 +39,7 @@ urlpatterns = [
   path("courses/form-options/", CourseFormOptionsView.as_view(), name="course-form-options"),
   path("courses/add/", CourseCreateView.as_view(), name="course-add"),
   path("courses/<int:course_id>/timetable/bulk-create/", TimeTableBulkCreateView.as_view(), name="course-add-time-table"),
+  path("courses/<int:course_id>/timetable/update/", TimeTableUpdateView.as_view(), name="timetable-update"),
   path("courses/<int:id>/edit/", CourseUpdateView.as_view(), name='course-update'),
   path("courses/<int:id>/delete/", CourseDeleteView.as_view(), name='course-delete'),
 

@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import styles from './Profile.module.scss';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../utils/cropImage'; // تابع کمکی برای برش
-import { UilCameraPlus, UilLockAlt, UilEdit, UilCheckCircle, UilCheck  } from '@iconscout/react-unicons'
+import { UilCameraPlus, UilLockAlt, UilEdit, UilCheckCircle, UilCheck, UilEye, UilFile } from '@iconscout/react-unicons'
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
 import toPersianDigits from '../../../hooks/convertNumber';
-import roleConverter from '../../../hooks/roleConverter';
+import roleConverter, { hasRole } from '../../../hooks/roleConverter';
 import { useToast } from '../../../context/NotificationContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchUser, updateUser } from '../../../store/userSlice';
 import api from '../../../hooks/api';
 import { useLoading } from '../../../context/LoadingContext';
+import FileModal from '../../../components/GlobalComponents/FileModal/FileModal';
+import Modal from '../../../components/GlobalComponents/Modal/Modal';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
@@ -30,12 +32,23 @@ const EditProfile = () => {
     gender_title: '',
     gender: '',
   });
+
+
+  const DOC_TYPES = {
+    id_card: "شناسنامه" ,
+    register_form: "فرم ثبت نام" ,
+    insurance_card: "بیمه ورزشی" ,
+    other: "سایر" ,
+  };
+
+
   const dispatch = useDispatch();
   const { user, loading } = useSelector(state => state.auth);
   const { notify } = useToast();
   const { showLoading, hideLoading } = useLoading()
   const [activities, setActivities] = useState([]);
   const [activityLoading, setActivityLoading] = useState(false);
+
 
   // helper ساده برای زمان نسبی
   const timeAgoFa = (dateStr) => {
@@ -60,11 +73,15 @@ const EditProfile = () => {
   //دیتایی که از بک اند گرفته شده
   const [userCourse, setUserCourse] = useState(null)
   const [studentCount, setStudentCount] = useState(null)
+  const [userDocs, setUserDocs] = useState([])
 
   // state های مورد نیاز
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+
+  const [previewDocModal, setPreviewDocModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
 
   const onCropComplete = (croppedArea, croppedAreaPixels) => {
@@ -88,6 +105,17 @@ const EditProfile = () => {
       setUserCourse(res.data.courses)
     } catch (err) {
       console.log(err)
+    }
+  }
+
+  const fetchUserDocs = async () => {
+    try {
+      const res = await api.get('/registration/documents/list/');
+      setUserDocs(res.data || []);
+    } catch (err) {
+      console.log(err);
+      notify('خطا در دریافت مدارک ❌', 'error');
+      setUserDocs([]);
     }
   }
 
@@ -129,9 +157,18 @@ const EditProfile = () => {
     }
     fetchUserCourse();
     fetchStudentCount();
+    fetchUserDocs();
   }, [user]);
 
-
+  const handlePreviewDocModal = (doc) => {
+    if (!previewDocModal) {
+      setSelectedDoc(doc);
+      setPreviewDocModal(true);
+    } else {
+      setSelectedDoc(null);
+      setPreviewDocModal(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -277,7 +314,7 @@ const EditProfile = () => {
             </div>
             <div className={styles.info}>
               <h1>{user?.full_name}</h1>
-              <p>{roleConverter(user?.role)}</p>
+              <p>{roleConverter(user?.roles)}</p>
               <p>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
             </div>
           </div>
@@ -472,7 +509,7 @@ const EditProfile = () => {
                       <p>{user?.joined_at}</p>
                     </li>
                     <li>
-                      {user?.role === 'manager' ? (
+                      {hasRole(user?.roles, 'manager') ? (
                         <>
                           <p>کلاس ها</p>
                           <p>{userCourse ? userCourse : 'کلاسی موجود نیست'}</p>
@@ -484,9 +521,9 @@ const EditProfile = () => {
                         </>
                       )}
                     </li>
-                    {user?.role !== 'athlete' && (
+                    {!hasRole(user?.roles, 'athlete') && (
                       <li>
-                        {user?.role === 'manager' ? (
+                        {hasRole(user?.roles, 'manager') ? (
                           <>
                             <p>تعداد ورزشکاران</p>
                             <p>{studentCount ? studentCount : 'X'}</p>
@@ -500,6 +537,34 @@ const EditProfile = () => {
                       </li>
                     )}
                   </ul>
+                </div>
+              </div>
+              <div className={styles.profileInfo}>
+                <div className={styles.header}>
+                  <h3>مدارک شما</h3>
+                </div>
+                <div className={styles.profileInfoContent}>
+                  {userDocs.length === 0 ? (
+                    <p>هنوز مدرکی آپلود نشده است.</p>
+                  ) : (
+                    <ul className={styles.docList}>
+                      {userDocs.map((doc) => (
+                        <li key={doc.id} className={styles.docItem}>
+                          <div className={styles.docInfo}>
+                            <UilFile color='#333' size='1.5rem'/>
+                            <strong>{DOC_TYPES[doc.doc_type] || 'در حال بارگذاری...'}</strong>
+                          </div>
+                          {doc.document ? (
+                          <div className={styles.docActions}>
+                            <UilEye color='#333' size='1.3rem' onClick={() => handlePreviewDocModal(doc)}/>
+                          </div>
+                          ) : (
+                            ""
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
               <div className={styles.profileInfo}>
@@ -583,6 +648,11 @@ const EditProfile = () => {
             </div>
           </div>
         </div>
+      )}
+      {previewDocModal && (
+        <Modal handleModal={() => handlePreviewDocModal(null)} width="500px" height="600px">
+          <FileModal fileUrl={selectedDoc?.document} />
+        </Modal>
       )}
     </div>
 

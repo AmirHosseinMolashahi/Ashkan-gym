@@ -62,7 +62,7 @@ const UserManagement = () => {
     try {
       const params = { page, page_size: pageSize };
 
-      if (roleFilter !== "all") params.role = roleFilter;
+      if (roleFilter !== "all") params.role = roleFilter; // backend uses roles__name filter
       if (isActiveFilter !== "all") {
         params.is_active = isActiveFilter === "active" ? "true" : "false";
       }

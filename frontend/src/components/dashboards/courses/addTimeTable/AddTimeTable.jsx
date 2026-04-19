@@ -8,12 +8,13 @@ import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
 
 const AddTimeTable = ({timeTableModal, setTimeTableModal, handleSaveSchedule, scheduleRows, setScheduleRows}) => {
+  console.log("scheduleRows in AddTimeTable:", scheduleRows);
 
   const handleToggleDay = (id) => {
     setScheduleRows((prev) =>
       prev.map((row) =>
         row.id === id
-          ? { ...row, enabled: !row.enabled, start: !row.enabled ? row.start : '', end: !row.enabled ? row.end : '' }
+          ? { ...row, enabled: !row.enabled, start: !row.enabled ? row.start : null, end: !row.enabled ? row.end : null }
           : row
       )
     );
@@ -48,7 +49,7 @@ const AddTimeTable = ({timeTableModal, setTimeTableModal, handleSaveSchedule, sc
             <div className={style.timeInputs}>
               <div className={`${style.timeField} ${!row.enabled ? style.disabled : ""}`}>
                 <UilClock size={14} />
-                <DatePicker
+                <DatePicker 
                   disableDayPicker
                   format="HH:mm"
                   value={row.start}

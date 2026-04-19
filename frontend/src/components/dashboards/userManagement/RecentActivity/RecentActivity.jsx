@@ -101,7 +101,7 @@ const RecentActivity = () => {
                       </div>
                     </div>
                   </td>
-                  <td><strong>{roleConverter(item.actor.role)}</strong></td>
+                  <td><strong>{roleConverter(item.actor.roles)}</strong></td>
                   <td>{item.actor.is_active ? 'فعال' : 'غیرفعال'}</td>
                   <td>
                     <span className={styles.badge}>

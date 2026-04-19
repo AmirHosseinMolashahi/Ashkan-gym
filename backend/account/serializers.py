@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, Role
 import jdatetime
 from registration.models import Registration
 from django.db import transaction
@@ -14,6 +14,7 @@ class userSerializers(serializers.ModelSerializer):
     previous_login_jalali = serializers.SerializerMethodField()
     birthdate_jalali = serializers.SerializerMethodField()
     joined_at = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     
 
     class Meta:
@@ -42,6 +43,9 @@ class userSerializers(serializers.ModelSerializer):
         if obj.date_joined:
             return jdatetime.datetime.fromgregorian(datetime=obj.date_joined).strftime("%Y/%m/%d %H:%M")
         return None
+    
+    def get_roles(self, obj):
+        return list(obj.roles.values('id', 'name'))
     
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -91,10 +95,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     birthdate = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     national_id = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id','full_name','national_id','first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture', 'father_name', 'gender']
+        fields = ['id','full_name','national_id','first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture', 'father_name', 'gender', 'roles']
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
@@ -125,12 +130,45 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     def get_national_id(self, obj):
         return obj.national_id
+    
+    def get_roles(self, obj):
+        return list(obj.roles.values('id', 'name'))
+    
+    def update(self, instance, validated_data):
+        roles_data = validated_data.pop('roles', None)
+        instance = super().update(instance, validated_data)
+        
+        if roles_data is not None:
+            if isinstance(roles_data, list):
+                # roles_data is a list of role names or objects
+                roles_to_set = []
+                for r in roles_data:
+                    if isinstance(r, str):
+                        role_obj, _ = Role.objects.get_or_create(name=r)
+                        roles_to_set.append(role_obj)
+                    elif isinstance(r, dict) and 'name' in r:
+                        role_obj, _ = Role.objects.get_or_create(name=r['name'])
+                        roles_to_set.append(role_obj)
+                    elif isinstance(r, int):
+                        try:
+                            role_obj = Role.objects.get(id=r)
+                            roles_to_set.append(role_obj)
+                        except Role.DoesNotExist:
+                            pass
+                instance.roles.set(roles_to_set)
+            elif isinstance(roles_data, str):
+                # Single role name string
+                role_obj, _ = Role.objects.get_or_create(name=roles_data)
+                instance.roles.set([role_obj])
+        
+        return instance
+
 
 class ManagerUserUpdateSerializer(UserUpdateSerializer):
     class Meta(UserUpdateSerializer.Meta):
-        fields = UserUpdateSerializer.Meta.fields + ['role', 'is_active']
+        fields = UserUpdateSerializer.Meta.fields + ['roles', 'is_active']
         extra_kwargs = {
             **UserUpdateSerializer.Meta.extra_kwargs,
-            'role': {'required': False},
+            'roles': {'required': False},
             'is_active': {'required': False},
         }

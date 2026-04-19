@@ -5,7 +5,7 @@ import Home from './pages/home/Home';
 import DashboardLayouts from './layouts/dashboardLayouts/DashboardLayouts';
 import Dashbaord from './pages/dashbaord/Dashbaord';
 import Registration from './pages/registrations/Registration';
-import PrivateRoute from './wrapper/PrivateRoute';
+import ProtectedRoute from './wrapper/ProtectedRoute';
 import EditProfile from './pages/dashbaord/profile/Profile';
 import Schedule from './pages/dashbaord/schedule/Schedule';
 import Announce from './pages/dashbaord/announcements/Announce';
@@ -28,10 +28,14 @@ import UserManagement from './pages/dashbaord/userManagement/UserManagement';
 import ManagerEditUser from './pages/dashbaord/userManagement/managerEditUser/ManagerEditUser';
 import AddCourse from './pages/dashbaord/courses/addCourse/AddCourse';
 import EditCourse from './pages/dashbaord/courses/editCourse/EditCourse';
+import NotFound from './components/NotFound/NotFound';
+import Unauthorized from './components/Unauthorized/Unauthorized';
 
 function App() {
+  const toast = useToast();
+  const notify = toast?.notify;
   const dispatch = useDispatch();
-  const { notify } = useToast();
+  // const { notify } = useToast();
   const { user } = useSelector(state => state.auth);
   
   useEffect(() => {
@@ -106,96 +110,98 @@ function App() {
         </Route>
         <Route element={<DashboardLayouts />}>
           <Route path='/dashboard' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Dashbaord />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/profile' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <EditProfile />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/schedule' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Schedule />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/announcements' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <Announce />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/announcements/create' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <CreateAnnounce />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/announcements/:id/edit' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <UpdateAnnounce />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/notifications' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <NotifList />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/student-register' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <StudentRegisterations />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/courses' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <Courses />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/add' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <AddCourse />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/:id/edit' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <EditCourse />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/:id' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <CoursesDetail />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/my-courses' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <AthleteCourse />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/payment' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <Payment />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/payment/courses/:courseId' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <PaymentAthletes />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/student-payment' element={
-            <PrivateRoute>
+            <ProtectedRoute>
               <StudentPayment />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <UserManagement />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management/:id/edit' element={
-            <PrivateRoute>
+            <ProtectedRoute allowedRoles={'manager'}>
               <ManagerEditUser />
-            </PrivateRoute>
+            </ProtectedRoute>
           } />
         </Route>
+        <Route path="*" element={<NotFound />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
     </Router>
   )

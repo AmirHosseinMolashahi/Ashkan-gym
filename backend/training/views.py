@@ -13,6 +13,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView,
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from account.permissions import IsCoachOrManager, IsManager
 from account.models import CustomUser
@@ -58,10 +59,10 @@ class CoursesListView(ListAPIView):
             )
         ).order_by('-created_at')
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             return queryset
 
-        if user.role == 'coach':
+        if user.roles.filter(name='coach').exists():
             return queryset.filter(coach=user)
 
         raise PermissionDenied('شما دسترسی به این بخش را ندارید')
@@ -78,7 +79,7 @@ class CourseFormOptionsView(APIView):
     permission_classes = [IsAuthenticated, IsCoachOrManager]
 
     def get(self, request):
-        coaches = CustomUser.objects.filter(role="coach", is_active=True).only(
+        coaches = CustomUser.objects.filter(roles__name="coach", is_active=True).only(
             "id", "first_name", "last_name"
         )
         age_ranges = AgeRange.objects.all().only("id", "key", "title")
@@ -103,16 +104,16 @@ class CourseCreateView(CreateAPIView):
 
 
 class TimeTableBulkCreateView(APIView):
-    permission_classes = [IsAuthenticated, IsCoachOrManager]
+    permission_classes = [IsAuthenticated, IsManager]
 
     @transaction.atomic
     def post(self, request, course_id):
         course = get_object_or_404(Course, id=course_id)
         user = request.user
 
-        # coach فقط برای کلاس خودش
-        if user.role == "coach" and course.coach_id != user.id:
-            raise PermissionDenied("شما اجازه ایجاد جدول زمانی برای این کلاس را ندارید.")
+        # # coach فقط برای کلاس خودش
+        # if user.roles.filter(name="coach").exists() and course.coach_id != user.id:
+        #     raise PermissionDenied("شما اجازه ایجاد جدول زمانی برای این کلاس را ندارید.")
 
         serializer = TimeTableBulkItemSerializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
@@ -170,6 +171,97 @@ class CourseDeleteView(DestroyAPIView):
     lookup_field = 'id'
 
 
+class TimeTableUpdateView(UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsManager]
+
+    @transaction.atomic
+    def put(self, request, course_id):
+        serializer = TimeTableBulkItemSerializer(data=request.data, many=True, context={"course_id": course_id})
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data
+
+        # 1. چک داخل request
+        grouped = defaultdict(list)
+
+        for item in data:
+            grouped[item["day_of_week"]].append(item)
+
+        for day, items in grouped.items():
+            items = sorted(items, key=lambda x: x["start_time"])
+
+            for i in range(len(items) - 1):
+                if items[i]["end_time"] > items[i + 1]["start_time"]:
+                    raise ValidationError(f"در روز {day} تایم‌ها با هم تداخل دارند.")
+
+        # 2. چک با دیتابیس
+        days = [item["day_of_week"] for item in data]
+
+        existing_qs = TimeTable.objects.filter(day_of_week__in=days)
+
+        for item in data:
+            qs = existing_qs.filter(day_of_week=item["day_of_week"])
+
+            for obj in qs:
+                # اگر همین course هست، ردش کن (برای update)
+                if obj.course_id == course_id:
+                    continue
+
+                if (item["start_time"] < obj.end_time) and (item["end_time"] > obj.start_time):
+                    raise ValidationError(
+                        f"این بازه با یک کلاس دیگر در همین روز تداخل دارد."
+                    )
+
+        existing_qs = TimeTable.objects.filter(course_id=course_id)
+        existing_map = {
+            obj.day_of_week: obj for obj in existing_qs
+        }
+
+        to_create = []
+        to_update = []
+        incoming_days = set()
+
+        # 1. تفکیک create / update
+        for item in data:
+            day = item['day_of_week']
+            incoming_days.add(day)
+
+            if day in existing_map:
+                obj = existing_map[day]
+
+                obj.start_time = item["start_time"]
+                obj.end_time = item["end_time"]
+
+                to_update.append(obj)
+            else:
+                to_create.append(
+                    TimeTable(course_id=course_id, **item)
+                )
+
+        # 2. bulk update (بهینه)
+        if to_update:
+            TimeTable.objects.bulk_update(
+                to_update,
+                fields=["start_time", "end_time"]
+            )
+
+        # 3. bulk create
+        if to_create:
+            TimeTable.objects.bulk_create(to_create)
+        
+        # ✅ delete (روزهایی که حذف شدن)
+        TimeTable.objects.filter(course_id=course_id)\
+            .exclude(day_of_week__in=incoming_days)\
+            .delete()
+
+        # 4. refresh output
+        final_qs = TimeTable.objects.filter(course_id=course_id)
+
+        return Response(TimeTableSerializer(final_qs, many=True).data)
+    
+        
+
+
 
 #نمایش لیست همه‌ی کاربر ها به مدیر و نمایش لیست هر شخص ثبت نام شده به مربی
 class AthleteListView(ListAPIView):
@@ -180,11 +272,11 @@ class AthleteListView(ListAPIView):
         user = self.request.user
 
         # مدیر → همه کاربران
-        if user.is_staff or user.role == 'manager':
+        if user.is_staff or user.roles.filter(name='manager').exists():
             return CustomUser.objects.filter(is_active=True)
 
         # مربی → فقط کسانی که خودش ثبت‌نام کرده
-        if user.role == 'coach':
+        if user.roles.filter(name='coach').exists():
             return CustomUser.objects.filter(
                 registration__created_by=user
             ).distinct()
@@ -265,12 +357,12 @@ class EnrollmentListView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             return Enrollment.objects.select_related(
                 'student', 'course'
             ).order_by('-joined_at')
 
-        if user.role == 'coach':
+        if user.roles.filter(name='coach').exists():
             return Enrollment.objects.filter(
                 course__coach=user
             ).select_related(
@@ -289,10 +381,10 @@ class TimeTableListView(ListAPIView):
 
         queryset = TimeTable.objects.select_related('course')
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             return queryset.order_by('day_of_week', 'start_time')
 
-        if user.role == 'coach':
+        if user.roles.filter(name='coach').exists():
             return queryset.filter(
                 course__coach=user
             ).order_by('day_of_week', 'start_time')
@@ -306,13 +398,13 @@ class UserCoursesCount(APIView):
     def get(self, request):
         user = self.request.user
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             count = Course.objects.all().count()
         
-        if user.role == 'coach':
+        if user.roles.filter(name='coach').exists():
             count = Course.objects.filter(coach = user).count()
         
-        if user.role == 'athlete':
+        if user.roles.filter(name='athlete').exists():
             count = Enrollment.objects.filter(student = user).count()
         
         return Response({"courses": count})
@@ -324,9 +416,9 @@ class StudentCountView(APIView):
     def get(self, request):
         user = self.request.user
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             count = Enrollment.objects.count()
-        elif user.role == 'coach':
+        elif user.roles.filter(name='coach').exists():
             count = Enrollment.objects.filter(course__coach=user, status='active').count()
         else:
             count = 0

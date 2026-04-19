@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { UilArrowLeft, UilCameraPlus,UilCheck } from '@iconscout/react-unicons';
+import { UilArrowLeft, UilCameraPlus,UilCheck, UilFilePlus, UilFile, UilPen , UilTrash, UilEye } from '@iconscout/react-unicons';
 import styles from './ManagerEditUser.module.scss';
 import api from '../../../../hooks/api';
 import toPersianDigits from '../../../../hooks/convertNumber';
@@ -11,6 +11,9 @@ import persian_en from "react-date-object/locales/persian_fa"
 import { useToast } from '../../../../context/NotificationContext';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../../utils/cropImage'; // تابع کمکی برای برش
+import Modal from '../../../../components/GlobalComponents/Modal/Modal';
+import FileUpload from '../../../../components/registration/FileUpload/FileUpload';
+import FileModal from '../../../../components/GlobalComponents/FileModal/FileModal';
 
 const INITIAL_FORM = {
   first_name: '',
@@ -23,7 +26,7 @@ const INITIAL_FORM = {
   address: '',
   gender: '',
   profile_picture: null,
-  role: '',
+  roles: [],
   is_active: '',
 };
 
@@ -49,6 +52,69 @@ const ManagerEditUser = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const [userDocs, setUserDocs] = useState([]);
+  const [uploadDocsModal, setUploadDocsModal] = useState(false);
+  const [deleteDocsModal, setDeleteDocsModal] = useState(false);
+  const [previewDocModal, setPreviewDocModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+
+  const DOC_TYPES = {
+    id_card: "شناسنامه" ,
+    register_form: "فرم ثبت نام" ,
+    insurance_card: "بیمه ورزشی" ,
+    other: "سایر" ,
+  };
+
+  const handleUploadModal = () => {
+    if (!uploadDocsModal) {
+      if (userDocs.length >= 4) {
+        notify('ظرفیت بارگذاری مدارک برای این کاربر پر میباشد!', 'info')
+        return null
+      }
+      addDocument();
+    }
+
+    if (uploadDocsModal && userDocs.slice(-1)[0]['file'] === null ) {
+      userDocs.pop()
+    }
+
+    setUploadDocsModal(!uploadDocsModal)
+  }
+
+  const addDocument = () => {
+    console.log(userDocs)
+    setUserDocs([...userDocs, { file: null, doc_type: "" }]);
+  };
+
+  const updateDocument = (index, value, type) => {
+    const updated = [...userDocs];
+    updated[index]['file']= value;
+    updated[index]['doc_type']= type;
+    setUserDocs(updated);
+    handleUploadDocument(value, type);
+  };
+
+  const handleDeleteDocumentModal = (doc) => {
+    if (!deleteDocsModal) {
+      setSelectedDoc(doc);
+      setDeleteDocsModal(!deleteDocsModal);
+    } else {
+      setSelectedDoc(null);
+      setDeleteDocsModal(!deleteDocsModal);
+    }
+  };
+
+  const handlePreviewDocModal = (doc) => {
+    if (!previewDocModal) {
+      setSelectedDoc(doc);
+      setPreviewDocModal(true);
+    } else {
+      setSelectedDoc(null);
+      setPreviewDocModal(false);
+    }
+  };
+
 
   const userFullName = useMemo(() => {
     if (!userData) return '-';
@@ -77,7 +143,7 @@ const ManagerEditUser = () => {
         address: data.address || '',
         gender: data.gender || '',
         profile_picture: null,
-        role: data.role,
+        roles: data.roles || [],
         is_active: String(data.is_active ?? true), // "true" | "false"
       });
     } catch (err) {
@@ -88,8 +154,21 @@ const ManagerEditUser = () => {
     }
   };
 
+  const fetchUserDocs = async () => {
+    try {
+      const res = await api.get(`/registration/${id}/manager/upload/`);
+      setUserDocs(res.data);
+      console.log('User documents:', res.data);
+    } catch (err) {
+      console.error('خطا در دریافت مدارک کاربر:', err);
+      notify('خطا در دریافت مدارک کاربر.', 'danger');      
+    }
+  };
+
+
   useEffect(() => {
     fetchUser();
+    fetchUserDocs();
   }, [id]);
 
   const onChange = (key, value) => {
@@ -159,7 +238,10 @@ const ManagerEditUser = () => {
       payload.append('address', form.address.trim());
       payload.append('gender', form.gender);
       payload.append('birthdate', form.birthdate_jalali);
-      payload.append('role', form.role);
+      // ارسال نقش‌ها به صورت آرایه
+      form.roles.forEach(role => {
+        payload.append('roles', typeof role === 'object' ? role.name : role);
+      });
       payload.append('is_active', form.is_active);
 
 
@@ -185,6 +267,36 @@ const ManagerEditUser = () => {
       setSaving(false);
     }
   };
+
+  const handleUploadDocument = async (file, type) => {
+    const payload = new FormData();
+    payload.append('document', file[0]);
+    payload.append('doc_type', type);
+    
+    try {
+      await api.post(`/registration/${id}/manager/upload/`, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      notify('مدرك با موفقیت آپلود شد!', 'success');
+      fetchUserDocs(); // بارگذاری مجدد مدارک بعد از آپلود      
+    } catch (err) {
+      notify('خطا در آپلود مدرك!', 'error');
+      console.log(err);
+    }
+  }
+
+  const handleDeleteDocument = async (docId) => {
+    try {
+      await api.delete(`/registration/${id}/documents/${docId}/`);
+      notify('مدرك با موفقیت حذف شد!', 'success');
+      fetchUserDocs(); // بارگذاری مجدد مدارک بعد از حذف
+      handleDeleteDocumentModal(null); // بستن مودال تایید حذف
+    } catch (err) {
+      notify('خطا در حذف مدرك!', 'error');
+      console.log(err);
+    }
+  };
+
 
   if (loading) {
     return <div className={styles.loading}>در حال بارگذاری اطلاعات کاربر...</div>;
@@ -282,7 +394,9 @@ const ManagerEditUser = () => {
             <div className={styles.gridTwo}>
               <div className={styles.inputGroup}>
                 <label>نقش سیستم</label>
-                <select value={form.role} onChange={(e) => onChange('role', e.target.value)}>
+                <select 
+                  value={form.roles[0]?.name || form.roles[0] || ''} 
+                  onChange={(e) => onChange('roles', [e.target.value])}>
                   <option value="athlete">ورزشکار</option>
                   <option value="coach">مربی</option>
                   <option value="manager">مدیر</option>
@@ -334,7 +448,7 @@ const ManagerEditUser = () => {
 
             <div className={styles.metaRow}>
               <span>نقش</span>
-              <strong>{roleConverter(userData?.role)}</strong>
+              <strong>{roleConverter(userData?.roles)}</strong>
             </div>
             <div className={styles.metaRow}>
               <span>وضعیت</span>
@@ -348,6 +462,38 @@ const ManagerEditUser = () => {
               <span>تاریخ عضویت</span>
               <strong>{toPersianDigits((userData?.joined_at || '').split(' ')[0] || '-')}</strong>
             </div>
+          </section>
+
+          <section className={styles.profileCard}>
+            <div className={styles.docHeader}>
+              <h3>مدارک ثبت‌نام</h3>
+              <button className={styles.addBtn} onClick={() => handleUploadModal()}>
+                <UilFilePlus  color='#333' size='2rem'/>
+              </button>
+            </div>
+            {userDocs.length === 0 ? (
+              <p className={styles.noDocs}>هیچ مدرکی بارگذاری نشده است.</p>
+            ) : (
+              <ul className={styles.docList}>
+                {userDocs.map((doc) => (
+                  <li key={doc.id} className={styles.docItem}>
+                    <div className={styles.docInfo}>
+                      <UilFile color='#333' size='1.5rem'/>
+                      <strong>{DOC_TYPES[doc.doc_type] || 'در حال بارگذاری...'}</strong>
+                    </div>
+                    {doc.document ? (
+                    <div className={styles.docActions}>
+                      <UilEye color='#333' size='1.3rem' onClick={() => handlePreviewDocModal(doc)}/>
+                      <UilTrash color='#333' size='1.3rem' onClick={() => handleDeleteDocumentModal(doc)}/>
+                    </div>
+                    ) : (
+                      ""
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
           </section>
 
           <section className={styles.dangerCard}>
@@ -387,6 +533,25 @@ const ManagerEditUser = () => {
             </div>
           </div>
         </div>
+      )}
+      {uploadDocsModal && (
+        <Modal handleModal={() => setUploadDocsModal(false)} width="500px" height="600px">
+          <FileUpload handleModal={handleUploadModal} updateDocument={updateDocument} documents={userDocs}/>
+        </Modal>
+      )}
+      {deleteDocsModal && (
+        <Modal handleModal={() => handleDeleteDocumentModal(null)} width="400px" height="150px">
+          <h3>آیا از حذف این مدرك مطمئن هستید؟</h3>
+          <div className={styles.deleteDocActions}>
+            <button className={styles.cancelDelete} onClick={() => handleDeleteDocumentModal(null)}>خیر، انصراف</button>
+            <button className={styles.confirmDelete} onClick={() => {handleDeleteDocument(selectedDoc.id)}}>بله، حذف شود</button>
+          </div>
+        </Modal>
+      )}
+      {previewDocModal && (
+        <Modal handleModal={() => handlePreviewDocModal(null)} width="500px" height="600px">
+          <FileModal fileUrl={selectedDoc?.document} />
+        </Modal>
       )}
     </div>
   );

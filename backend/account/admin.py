@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, LoginHistory
+from .models import CustomUser, LoginHistory, Role
 
 
 class CustomUserAdmin(UserAdmin):
@@ -15,14 +15,17 @@ class CustomUserAdmin(UserAdmin):
     list_display = [
         "national_id",
         "full_name",
-        "role",
+        "roles_list",
         "is_staff",
         "is_active",
     ]
     def full_name(self, obj):
         return obj.get_full_name()
-
     full_name.short_description = "نام کامل"
+
+    def roles_list(self, obj):
+        return ", ".join([r.name for r in obj.roles.all()])
+    roles_list.short_description = "نقش‌ها"
     
     fieldsets = (
         (None, {"fields": ("national_id", "password")}),
@@ -31,7 +34,7 @@ class CustomUserAdmin(UserAdmin):
             _("Permissions"),
             {
                 "fields": (
-                    "role",
+                    "roles",
                     "is_active",
                     "is_staff",
                     "is_superuser",
@@ -59,3 +62,4 @@ class LoginHistoryAdmin(admin.ModelAdmin):
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(LoginHistory, LoginHistoryAdmin)
+admin.site.register(Role)

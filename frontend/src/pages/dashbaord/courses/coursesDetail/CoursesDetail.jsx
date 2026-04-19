@@ -10,6 +10,8 @@ import AttendanceTable from '../../../../components/dashboards/courses/attendanc
 import { useSelector } from 'react-redux';
 import AddTimeTable from '../../../../components/dashboards/courses/addTimeTable/AddTimeTable';
 import { useNavigate } from 'react-router-dom';
+import { hasRole } from '../../../../hooks/roleConverter';
+import DateObject from "react-date-object";
 
 const CoursesDetail = () => {
 
@@ -20,19 +22,32 @@ const CoursesDetail = () => {
   const navigate = useNavigate();
 
   const initialSchedule = [
-    { id: 1, day: 'شنبه', enabled: false, start: '', end: '' },
-    { id: 2, day: 'یکشنبه', enabled: false, start: '', end: '' },
-    { id: 3, day: 'دوشنبه', enabled: false, start: '', end: '' },
-    { id: 4, day: 'سه شنبه', enabled: false, start: '', end: '' },
-    { id: 5, day: 'چهارشنبه', enabled: false, start: '', end: '' },
-    { id: 6, day: 'پنچ شنبه', enabled: false, start: '', end: '' },
-    { id: 7, day: 'جمعه', enabled: false, start: '', end: '' },
+    { id: 1, day: 'شنبه', enabled: false, start: null, end: null },
+    { id: 2, day: 'یکشنبه', enabled: false, start: null, end: null },
+    { id: 3, day: 'دوشنبه', enabled: false, start: null, end: null },
+    { id: 4, day: 'سه شنبه', enabled: false, start: null, end: null },
+    { id: 5, day: 'چهارشنبه', enabled: false, start: null, end: null },
+    { id: 6, day: 'پنچ شنبه', enabled: false, start: null, end: null },
+    { id: 7, day: 'جمعه', enabled: false, start: null, end: null },
   ];
   
   const [ addTimeTableModal, setAddTimeTableModal ] = useState(false)
   const [scheduleRows, setScheduleRows] = useState(initialSchedule);
 
   const [ editTimeTableModal, setEditTimeTableModal ] = useState(false)
+
+
+
+  const handleEditTimeTableModal = () => {
+    if (courseDetail?.timeTable.length) {
+      const updatedSchedule = initialSchedule.map(row => {
+        const matchedTimeTable = courseDetail.timeTable.find(item => item.day_of_week === row.id);
+        return { ...row, enabled: !!matchedTimeTable, start: matchedTimeTable ?  new DateObject(`2020-01-01 ${matchedTimeTable.start_time}`) : null, end: matchedTimeTable ? new DateObject(`2020-01-01 ${matchedTimeTable.end_time}`) : '' };
+      });
+      setScheduleRows(updatedSchedule);
+      setEditTimeTableModal(true);
+    }
+  }
 
 
 
@@ -164,15 +179,14 @@ const CoursesDetail = () => {
       .filter((r) => r.enabled)
       .map((r) => ({
         day_id: r.id,
-        day: r.day,
         start_time: r.start ? r.start.format("HH:mm") : "",
         end_time: r.end ? r.end.format("HH:mm") : "",
       }));
     
     try {
-      await api.post(`/training/courses/${id}/timetable/bulk-create/`, payload);
-      notify('جدول زمانی با موفقیت ایجاد شد!', 'success')
-      setAddTimeTableModal(false);
+      await api.put(`/training/courses/${id}/timetable/update/`, payload);
+      notify('جدول زمانی با موفقیت ویرایش شد!', 'success')
+      setEditTimeTableModal(false);
       fetchCourseDetail();
       setScheduleRows(initialSchedule);
     } catch (err) {
@@ -238,8 +252,12 @@ const CoursesDetail = () => {
         <div className={style.cardContainer}>
           <div className={style.detailCard}>
             <h3>
-              زمان بندی کلاس <span>{user.role === 'manager' ? (
-                <button><UilEdit /></button>
+              زمان بندی کلاس <span>{hasRole(user?.roles, 'manager') ? (
+                courseDetail?.timeTable.length !== 0 ? (
+                  <button onClick={() => handleEditTimeTableModal()}><UilEdit /></button>
+                ) : (
+                  ''
+                )
               ) : (
                 ''
               )}</span>
@@ -259,7 +277,7 @@ const CoursesDetail = () => {
                   </ul>
                 </div>
               ) : (
-                user.role === 'manager' ? (
+                hasRole(user?.roles, 'manager') ? (
                   <button className={style.addTimeTableBtn} onClick={() => setAddTimeTableModal(true)}>
                     ایجاد جدول زمانی +
                   </button>

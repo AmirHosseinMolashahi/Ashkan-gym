@@ -14,6 +14,7 @@ import { useLoading } from "../../../context/LoadingContext";
 import { useToast } from "../../../context/NotificationContext";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../../../store/userSlice";
+import roleConverter from "../../../hooks/roleConverter";
 
 const Sidebar = () => {
   const { user, loading } = useSelector((state) => state.auth);
@@ -54,7 +55,7 @@ const Sidebar = () => {
         <div>
           <img src={user?.profile_picture} alt="" />
         </div>
-        <div className={css.title}>{user?.role}</div>
+        <div className={css.title}>{roleConverter(user?.roles)}</div>
       </div>
       <ul className={css.sidebarLinks}>
         {navItem.map((item, index) => {

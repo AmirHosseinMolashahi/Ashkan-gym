@@ -109,7 +109,7 @@ export default function AllUsersSection({
                     </div>
                   </td>
                   <td>{toPersianDigits(item.phone_number)}</td>
-                  <td><strong>{roleConverter(item.role)}</strong></td>
+                  <td><strong>{roleConverter(item.roles)}</strong></td>
                   <td>
                     <span className={styles.badge}>
                       {item.is_active ? 'فعال' : 'غیرفعال'}

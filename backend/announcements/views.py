@@ -36,14 +36,14 @@ class AnnounceList(ListAPIView):
     def get_serializer_class(self):
         user = self.request.user
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             return AnnounceSerializer  # همهٔ فیلدها
         return AnnounceLimitedSerializer  # فقط فیلدهای محدود
 
     def get_queryset(self):
         user = self.request.user
 
-        if user.role == 'manager':
+        if user.roles.filter(name='manager').exists():
             return Announcements.objects.all().order_by("-created_at")
 
         return Announcements.objects.filter(status='p',recipients=user).order_by("-created_at")

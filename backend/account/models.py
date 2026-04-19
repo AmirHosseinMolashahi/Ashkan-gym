@@ -6,6 +6,13 @@ import os
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.validators import RegexValidator
 
+
+class Role(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="نام نقش")
+
+    def __str__(self):
+        return self.name
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, national_id, password=None, **extra_fields):
         if not national_id:
@@ -14,6 +21,12 @@ class CustomUserManager(BaseUserManager):
         user = self.model(national_id=national_id, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
+        from .models import Role  # یا import درستش بسته به ساختار پروژه
+
+        athlete_role, _ = Role.objects.get_or_create(name="athlete")
+        user.roles.add(athlete_role)
+        
         return user
 
     def create_superuser(self, national_id, password=None, **extra_fields):
@@ -39,12 +52,6 @@ class CustomUser(AbstractUser):
         ('f', 'female'),
     )
 
-    ROLE_CHOICES = (
-        ('manager', 'Manager'),
-        ('coach', 'Coach'),
-        ('athlete', 'Athlete'),
-    )
-
     username = None   # حذف username
     national_id = models.CharField(
         verbose_name='کد ملی',
@@ -67,7 +74,11 @@ class CustomUser(AbstractUser):
     address = models.TextField(verbose_name='آدرس',null=True)
     gender = models.CharField(verbose_name='جنسیت', max_length=1, choices=GENDER_CHOICES, null=True)
     father_name = models.CharField(verbose_name='نام پدر')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name='نقش', default='athlete')
+    roles = models.ManyToManyField(
+        Role,
+        verbose_name="نقش‌ها",
+        blank=True
+    )
     profile_picture = models.ImageField(upload_to=user_directory_path, verbose_name='عکس پروفایل', default='default/man-user.jpg')
     previous_login = models.DateTimeField(
         null=True,

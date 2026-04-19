@@ -7,6 +7,7 @@ import Modal from '../../GlobalComponents/Modal/Modal';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../../context/NotificationContext';
 import { useSelector } from 'react-redux';
+import { hasRole } from '../../../hooks/roleConverter';
 
 const AnnounceList = () => {
 
@@ -96,7 +97,7 @@ const AnnounceList = () => {
   return (
     <div className={style.announceList}>
       <div className={style.listContainer}>
-          {user.role === 'manager' ? (
+          {hasRole(user?.roles, 'manager') ? (
             <>
               <table>
                 <thead>

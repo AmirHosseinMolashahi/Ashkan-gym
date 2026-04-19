@@ -33,8 +33,8 @@ const CreateAnnounce = () => {
   const fethchUsers = async () => {
     try {
       const resUser = await api.get('account/users/');
-      const resCoach = await api.get('account/users/?role=coach');
-      const resAthlete = await api.get('account/users/?role=athlete');
+      const resCoach = await api.get('account/users/?role=coach'); // backend uses roles__name filter
+      const resAthlete = await api.get('account/users/?role=athlete'); // backend uses roles__name filter
       
       setUsers(resUser.data);
       setCoaches(resCoach.data);

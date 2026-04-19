@@ -27,7 +27,7 @@ const InfoBox = () => {
             <div className={css.baseInfo}>
                 <ul>
                     <li className={css.infoItem}>
-                        <p><b>{user?.full_name}</b> عزیز، <b>{roleConverter(user?.role)}</b> محترم باشگاه اشکان.</p>
+                        <p><b>{user?.full_name}</b> عزیز، <b>{roleConverter(user?.roles)}</b> محترم باشگاه اشکان.</p>
                         <p>به داشبورد خود خوش آمدید.</p>
                     </li>
                     <li className={css.infoItem}>

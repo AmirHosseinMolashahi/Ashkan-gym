@@ -8,6 +8,7 @@ import FilterBar from '../../../components/dashboards/courses/filterBar/FilterBa
 import ClassCard from '../../../components/dashboards/courses/classCard/ClassCard';
 import toPersianDigits from '../../../hooks/convertNumber';
 import { useNavigate } from 'react-router-dom';
+import { hasRole } from '../../../hooks/roleConverter';
 
 const Courses = () => {
 
@@ -51,7 +52,7 @@ const Courses = () => {
             <h3>مدیریت کلاس ها</h3>
             <p>مدیریت کلاس ها و ورزشکاران</p>
           </div>
-          {user.role === 'manager' && (
+          {hasRole(user.roles, 'manager') && (
             <button onClick={() => navigate('/dashboard/courses/add')}>
               اضافه کردن کلاس +
             </button>

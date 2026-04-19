@@ -166,7 +166,7 @@ class UsersView(ListAPIView):
         role = self.request.GET.get('role')
 
         if role:
-            qs = qs.filter(role=role)
+            qs = qs.filter(roles__name=role)
 
         return qs
 
@@ -190,7 +190,7 @@ class AllUsersManagementView(ListAPIView):
         search = self.request.query_params.get("search")
 
         if role and role != "all":
-            qs = qs.filter(role=role)
+            qs = qs.filter(roles__name=role)
 
         if is_active in ["true", "false"]:
             qs = qs.filter(is_active=(is_active == "true"))
