@@ -1,3 +1,4 @@
+@use '../../../../styles/constants.scss' as *;
 .page {
   padding: 20px;
   direction: rtl;
@@ -91,7 +92,7 @@
 
 .tableHead {
   display: grid;
-  grid-template-columns: 1.3fr 1.2fr 1fr 1.6fr;
+  grid-template-columns: 1.3fr 1.2fr 1fr 1fr 1.6fr;
   gap: 12px;
   padding: 12px 14px;
   background: #f8fafc;
@@ -103,7 +104,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 1.3fr 1.2fr 1fr 1.6fr;
+  grid-template-columns: 1.3fr 1.2fr 1fr 1fr 1.6fr;
   gap: 12px;
   padding: 14px;
   border-bottom: 1px solid #f1f5f9;
@@ -118,6 +119,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.paymentStatus {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: start;
+  gap: .5rem;
+
+  .notifiedStatus, .notifiedDate {
+    font-size: 11px;
+  }
 }
 
 .avatar {
@@ -161,6 +174,16 @@
   margin: 4px 0 0;
   color: #6b7280;
   font-size: 12px;
+}
+
+.changeInvoice {
+  button {
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 14px;
+  }
 }
 
 .actions {
@@ -209,6 +232,16 @@
   color: #fff;
 }
 
+.closeBtn {
+  background-color: $red;
+  color: #fff;
+}
+
+.saveBtn {
+  background-color: $success;
+  color: #fff;
+}
+
 .primaryBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -218,6 +251,38 @@
   background: #fff;
   border-color: #d1d5db;
   color: #374151;
+}
+
+.btnContainer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.invoiceChangeRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  lable {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  input {
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 8px;
+    background: #fff;
+    font-size: 12px;
+  }
+
+  .subtle {
+    color: #6b7280;
+    font-size: 12px;
+  }
 }
 
 .empty {

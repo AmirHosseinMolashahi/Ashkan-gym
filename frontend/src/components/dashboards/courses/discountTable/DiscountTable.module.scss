@@ -17,6 +17,10 @@
         justify-content: center;
         align-items: center;
         gap: 1rem;
+        
+        label {
+          color: $primary;
+        }
         button {
           padding: .5rem;
         }
@@ -50,6 +54,10 @@
           color: $primary;
         }
       }
+
+      .clearFilterBtn {
+        padding: .7rem;
+      }
     }
     .tableContainer {
       padding: 1rem 2rem;
@@ -68,15 +76,6 @@
               font-weight: 600;
               border-bottom: 2px solid #e3e3e3;
             }
-            .thDub {
-              display: flex;
-              flex-direction: column;
-              gap: .3rem;
-              align-items: start;
-              span {
-                font-size: 11px;
-              }
-            }
           }
           tbody {
             tr {
@@ -90,6 +89,12 @@
                 padding: 10px;
                 text-align: right;
                 border-bottom: 1px solid #eee;
+
+                input {
+                  padding: .5rem;
+                  border: 1px solid #eee;
+                  border-radius: 10px;
+                }
               }
               .students {
                 display: flex;
@@ -107,27 +112,18 @@
                   color: #777;
                 }
               }
-              .status {
-                display: flex;
-                align-items: center;
-                gap: .3rem;
-              }
               .btnContainer {
                 display: flex;
-                gap: .7rem;
-                button {
-                  background-color: transparent;
-                  padding: 0;
+                gap: .5rem;
+                .editBtn {
+                  background-color: #2563eb;
+                  padding: .7rem;
+                  color: $secondary-white;
                 }
-                .active {
-                  background-color: $success;
-                  padding: .3rem;
-                  color:  $white;
-                }
-                .deactive {
+                .deleteBtn {
                   background-color: $danger;
-                  padding: .3rem;
-                  color:  $white;
+                  padding: .7rem;
+                  color: $secondary-white;
                 }
               }
             }
@@ -136,26 +132,54 @@
     }
   }
 }
-
-.modal {
+.editModal {
   display: flex;
   flex-direction: column;
   gap: .7rem;
   color: $primary;
+}
+.btnContainer2 {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  justify-content: end;
 
-  .btnContainer {
-    display: flex;
-    gap: .7rem;
-    justify-content: flex-end;
+  .closeBtn {
+    background-color: $danger;
+    color: $white;
+  }
+  .saveBtn {
+    background-color: $success;
+    color: $white;
+  }
+  .secondaryBtn {
+    background-color: $secondary;
+    color: $primary;
+  }
+}
 
-    .successBtn {
-      background-color: $success;
-      color: $white;
-    }
-    .cancelBtn {
-      background-color: $danger;
-      color: $white;
-    }
+.invoiceChangeRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  lable {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  input {
+    height: 32px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 0 8px;
+    background: #fff;
+    font-size: 12px;
+  }
+
+  .subtle {
+    color: #6b7280;
+    font-size: 12px;
   }
 }
 

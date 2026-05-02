@@ -22,6 +22,8 @@ const SecondStepInfo = ({userId, onSuccess, setUserId}) => {
     profile_picture: '',
     birthdate_jalali: '',
     gender: '',
+    insurance: false,
+    insurance_expiry_jalali: '',
   });
   const { notify } = useToast();
   const [profileImage, setProfileImage] = useState(null);
@@ -81,7 +83,6 @@ const SecondStepInfo = ({userId, onSuccess, setUserId}) => {
     e.preventDefault();
 
     const form = new FormData();
-    form.append('national_id', formData.national_id);
     form.append('father_name', formData.father_name);
     form.append('first_name', formData.first_name);
     form.append('last_name', formData.last_name);
@@ -90,6 +91,10 @@ const SecondStepInfo = ({userId, onSuccess, setUserId}) => {
     form.append('address', formData.address);
     form.append('birthdate', formData.birthdate_jalali);
     form.append('gender', formData.gender);
+    form.append('insurance', formData.insurance);
+    if (formData.insurance_expiry_jalali) {
+      form.append('insurance_expiry_date', formData.insurance_expiry_jalali);
+    }
 
     if (profileImage) {
       form.append('profile_picture', profileImage,'profile.jpg');
@@ -104,6 +109,7 @@ const SecondStepInfo = ({userId, onSuccess, setUserId}) => {
       onSuccess();
       notify('اطلاعات با موفقیت ذخیره شد 🙌', 'success');
     } catch (err) {
+      console.log(err)
       notify('خطا در ذخیره اطلاعات!', 'error');
     }
   };
@@ -215,6 +221,39 @@ const SecondStepInfo = ({userId, onSuccess, setUserId}) => {
               />
             </div>
           </div>
+          <div className={style.inputContainer}>
+            <div className={style.inputWrapper}>
+              <label>بیمه</label>
+              <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                <p>آیا کاربر بیمه دارد؟</p>
+                <input type="checkbox" name="insurance" checked={formData.insurance} onChange={(e) => setFormData({...formData, insurance: e.target.checked})} />
+              </div>
+            </div>
+            <div className={style.inputWrapper}>
+              <label>تاریخ پایان بیمه</label>
+              <DatePicker
+                value={formData.insurance_expiry_jalali}
+                calendar={persian}
+                locale={persian_en}
+                calendarPosition = 'top-right'
+                onChange={(date) => {
+                  const miladi = date?.format("YYYY/MM/DD");
+                  setFormData({ ...formData, insurance_expiry_jalali: miladi });
+                }}
+                render={(value, openCalendar) => (
+                <input
+                  onFocus={openCalendar}
+                  value={value}
+                  placeholder="تاریخ پایان بیمه"
+                  className={style.formInput}
+                  readOnly
+                  style={{width: '95%'}}
+                />
+              )}
+              />
+            </div>
+          </div>
+
           <div className={style.inputContainer}>
             <div className={style.inputWrapper}>
               <label>آدرس</label>

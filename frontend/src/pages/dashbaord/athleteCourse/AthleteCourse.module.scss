@@ -37,3 +37,16 @@
     }
   }
 }
+.unpaid {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  color: #6b0c0c;
+}
+
+.paid {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  color: #0c2a6b;
+}

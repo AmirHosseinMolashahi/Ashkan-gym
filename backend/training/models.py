@@ -60,7 +60,7 @@ class Enrollment(models.Model):
     student = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        limit_choices_to={'role': 'athlete'},
+        limit_choices_to={'roles__name': 'athlete'},
         related_name='enrollments',
         verbose_name='ورزشکار',
     )
@@ -76,6 +76,17 @@ class Enrollment(models.Model):
         default='active',
         verbose_name='وضعیت ورزشکار',
     )
+    
+    start_date = models.DateField() #تاریخ فعال شدن
+    
+    end_date = models.DateField(null=True, blank=True) # تاریخ غیر فعال شدن
+    
+    custom_due_day = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="مثلاً 7 یعنی هفتم هر ماه",
+        default=1
+    )
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -90,6 +101,22 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return self.student.first_name + " در " + self.course.title
+    
+    def get_final_fee(self):
+        base = self.course.price
+
+        pricing = getattr(self, 'pricing', None)
+
+        if not pricing:
+            return base
+
+        if pricing.monthly_fee:
+            return pricing.monthly_fee
+
+        base -= pricing.discount_amount
+        base -= (base * pricing.discount_percent // 100)
+
+        return base
 
 
 class TimeTable(models.Model):
@@ -117,7 +144,10 @@ class TimeTable(models.Model):
 
     def __str__(self):
         age_ranges = ", ".join([str(age) for age in self.course.age_ranges.all()])
-        return self.course.title + age_ranges + " در " + str(self.day_of_week)
+        return self.course.title + age_ranges + " در " + self.get_day_of_week_display() + " از " + self.start_time.strftime("%H:%M") + " تا " + self.end_time.strftime("%H:%M")
+    
+    def get_day_of_week_display(self):
+        return dict(self.DAYS).get(self.day_of_week, 'نامشخص')
     
     class Meta:
         constraints = [

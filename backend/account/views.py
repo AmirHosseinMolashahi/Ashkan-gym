@@ -171,22 +171,88 @@ class UsersView(ListAPIView):
         return qs
 
 
+
+class UsersWithoutInsuranceView(ListAPIView):
+    serializer_class = userSerializers
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(
+            insurance=False,
+            is_active=True
+        ).order_by("-date_joined").only(
+            "id", "first_name", "last_name", "national_id"
+        )
+    def get_queryset(self):
+        user = self.request.user
+
+        base_queryset = CustomUser.objects.filter(
+            insurance=False,
+            is_active=True
+        )
+
+        # اگر منیجر بود → همه رو ببینه
+        if user.roles.filter(name="manager").exists():
+            return base_queryset.order_by("-date_joined").only(
+                "id", "first_name", "last_name", "national_id"
+            )
+
+        # اگر coach بود → فقط یوزرهایی که در کورس‌های خودش enrollment دارن
+        if user.roles.filter(name="coach").exists():
+            return base_queryset.filter(
+                enrollments__course__coach=user,
+                enrollments__status="active"
+            ).distinct().order_by("-date_joined").only(
+                "id", "first_name", "last_name", "national_id"
+            )
+
+        # در صورت نیاز برای بقیه رول‌ها
+        return CustomUser.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            "users_without_insurance_number": queryset.count(),
+            "users_without_insurance_list": serializer.data
+        })
+
+
+
 class AllUsersPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
 
 
-class AllUsersManagementView(ListAPIView):
+class UsersManagementView(ListAPIView):
     serializer_class = userSerializers
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [IsAuthenticated]
     pagination_class = AllUsersPagination
 
-    def get_queryset(self):
-        qs = CustomUser.objects.all().order_by("-date_joined")
+    def get_base_queryset(self):
+        user = self.request.user
+        roles = set(user.roles.values_list("name", flat=True))
 
+        qs = CustomUser.objects.all()
+
+        # اگر manager بود → full access
+        if "manager" in roles:
+            return qs
+
+        # اگر coach بود → محدود
+        if "coach" in roles:
+            return qs.filter(
+                enrollments__course__coach=user,
+                enrollments__status="active"
+            ).distinct()
+
+        return CustomUser.objects.none()
+
+    def filter_queryset_custom(self, qs):
         role = self.request.query_params.get("role")
         is_active = self.request.query_params.get("is_active")
+        insurance = self.request.query_params.get("insurance")
         search = self.request.query_params.get("search")
 
         if role and role != "all":
@@ -194,6 +260,9 @@ class AllUsersManagementView(ListAPIView):
 
         if is_active in ["true", "false"]:
             qs = qs.filter(is_active=(is_active == "true"))
+
+        if insurance in ["true", "false"]:
+            qs = qs.filter(insurance=(insurance == "true"))
 
         if search:
             qs = qs.filter(
@@ -206,50 +275,80 @@ class AllUsersManagementView(ListAPIView):
 
         return qs
 
+    def get_queryset(self):
+        qs = self.get_base_queryset()
+        qs = self.filter_queryset_custom(qs)
+        return qs.order_by("-date_joined")
 
-class UserManagementSummaryView(APIView):
-    permission_classes = [IsAuthenticated, IsManager]
-
-    def get(self, request):
+    def get_summary(self, qs):
         now = timezone.now()
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        # بازه ماه قبل برای مقایسه
         prev_month_end = month_start - timedelta(microseconds=1)
         prev_month_start = prev_month_end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        total_users = CustomUser.objects.count()
-        inactive_users = CustomUser.objects.filter(is_active=False).count()
-        new_this_month = CustomUser.objects.filter(date_joined__gte=month_start).count()
-        new_prev_month = CustomUser.objects.filter(
+        total_users = qs.count()
+        inactive_users = qs.filter(is_active=False).count()
+
+        new_this_month = qs.filter(date_joined__gte=month_start).count()
+        new_prev_month = qs.filter(
             date_joined__gte=prev_month_start,
             date_joined__lte=prev_month_end
         ).count()
 
-        # کاربران فعال امروز (بر اساس لاگ ورود)
+        # ⚠️ مهم: فقط لاگ‌های مربوط به همین queryset
         active_today = LoginHistory.objects.filter(
-            login_time__gte=today_start
+            login_time__gte=today_start,
+            user__in=qs
         ).values("user_id").distinct().count()
 
-        return Response({
+        return {
             "total_users": total_users,
             "active_today": active_today,
             "new_this_month": new_this_month,
             "new_prev_month": new_prev_month,
             "inactive_users": inactive_users,
+        }
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        # pagination
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+
+        summary = self.get_summary(queryset)
+
+        return self.get_paginated_response({
+            "summary": summary,
+            "users": serializer.data
         })
 
 
 class UserManagementDetailView(RetrieveUpdateAPIView):
-    queryset = CustomUser.objects.all()
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
     lookup_url_kwarg = 'user_id'
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return userSerializers
         return ManagerUserUpdateSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+
+        # 👨‍💼 مدیر → همه
+        if user.is_superuser or user.roles.filter(name="manager").exists():
+            return CustomUser.objects.all()
+
+        # 👨‍🏫 مربی → فقط شاگردهای خودش
+        if user.roles.filter(name="coach").exists():
+            return CustomUser.objects.filter(
+                enrollments__course__coach=user
+            ).distinct()
+
+        return CustomUser.objects.none()
 
 
 class ManagerDeleteUserView(DestroyAPIView):

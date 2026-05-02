@@ -15,11 +15,40 @@ class userSerializers(serializers.ModelSerializer):
     birthdate_jalali = serializers.SerializerMethodField()
     joined_at = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
+    insurance_expiry_jalali = serializers.SerializerMethodField()
     
 
     class Meta:
         model = CustomUser
-        fields = '__all__'
+        fields = [
+                    'id',
+                    'national_id',
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'phone_number',
+                    'birthdate',
+                    'address',
+                    'gender', 
+                    'father_name',
+                    'is_active',
+                    'insurance',
+                    'insurance_expiry_date',
+                    'profile_picture',
+                    'previous_login',
+                    'date_joined',
+                    'gender_title',
+                    'full_name',
+                    'previous_login_jalali',
+                    'birthdate_jalali',
+                    'joined_at',
+                    'roles',
+                    'insurance_expiry_jalali']
+    
+    def get_insurance_expiry_jalali(self, obj):
+        if obj.insurance_expiry_date:
+            return jdatetime.datetime.fromgregorian(datetime=obj.insurance_expiry_date).strftime("%Y/%m/%d")
+        return None
 
     def get_gender_title(self, obj):
         return obj.gender_title()  # call the model method
@@ -93,13 +122,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     birthdate = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    insurance_expiry_date = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     national_id = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id','full_name','national_id','first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture', 'father_name', 'gender', 'roles']
+        fields = ['id','full_name','national_id','first_name', 'last_name', 'email', 'phone_number','birthdate', 'address', 'profile_picture', 'father_name', 'gender', 'roles', 'insurance', 'insurance_expiry_date']
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
@@ -110,17 +140,29 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'profile_picture': {'required': False},
             'father_name': {'required': False},
             'gender': {'required': False},
+            'insurance': {'required': False},
+            'insurance_expiry_date': {'required': False},
         }
     
     def validate_birthdate(self, value):
+        if not value or value == "null":
+            return None
+
+        try:
+            y, m, d = map(int, value.split('/'))
+            gregorian_date = jdatetime.date(y, m, d).togregorian()
+            return gregorian_date
+        except:
+            raise serializers.ValidationError("فرمت تاریخ شمسی نامعتبر است.")
+    
+    def validate_insurance_expiry_date(self, value):
         if not value:
             return None
 
         try:
-            print(value)
+            print("Validating insurance expiry date:", value)
             y, m, d = map(int, value.split('/'))
             gregorian_date = jdatetime.date(y, m, d).togregorian()
-            print(gregorian_date)
             return gregorian_date
         except:
             raise serializers.ValidationError("فرمت تاریخ شمسی نامعتبر است.")

@@ -75,13 +75,17 @@ const AthleteCourse = () => {
             icon={<UilStatistics />}
             title='درصد حضور در ماه'
             body={`${athleteInfo?.attendance_percentage} %`}
-            footer={`${athleteInfo?.trend === 'up' ? '+' : '-'} ${athleteInfo?.attendance_difference} از ماه گذشته`}
+            footer={athleteInfo?.trend !== null ? `${athleteInfo?.trend === 'up' ? '+' : '-'} ${athleteInfo?.attendance_difference} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد'}
           />
           <MyClassCard
             icon={<UilCreditCard />} 
             title='وضعیت پرداخت'
-            body='پرداخت شده'
-            footer='پرداخت بعدی شما 10 روز دیگه'
+            body={athleteInfo?.next_payment?.remaining_amount > 0 ? (
+              <span className={style.unpaid}><UilTimesCircle /> پرداخت نشده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+            ) : (
+              <span className={style.paid}><UilCheckCircle /> پرداخت شده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+            )}
+            footer={athleteInfo?.next_payment?.status === 'unpaid' ? `مبلغ ${toPersianDigits(athleteInfo.next_payment.amount)} تومان - سررسید ${toPersianDigits(athleteInfo.next_payment.due_date)}` : 'شما هیچ پرداختی ندارید'}
           />
         </div>
         <div className={style.classInfoList}>

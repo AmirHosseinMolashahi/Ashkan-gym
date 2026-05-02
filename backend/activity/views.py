@@ -7,7 +7,7 @@ from django.db.models import Q
 
 from .models import ActivityLog
 from .serializers import ActivityLogSerializer
-from account.permissions import IsManager
+from account.permissions import IsCoachOrManager
 
 
 class RecentActivityView(APIView):
@@ -27,11 +27,28 @@ class ActivityPagination(PageNumberPagination):
 
 class ManagerRecentActivityView(ListAPIView):
     serializer_class = ActivityLogSerializer
-    permission_classes = [IsAuthenticated, IsManager]
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
     pagination_class = ActivityPagination
 
     def get_queryset(self):
+        user = self.request.user
+
         qs = ActivityLog.objects.select_related("actor").order_by("-created_at")
+
+        # 👇 گرفتن رول‌ها یکبار (بهینه)
+        roles = set(user.roles.values_list("name", flat=True))
+
+        # manager → بدون محدودیت
+        if "manager" not in roles:
+            if "coach" in roles:
+                qs = qs.filter(
+                    actor__enrollments__course__coach=user,
+                    actor__enrollments__status="active"
+                ).distinct()
+            else:
+                return ActivityLog.objects.none()
+
+        # ------------------ فیلترها ------------------
 
         verb = self.request.query_params.get("verb")
         actor_id = self.request.query_params.get("actor_id")

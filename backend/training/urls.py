@@ -24,7 +24,9 @@ from .views import (
             TimeTableUpdateView,
             CourseUpdateView,
             CourseDeleteView,
-
+            CoachDashboardCourses,
+            DeactivateEnrollmentView,
+            ReactivateEnrollmentView,
             )
 
 app_name = 'training'
@@ -42,6 +44,10 @@ urlpatterns = [
   path("courses/<int:course_id>/timetable/update/", TimeTableUpdateView.as_view(), name="timetable-update"),
   path("courses/<int:id>/edit/", CourseUpdateView.as_view(), name='course-update'),
   path("courses/<int:id>/delete/", CourseDeleteView.as_view(), name='course-delete'),
+  path("courses/dashboard/", CoachDashboardCourses.as_view(), name='courses-dashboard'),
+
+  path("courses/enrollment/<int:enrollment_id>/deactive/", DeactivateEnrollmentView.as_view(), name='enrollment-deactive'),
+  path("courses/enrollment/<int:enrollment_id>/reactive/", ReactivateEnrollmentView.as_view(), name='enrollment-reactive'),
 
 
   path('enrollment/', EnrollmentListView.as_view(), name='enrollment-list'),

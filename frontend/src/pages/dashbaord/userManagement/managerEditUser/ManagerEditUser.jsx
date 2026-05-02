@@ -4,7 +4,7 @@ import { UilArrowLeft, UilCameraPlus,UilCheck, UilFilePlus, UilFile, UilPen , Ui
 import styles from './ManagerEditUser.module.scss';
 import api from '../../../../hooks/api';
 import toPersianDigits from '../../../../hooks/convertNumber';
-import roleConverter from '../../../../hooks/roleConverter';
+import roleConverter, { hasRole } from '../../../../hooks/roleConverter';
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
@@ -14,6 +14,7 @@ import getCroppedImg from '../../../../utils/cropImage'; // تابع کمکی ب
 import Modal from '../../../../components/GlobalComponents/Modal/Modal';
 import FileUpload from '../../../../components/registration/FileUpload/FileUpload';
 import FileModal from '../../../../components/GlobalComponents/FileModal/FileModal';
+import { useSelector } from 'react-redux';
 
 const INITIAL_FORM = {
   first_name: '',
@@ -28,6 +29,9 @@ const INITIAL_FORM = {
   profile_picture: null,
   roles: [],
   is_active: '',
+  insurance: false,
+  insurance_expiry_date: '',
+  insurance_expiry_jalali: '',
 };
 
 const normalizeDigits = (value = '') =>
@@ -37,7 +41,9 @@ const ManagerEditUser = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { notify } = useToast();
-
+  const { user } = useSelector(
+    state => state.auth
+  )
 
   const [profileImage, setProfileImage] = useState(null); // برای نمایش
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -145,6 +151,9 @@ const ManagerEditUser = () => {
         profile_picture: null,
         roles: data.roles || [],
         is_active: String(data.is_active ?? true), // "true" | "false"
+        insurance: data.insurance || false,
+        insurance_expiry_date: data.insurance_expiry_date || '',
+        insurance_expiry_jalali: data.insurance_expiry_jalali || '',
       });
     } catch (err) {
       setError('اطلاعات کاربر دریافت نشد.');
@@ -238,6 +247,9 @@ const ManagerEditUser = () => {
       payload.append('address', form.address.trim());
       payload.append('gender', form.gender);
       payload.append('birthdate', form.birthdate_jalali);
+      payload.append('insurance', form.insurance);
+      payload.append('insurance_expiry_date', form.insurance_expiry_jalali);
+
       // ارسال نقش‌ها به صورت آرایه
       form.roles.forEach(role => {
         payload.append('roles', typeof role === 'object' ? role.name : role);
@@ -259,7 +271,8 @@ const ManagerEditUser = () => {
       const backendError =
         err?.response?.data?.detail ||
         err?.response?.data?.birthdate?.[0] ||
-        err?.response?.data?.phone_number?.[0];
+        err?.response?.data?.phone_number?.[0] ||
+        err?.response?.data?.insurance_expiry_date?.[0];
       setError(backendError || 'ذخیره تغییرات با خطا مواجه شد.');
       notify('ذخیره تغییرات با خطا مواجه شد.', 'error');
       console.log(err);
@@ -381,6 +394,36 @@ const ManagerEditUser = () => {
               </div>
             </div>
 
+            <div className={styles.gridTwo}>
+              <div className={styles.inputGroup}>
+                <label>بیمه</label>
+                <div style={{display: 'flex', gap: '1rem'}}>
+                  <p>آیا کاربر بیمه دارد؟</p>
+                  <input value={form.insurance} type='checkbox' checked={form.insurance} onChange={(e) => onChange('insurance', e.target.checked)} />
+                </div>
+              </div>
+              <div className={styles.inputGroup}>
+                <label>تاریخ انقضا بیمه (شمسی)</label>
+                <DatePicker
+                  value={form.insurance_expiry_jalali}
+                  calendar={persian}
+                  locale={persian_en}
+                  onChange={(date) => {
+                    const miladi = date?.format("YYYY/MM/DD");
+                    onChange('insurance_expiry_jalali', miladi);
+                  }}
+                  render={(value, openCalendar) => (
+                    <input
+                      onFocus={openCalendar}
+                      value={value}
+                      placeholder="تاریخ انقضا بیمه"
+                      readOnly
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
             <div className={styles.inputGroup}>
               <label>آدرس</label>
               <textarea value={form.address} onChange={(e) => onChange('address', e.target.value)} rows={4} />
@@ -392,16 +435,18 @@ const ManagerEditUser = () => {
             <p className={styles.cardDesc}>سطح دسترسی و وضعیت فعلی حساب را مدیریت کنید.</p>
 
             <div className={styles.gridTwo}>
-              <div className={styles.inputGroup}>
-                <label>نقش سیستم</label>
-                <select 
-                  value={form.roles[0]?.name || form.roles[0] || ''} 
-                  onChange={(e) => onChange('roles', [e.target.value])}>
-                  <option value="athlete">ورزشکار</option>
-                  <option value="coach">مربی</option>
-                  <option value="manager">مدیر</option>
-                </select>
-              </div>
+              {hasRole(user?.roles, 'manager') ? (
+                <div className={styles.inputGroup}>
+                  <label>نقش سیستم</label>
+                  <select 
+                    value={form.roles[0]?.name || form.roles[0] || ''} 
+                    onChange={(e) => onChange('roles', [e.target.value])}>
+                    <option value="athlete">ورزشکار</option>
+                    <option value="coach">مربی</option>
+                    <option value="manager">مدیر</option>
+                  </select>
+                </div>
+              ) : ''}
 
               <div className={styles.inputGroup}>
                 <label>وضعیت حساب</label>
@@ -507,9 +552,11 @@ const ManagerEditUser = () => {
               {form.is_active === 'true' ? 'غیرفعال کردن حساب' : 'فعال کردن حساب'}
             </button>
 
-            <button className={styles.deleteAction} type="button" onClick={handleDeleteUser}>
-              حذف دائمی کاربر
-            </button>
+            {hasRole(user?.roles, 'manager') ? (
+              <button className={styles.deleteAction} type="button" onClick={handleDeleteUser}>
+                حذف دائمی کاربر
+              </button>
+            ): ''}
           </section>
         </aside>
       </div>

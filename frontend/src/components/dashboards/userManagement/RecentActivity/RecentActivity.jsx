@@ -3,13 +3,17 @@ import { UilImport, UilEdit, UilTrashAlt, UilTimes } from '@iconscout/react-unic
 import styles from '../AllUsersTable/AllUsersSection.module.scss'
 import api from '../../../../hooks/api';
 import toPersianDigits from '../../../../hooks/convertNumber';
-import roleConverter from '../../../../hooks/roleConverter';
+import roleConverter, { hasRole } from '../../../../hooks/roleConverter';
+import { useSelector } from 'react-redux';
 
 const RecentActivity = () => {
   const [ activity, setActivity ] = useState([])
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const { user } = useSelector(
+    state => state.auth
+  )
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all")
@@ -36,19 +40,23 @@ const RecentActivity = () => {
           <div className={styles.left}>
             <button>استخراج <UilImport /></button>
 
-            <p>نقش: </p>
-            <select
-              value={roleFilter}
-              onChange={e => {
-                setRoleFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="all">همه</option>
-              <option value="coach">مربی</option>
-              <option value="athlete">ورزشکار</option>
-              <option value="manager">مدیر</option>
-            </select>
+            {hasRole(user.roles, 'manager') ? (
+              <>
+              <p>نقش: </p>
+              <select
+                value={roleFilter}
+                onChange={e => {
+                  setRoleFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">همه</option>
+                <option value="coach">مربی</option>
+                <option value="athlete">ورزشکار</option>
+                <option value="manager">مدیر</option>
+              </select>
+              </>
+            ) : ''}
           </div>
 
           <div className={styles.inputWrapper}>

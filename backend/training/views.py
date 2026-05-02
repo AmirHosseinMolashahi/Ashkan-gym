@@ -1,12 +1,14 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value
+from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value, OuterRef, Subquery, DurationField, Sum
+from django.db.models.functions import Coalesce
 from django.db import transaction
 from django.utils import timezone
 
 import datetime
 import jdatetime
 from collections import defaultdict
+from datetime import timedelta
 
 from rest_framework import status
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
@@ -17,6 +19,8 @@ from rest_framework.exceptions import ValidationError
 
 from account.permissions import IsCoachOrManager, IsManager
 from account.models import CustomUser
+from payment.models import Invoice
+from payment.utils import _last_day_of_jalali_month
 
 from .models import Course, Enrollment, TimeTable, Session, Attendance, AgeRange
 from .utils import get_current_shamsi_month_range, get_previous_shamsi_month_range, get_shamsi_month_range, PERSIAN_MONTHS 
@@ -40,6 +44,9 @@ from .serializers import (
     CourseCreateSerializer,
     TimeTableBulkItemSerializer
     )
+
+
+
 # Create your views here.
 
 #نمایش تمام کلاس ها به مدیر و به کلاس های مربی
@@ -259,7 +266,49 @@ class TimeTableUpdateView(UpdateAPIView):
 
         return Response(TimeTableSerializer(final_qs, many=True).data)
     
-        
+
+
+class CoachDashboardCourses(APIView):
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+
+    def get(self, request):
+        user = request.user
+            
+        if user.roles.filter(name='manager').exists():
+            courses_qs = Course.objects.all()
+            enrollments_qs = Enrollment.objects.filter(status='active')
+            timetable_qs = TimeTable.objects.all()
+
+        elif user.roles.filter(name='coach').exists():
+            courses_qs = Course.objects.filter(coach=user)
+            enrollments_qs = Enrollment.objects.filter(course__coach=user, status='active')
+            timetable_qs = TimeTable.objects.filter(course__coach=user)
+
+        else:
+            return Response(
+                {"detail": "شما به این داشبورد دسترسی ندارید."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        total_courses = courses_qs.count()
+        total_enrollments = enrollments_qs.count()
+        active_courses = courses_qs.filter(is_active=True).count()
+
+        durations = timetable_qs.annotate(
+            duration=ExpressionWrapper(
+                F('end_time') - F('start_time'),
+                output_field=DurationField()
+            )
+        ).aggregate(total=Sum('duration'))
+
+        total_duration = durations['total'] or timedelta()
+        total_hours = total_duration.total_seconds() // 3600
+
+        return Response({
+            "total_courses": total_courses,
+            "total_enrollments": total_enrollments,
+            "active_courses": active_courses,
+            "weekly_hours": int(total_hours),
+        })
 
 
 
@@ -273,12 +322,14 @@ class AthleteListView(ListAPIView):
 
         # مدیر → همه کاربران
         if user.is_staff or user.roles.filter(name='manager').exists():
-            return CustomUser.objects.filter(is_active=True)
+            return CustomUser.objects.filter(is_active=True, roles__name='athlete').distinct()
 
         # مربی → فقط کسانی که خودش ثبت‌نام کرده
         if user.roles.filter(name='coach').exists():
             return CustomUser.objects.filter(
-                registration__created_by=user
+                registration__created_by=user,
+                roles__name='athlete',
+                is_active=True
             ).distinct()
 
         return CustomUser.objects.none()
@@ -306,13 +357,22 @@ class CoursesEnrollmentsView(ListAPIView):
         course_id = self.kwargs['course_id']
         start_date, end_date = get_current_shamsi_month_range()
 
+        priority_invoice = Invoice.objects.filter(
+            enrollment=OuterRef('pk'),
+            status__in=['unpaid', 'partially_paid']
+        ).order_by('due_date')
+
+        all_invoice = Invoice.objects.filter(
+            enrollment=OuterRef('pk')
+        ).order_by('due_date')
+
         return (
             Enrollment.objects
             .filter(
                 course_id=course_id,
-                status='active'
+                # status='active'
             )
-            .select_related('student')
+            .select_related('student', 'course')
             .annotate(
                 total_sessions=Count(
                     'attendances',
@@ -345,6 +405,20 @@ class CoursesEnrollmentsView(ListAPIView):
                     ),
                     output_field=FloatField()
                 )
+            )
+            .annotate(
+                next_invoice_status=Coalesce(
+                    Subquery(priority_invoice.values('status')[:1]),
+                    Subquery(all_invoice.values('status')[:1])
+                ),
+                next_invoice_amount=Coalesce(
+                    Subquery(priority_invoice.values('amount')[:1]),
+                    Subquery(all_invoice.values('amount')[:1])
+                ),
+                next_invoice_due_date=Coalesce(
+                    Subquery(priority_invoice.values('due_date')[:1]),
+                    Subquery(all_invoice.values('due_date')[:1])
+                ),
             )
         )
 
@@ -439,7 +513,8 @@ class UserEnrollmentsView(ListAPIView):
             .filter(student=self.request.user)
             .select_related('course')
             .prefetch_related(
-                'course__timeTable__sessions'
+                'course__timeTable__sessions',
+                'invoices__payments'
             )
         )
 
@@ -515,7 +590,8 @@ class UserNextSessionView(APIView):
             .filter(
                 time_table__course__enrollments__student=request.user,
                 date__gte=today,
-                time_table__course__enrollments__status='active'
+                time_table__course__enrollments__status='active',
+                attendance_status='unfinished'
             )
             .select_related('time_table__course')
             .order_by('date')
@@ -899,6 +975,45 @@ class AthleteDashboardView(APIView):
                 trend = "down"
             else:
                 trend = "same"
+        
+        invoices = Invoice.objects.filter(
+            enrollment__in=enrollments
+        ).select_related('enrollment').prefetch_related('payments')
+
+        priority_invoices = invoices.filter(
+            status__in=['unpaid', 'partially_paid']
+        )
+
+        def get_closest_invoice(qs):
+            return qs.order_by(
+                'due_date',  # نزدیک‌ترین سررسید
+                'period_year',
+                'period_month'
+            ).first()
+        
+        next_invoice = None
+
+        if priority_invoices.exists():
+            next_invoice = get_closest_invoice(priority_invoices)
+        else:
+            next_invoice = get_closest_invoice(invoices)
+        
+        next_payment = None
+
+        if next_invoice:
+            next_payment = {
+                "course": next_invoice.enrollment.course.title,
+                "status": next_invoice.status,
+                "amount": next_invoice.amount,
+                "paid_amount": next_invoice.paid_amount(),
+                "remaining_amount": next_invoice.remaining_amount(),
+                "due_date": jdatetime.date.fromgregorian(date=next_invoice.due_date).strftime("%Y/%m/%d"),
+                "period": f"{next_invoice.period_year}/{next_invoice.period_month}"
+            }
+        
+        print("NEXT INVOICE:", next_invoice)
+        print("NEXT PAYMENT:", next_payment)
+
 
         data = {
             "year": year,
@@ -916,8 +1031,181 @@ class AthleteDashboardView(APIView):
             "previous_attendance_percentage": previous_attendance_percentage,
             "attendance_difference": attendance_difference,
             "trend": trend,
+            "next_payment": next_payment,
         }
 
         serializer = AthleteDashboardSerializer(data)
 
         return Response(serializer.data)
+
+
+
+
+class DeactivateEnrollmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request, enrollment_id):
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+
+        user = request.user
+
+        # 🔐 دسترسی
+        if not (
+            user.is_superuser or
+            user.roles.filter(name="manager").exists() or
+            (user.roles.filter(name="coach").exists() and enrollment.course.coach == user)
+        ):
+            return Response({"detail": "دسترسی ندارید"}, status=403)
+
+        today = timezone.now().date()
+
+        # اگر قبلاً غیرفعال شده
+        if enrollment.status == 'deactive' and enrollment.end_date:
+            return Response(
+                {"detail": "قبلاً غیرفعال شده"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 🛑 غیرفعال کردن
+        enrollment.status = 'deactive'
+        enrollment.end_date = today
+        enrollment.save()
+
+        # 🗑 حذف attendance های آینده
+        Attendance.objects.filter(
+            student=enrollment,
+            session__date__gt=today
+        ).delete()
+
+        # 🧾 اصلاح invoice ماه جاری
+        today_j = jdatetime.date.fromgregorian(date=today)
+
+        invoice = Invoice.objects.filter(
+            enrollment=enrollment,
+            period_year=today_j.year,
+            period_month=today_j.month
+        ).first()
+
+        if invoice:
+            invoice.apply_proration()
+
+        return Response({
+            "detail": "ورزشکار غیرفعال شد",
+            "end_date": enrollment.end_date
+        }, status=200)
+
+
+
+class ReactivateEnrollmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request, enrollment_id):
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+        user = request.user
+
+        # 🔐 دسترسی
+        if not (
+            user.is_superuser or
+            user.roles.filter(name="manager").exists() or
+            (user.roles.filter(name="coach").exists() and enrollment.course.coach == user)
+        ):
+            return Response({"detail": "دسترسی ندارید"}, status=403)
+
+        today = timezone.now().date()
+
+        # اگر already active
+        if enrollment.end_date is None:
+            return Response(
+                {"detail": "این ثبت‌نام فعال است"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # ✅ فعال‌سازی مجدد
+        enrollment.start_date = today
+        enrollment.end_date = None
+        enrollment.status = "active"
+        enrollment.save(update_fields=["start_date", "end_date", "status"])
+
+        # 📅 تبدیل به شمسی برای invoice
+        today_j = jdatetime.date.fromgregorian(date=today)
+
+        # 🧾 پیدا کردن invoice این ماه
+        invoice = Invoice.objects.filter(
+            enrollment=enrollment,
+            period_year=today_j.year,
+            period_month=today_j.month
+        ).first()
+
+        # ❗ اگر invoice نبود → بساز
+        if not invoice:
+            last_day = _last_day_of_jalali_month(today_j.year, today_j.month)
+
+            period_start = jdatetime.date(today_j.year, today_j.month, 1).togregorian()
+            period_end = jdatetime.date(today_j.year, today_j.month, last_day).togregorian()
+
+            # قیمت با pricing rule
+            base_price = enrollment.course.price
+            pricing = getattr(enrollment, "pricing", None)
+
+            if pricing:
+                if pricing.monthly_fee:
+                    base_price = pricing.monthly_fee
+                else:
+                    base_price -= pricing.discount_amount
+                    base_price -= (base_price * pricing.discount_percent // 100)
+
+            final_price = max(base_price, 0)
+
+            due_day = enrollment.custom_due_day or 7
+            due_day = min(due_day, last_day)
+
+            due_date = jdatetime.date(
+                today_j.year,
+                today_j.month,
+                due_day
+            ).togregorian()
+
+            invoice = Invoice.objects.create(
+                enrollment=enrollment,
+                period_year=today_j.year,
+                period_month=today_j.month,
+                amount=final_price,
+                base_monthly_fee=final_price,
+                period_start=period_start,
+                period_end=period_end,
+                due_date=due_date,
+            )
+
+        # 🔥 اصلاح prorate
+        invoice.apply_proration()
+
+        # 🧍 ساخت attendance های آینده
+        future_sessions = Session.objects.filter(
+            time_table__course=enrollment.course,
+            date__gte=today
+        )
+
+        existing_sessions = Attendance.objects.filter(
+            student=enrollment,
+            session__in=future_sessions
+        ).values_list("session_id", flat=True)
+
+        new_attendances = [
+            Attendance(
+                session=s,
+                student=enrollment,
+                status=None
+            )
+            for s in future_sessions
+            if s.id not in existing_sessions
+        ]
+
+        Attendance.objects.bulk_create(new_attendances)
+
+        return Response({
+            "detail": "ورزشکار دوباره فعال شد",
+            "start_date": enrollment.start_date,
+            "invoice_amount": invoice.amount,
+        }, status=200)

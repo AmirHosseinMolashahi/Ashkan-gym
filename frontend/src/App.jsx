@@ -190,12 +190,12 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management' element={
-            <ProtectedRoute allowedRoles={'manager'}>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <UserManagement />
             </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management/:id/edit' element={
-            <ProtectedRoute allowedRoles={'manager'}>
+            <ProtectedRoute allowedRoles={'manager', 'coach'}>
               <ManagerEditUser />
             </ProtectedRoute>
           } />

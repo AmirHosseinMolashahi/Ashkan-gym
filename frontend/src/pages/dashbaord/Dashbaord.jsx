@@ -76,7 +76,7 @@ const Dashbaord = () => {
             onClick={() => navigate('/dashboard/student-payment')}
           />
         </RoleGuard>
-        <RoleGuard user={user} allowedRoles={['manager']}>  
+        <RoleGuard user={user} allowedRoles={['manager', 'coach']}>  
           <DashCard 
             title='مدیریت کاربران'
             description='نمایش کاربر ها و فعالیت های اخیر'
@@ -93,4 +93,4 @@ const Dashbaord = () => {
   )
 }
 
-export default Dashbaord
+export default Dashbaord;

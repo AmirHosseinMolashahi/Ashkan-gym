@@ -72,8 +72,8 @@ class TimeTableSerializer(serializers.ModelSerializer):
 
 #سریالایزر اطلاعات کلاس
 class CourseListSerializers(serializers.ModelSerializer):
-    enrollment_count = serializers.IntegerField(read_only=True)
     timeTable = TimeTableSerializer(many=True, read_only=True)
+    days_group = serializers.SerializerMethodField()
     age_ranges = AgeRangeSerializers(many=True, read_only=True)
     coach = CoachMiniSerializer(read_only=True)
     gender_label = serializers.CharField(
@@ -85,6 +85,7 @@ class CourseListSerializers(serializers.ModelSerializer):
     next_session = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     attendance_percentage_month = serializers.SerializerMethodField()
+    active_students = serializers.SerializerMethodField()
 
     
     class Meta:
@@ -105,6 +106,27 @@ class CourseListSerializers(serializers.ModelSerializer):
         end_time = tables[0].end_time.strftime('%H:%M')
 
         return f"{' و '.join(days)} {start_time}–{end_time}"
+    
+    def get_active_students(self, obj):
+        return obj.enrollments.filter(status='active').count()
+
+    def get_days_group(self, obj):
+        tables = obj.timeTable.all()
+
+        if not tables:
+            return None
+
+        days = sorted([t.day_of_week for t in tables])
+
+        # تشخیص زوج یا فرد
+        if all(day % 2 == 0 for day in days):
+            day_type = "odd"
+        elif all(day % 2 == 1 for day in days):
+            day_type = "even"
+        else:
+            day_type = "mixed"
+
+        return day_type
     
     def get_session_duration(self, obj):
         table = obj.timeTable.first() # گرفتن اولین زمان‌بندی موجود
@@ -289,6 +311,8 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     attendance_percentage = serializers.SerializerMethodField()
     total_sessions = serializers.IntegerField(read_only=True)
     present_count = serializers.IntegerField(read_only=True)
+    next_payment = serializers.SerializerMethodField()
+    paid_amount_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Enrollment
@@ -300,6 +324,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'attendance_percentage',
             'total_sessions',
             'present_count',
+            'next_payment',
+            'custom_due_day',
+            'paid_amount_info',
         )
 
     def get_attendance_percentage(self, obj):
@@ -307,6 +334,58 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             return 0
 
         return round(obj.attendance_percentage, 1)
+    
+    def get_next_payment(self, obj):
+        if not obj.next_invoice_status:
+            return None
+
+        return {
+            "status": obj.next_invoice_status,
+            "amount": obj.next_invoice_amount,
+            "due_date": obj.next_invoice_due_date,
+        }
+    
+    def get_paid_amount_info(self, obj):
+        base_price = obj.course.price
+        pricing = getattr(obj, 'pricing', None)
+
+        # اگر هیچ rule نداشت
+        if not pricing:
+            return {
+                "base_price": base_price,
+                "final_price": base_price,
+                "has_discount": False,
+                "discount_amount": 0,
+                "discount_percent": 0,
+                "reason": None,
+            }
+
+        # اگر monthly_fee override داشت
+        if pricing.monthly_fee:
+            return {
+                "pricing_id": pricing.id,
+                "base_price": base_price,
+                "final_price": pricing.monthly_fee,
+                "has_discount": True,
+                "discount_amount": base_price - pricing.monthly_fee,
+                "discount_percent": 0,
+                "reason": pricing.reason,
+            }
+
+        # محاسبه تخفیف
+        discounted = base_price
+        discounted -= pricing.discount_amount
+        discounted -= (discounted * pricing.discount_percent // 100)
+
+        return {
+            "pricing_id": pricing.id,
+            "base_price": base_price,
+            "final_price": max(discounted, 0),
+            "has_discount": True,
+            "discount_amount": pricing.discount_amount,
+            "discount_percent": pricing.discount_percent,
+            "reason": pricing.reason,
+        }
 
 #سریالایزر ثبت نام ورزشکار
 class AddEnrollmentSerializer(serializers.Serializer):
@@ -503,7 +582,7 @@ class UserEnrollmnetsSerializers(serializers.ModelSerializer):
     next_session = serializers.SerializerMethodField()
     attendance_summary = serializers.SerializerMethodField()
     remaining_sessions = serializers.SerializerMethodField()
-    
+    payment_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Enrollment
@@ -563,6 +642,29 @@ class UserEnrollmnetsSerializers(serializers.ModelSerializer):
         )
 
         return summary
+    
+    def get_payment_status(self, obj):
+        today = jdatetime.date.today()
+
+        invoice = obj.invoices.filter(
+            period_year=today.year,
+            period_month=today.month
+        ).first()
+
+        if not invoice:
+            return {
+                "status": "no_invoice",
+                "total_amount": 0,
+                "paid_amount": 0,
+                "remaining_amount": 0,
+            }
+
+        return {
+            "status": invoice.status,
+            "total_amount": invoice.amount,
+            "paid_amount": invoice.paid_amount(),
+            "remaining_amount": invoice.remaining_amount(),
+        }
 
     def get_next_session(self, obj):
         today = datetime.date.today()
@@ -571,7 +673,8 @@ class UserEnrollmnetsSerializers(serializers.ModelSerializer):
             Session.objects
             .filter(
                 time_table__course=obj.course,
-                date__gte=today
+                date__gte=today,
+                attendance_status='unfinished'
             )
             .order_by('date')
             .select_related('time_table')
@@ -716,3 +819,4 @@ class AthleteDashboardSerializer(serializers.Serializer):
     previous_attendance_percentage = serializers.FloatField(allow_null=True)
     attendance_difference = serializers.FloatField(allow_null=True)
     trend = serializers.CharField(allow_null=True)
+    next_payment = serializers.JSONField()

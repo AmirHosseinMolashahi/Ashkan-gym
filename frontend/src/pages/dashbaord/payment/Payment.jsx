@@ -6,30 +6,21 @@ import { getCurrentShamsiPeriod, PERSIAN_MONTH_NAMES } from "../../../hooks/sham
 import toPersianDigits from "../../../hooks/convertNumber";
 import { useNavigate } from "react-router-dom";
 
-const getStateFromInvoices = (invoices) => {
-  if (!invoices.length) return { stateLabel: "بدون صورتحساب", stateType: "neutral" };
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const paidCount = invoices.filter((i) => i.remaining_amount === 0 || i.status === "paid").length;
-  const totalCount = invoices.length;
-  const hasOverdue = invoices.some(
-    (i) => i.remaining_amount > 0 && i.due_date && i.due_date < today
-  );
-  if (hasOverdue) return { stateLabel: "سررسید گذشته", stateType: "danger" };
-  if (paidCount === totalCount) return { stateLabel: "همه پرداخت شده", stateType: "good" };
-  if (paidCount > 0) return { stateLabel: "بخشی پرداخت نشده", stateType: "warning" };
-  return { stateLabel: "پرداخت نشده", stateType: "warning" };
-};
 
 const Payment = () => {
   const { year: defaultYear, month: defaultMonth,} = getCurrentShamsiPeriod();
 
   const [courses, setCourses] = useState([]);
-  const [invoicesByCourse, setInvoicesByCourse] = useState({});
+  const [summary, setSummary] = useState({});
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [searchText, setSearchText] = useState("");
+  const [dayFilter, setDayFilter] = useState("all");
+  const [genderFilter, setGenderFilter] = useState('both')
+  
 
   const navigate = useNavigate();
 
@@ -40,116 +31,60 @@ const Payment = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const fetchCourses = async () => {
-      try {
-        setError(null);
-        const res = await api.get("/training/courses/");
-        if (!cancelled) setCourses(res.data || []);
-      } catch (err) {
-        if (!cancelled) setError(err.response?.data?.detail || "خطا در بارگذاری کلاس‌ها");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchCourses();
-    return () => { cancelled = true; };
-  }, []);
-
-  useEffect(() => {
-    if (!courses.length) {
-      setInvoicesByCourse({});
-      return;
-    }
-    let cancelled = false;
     setLoading(true);
     const fetchInvoices = async () => {
-      try {
-        const results = await Promise.allSettled(
-          courses.map(async (c) => {
-            const res = await api.get(
-              `/payment/coach/invoices/?course_id=${c.id}&year=${selectedYear}&month=${selectedMonth}`
-            );
-            return { courseId: c.id, invoices: res.data || [] };
-          })
-        );
-
-        if (!cancelled) {
-          const map = {};
-          results.forEach((result, index) => {
-            const courseId = courses[index].id;
-            if (result.status === "fulfilled") {
-              map[courseId] = result.value.invoices;
-            } else {
-              map[courseId] = [];
-            }
-          });
-          setInvoicesByCourse(map);
+        try {
+          const res = await api.get(
+            `/payment/coach/invoices/dashboard/?year=${selectedYear}&month=${selectedMonth}`
+          );
+          console.log("Dashboard data:", res.data);
+          if (!cancelled) {
+            setCourses(res.data.courses || []);
+            setSummary(res.data.summary);
+          }
+        } catch (err) {
+          if (!cancelled) setError(err.response?.data?.detail || "خطا در بارگذاری صورتحساب‌ها");
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      } catch (err) {
-        if (!cancelled) setError(err.response?.data?.detail || "خطا در بارگذاری صورتحساب‌ها");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
     };
     fetchInvoices();
     return () => { cancelled = true; };
-  }, [courses, selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth]);
 
-  const classRows = useMemo(() => {
-    return courses.map((course) => {
-      const invoices = invoicesByCourse[course.id] || [];
-      const total = invoices.length;
-      const paid = invoices.filter(
-        (i) => i.remaining_amount === 0 || i.status === "paid"
-      ).length;
-      const pendingAmount = invoices.reduce((acc, i) => acc + (i.remaining_amount || 0), 0);
-      const totalExpected = invoices.reduce((acc, i) => acc + (i.amount || 0), 0);
-      const collected = invoices.reduce((acc, i) => acc + (i.paid_amount || 0), 0);
-      const { stateLabel, stateType } = getStateFromInvoices(invoices);
-      return {
-        id: course.id,
-        title: course.title,
-        active: course.is_active,
-        coach: course.coach,
-        schedule: course.schedule || "—",
-        athletes: course.enrollment_count ?? 0,
-        month: monthLabel,
-        paid,
-        total,
-        pendingAmount,
-        totalExpected,
-        collected,
-        stateLabel,
-        stateType,
-      };
+
+  const filteredRows = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+
+    return courses.filter((row) => {
+      // const state = getRowState(row);
+
+      // const matchesFilter =
+      //   paymentFilter === "all"
+      //     ? true
+      //     : paymentFilter === "paid"
+      //     ? state.key === "paid"
+      //     : state.key !== "paid";
+      const matchGenderFilter = 
+        genderFilter === "both" || row.gender === genderFilter;
+      
+      const matchDaysFilter =
+        dayFilter === 'all' || row.day_group === dayFilter;
+
+      const name = (row.title || "").toLowerCase();
+
+      const matchesSearch =
+        q === "" || name.includes(q);
+
+      return matchesSearch && matchGenderFilter && matchDaysFilter;
     });
-  }, [courses, invoicesByCourse, monthLabel]);
+  }, [courses, searchText, dayFilter, genderFilter]);
 
-  const summary = useMemo(() => {
-    const totalExpected = classRows.reduce((acc, item) => acc + item.totalExpected, 0);
-    const pending = classRows.reduce((acc, item) => acc + item.pendingAmount, 0);
-    const collected = classRows.reduce((acc, item) => acc + item.collected, 0);
-    const overdue = classRows.reduce((acc, item) => {
-      const invoices = invoicesByCourse[item.id] || [];
-      const now = new Date();
-      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-      const sum = invoices
-        .filter((i) => i.remaining_amount > 0 && i.due_date && i.due_date < today)
-        .reduce((a, i) => a + (i.remaining_amount || 0), 0);
-      return acc + sum;
-    }, 0);
-    const collectedPercent = totalExpected > 0 ? Math.round((collected / totalExpected) * 100) : 0;
-    const pendingAthletes = classRows.reduce((acc, item) => acc + (item.total - item.paid), 0);
 
-    return {
-      totalExpected,
-      collected,
-      pending,
-      overdue,
-      collectedPercent,
-      pendingAthletes,
-    };
-  }, [classRows, invoicesByCourse]);
+  const handleClearFilter = () => {
+    setSearchText('')
+    setGenderFilter('both')
+  }
 
   const yearOptions = useMemo(() => {
     const y = getCurrentShamsiPeriod().year;
@@ -208,38 +143,79 @@ const Payment = () => {
         </div>
       </div>
 
-      {loading && !classRows.length ? (
+      {loading && !courses.length ? (
         <p className={style.loading}>در حال بارگذاری...</p>
       ) : (
         <>
           <div className={style.summaryGrid}>
             <article className={style.summaryCard}>
               <p className={style.cardTitle}>مجموع مورد انتظار</p>
-              <h3>{toPersianDigits(summary.totalExpected.toLocaleString())} تومان</h3>
+              <h3>{toPersianDigits(summary.total_expected)} تومان</h3>
               <p className={style.subtle}>همه کلاس‌ها – {toPersianDigits(monthLabel)}</p>
             </article>
 
             <article className={style.summaryCard}>
               <p className={style.cardTitle}>دریافتی</p>
-              <h3>{toPersianDigits(summary.collected.toLocaleString())} تومان</h3>
+              <h3>{toPersianDigits(summary.collected)} تومان</h3>
               <div className={`${style.miniBadge} ${style.good}`}>
-                {toPersianDigits(String(summary.collectedPercent))}٪ دریافت شده
+                {toPersianDigits(String(summary.collected_percent))}٪ دریافت شده
               </div>
             </article>
 
             <article className={style.summaryCard}>
               <p className={style.cardTitle}>در انتظار</p>
-              <h3>{toPersianDigits(summary.pending.toLocaleString())} تومان</h3>
+              <h3>{toPersianDigits(summary.pending)} تومان</h3>
               <div className={`${style.miniBadge} ${style.warning}`}>
-                {toPersianDigits(String(summary.pendingAthletes))} ورزشکار در انتظار پرداخت
+                {toPersianDigits(String(summary.pending_athletes))} ورزشکار در انتظار پرداخت
               </div>
             </article>
 
             <article className={style.summaryCard}>
               <p className={style.cardTitle}>معوق</p>
-              <h3>{toPersianDigits(summary.overdue.toLocaleString())} تومان</h3>
+              <h3>{toPersianDigits(summary.overdue)} تومان</h3>
               <div className={`${style.miniBadge} ${style.danger}`}>نیازمند پیگیری</div>
             </article>
+          </div>
+
+          <div className={style.filtersBar}>
+            <input
+              className={style.searchInput}
+              type="text"
+              placeholder="جستجوی کلاس (برای مثال: ووشو یا ...)"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
+
+            <div className={style.filterObj}>
+              <label htmlFor="">روزها:</label>
+              <select
+                className={style.filterSelect}
+                value={dayFilter}
+                onChange={(e) => setDayFilter(e.target.value)}
+              >
+                <option value="all">همه روزها</option>
+                <option value="even">روزهای زوج</option>
+                <option value="odd">روزهای فرد</option>
+              </select>
+            </div>
+
+            <div className={style.filterObj}>
+              <label htmlFor="">جنسیت:</label>
+              <select
+                className={style.filterSelect}
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
+              >
+                <option value="both">فرقی ندارد</option>
+                <option value="male">آقایان</option>
+                <option value="female">بانوان</option>
+              </select>
+            </div>
+            
+            <div className={style.filterObj}>
+              <button className={style.clearFilterBtn} onClick={() => handleClearFilter()}>پاک کردن فیلتر ها</button>
+            </div>
+
           </div>
 
           <section className={style.classesSection}>
@@ -250,7 +226,7 @@ const Payment = () => {
             </p>
 
             <div className={style.classList}>
-              {classRows?.map((item) => (
+              {filteredRows?.map((item) => (
                 <article key={item.id} className={style.classRow}>
                   <div className={style.classInfo}>
                     <div className={style.classTitle}>
@@ -260,23 +236,31 @@ const Payment = () => {
                       <h5>مربی: {item.coach.full_name}</h5>
                     </div>
                     <p>
-                      {item.schedule} – {toPersianDigits(String(item?.athletes))} ورزشکار
+                      {item.timeTable}
+                    </p>
+                    <p>
+                      {item.gender === 'female' ? (
+                        'بانوان'
+                      ) : (
+                        'آقایان'
+                      )} - تعداد  ورزشکاران : {toPersianDigits(String(item?.athletes))}
                     </p>
                     <div className={style.rowMeta}>
                       <span>
-                        {toPersianDigits(String(item?.paid ?? 0))} / {toPersianDigits(String(item?.total ?? 0))} پرداخت شده
+                        {toPersianDigits(String(item?.paid_count ?? 0))} / {toPersianDigits(String(item?.inv_count ?? 0))} پرداخت شده
                          - 
-                        {toPersianDigits(item?.pendingAmount.toLocaleString())} تومان در انتظار
+                        {toPersianDigits(item?.pending_amount)} تومان در انتظار
                       </span>
                     </div>
                   </div>
 
                   <div className={style.actions}>
-                    <span className={`${style.stateBadge} ${style[item.stateType]}`}>
-                      {item.stateLabel}
+                    <span className={`${style.stateBadge} ${style[item.state.type]}`}>
+                      {item.state.label}
                     </span>
                     {item.active && (
                       <button
+                        className={style.actionBtn}
                         type="button"
                         onClick={() => 
                           navigate(
@@ -292,10 +276,10 @@ const Payment = () => {
               ))}
             </div>
 
-            {classRows.length === 0 && !loading && (
+            {courses.length === 0 && !loading && (
               <p className={style.footerNote}>کلاسی برای نمایش وجود ندارد.</p>
             )}
-            {classRows.length > 0 && (
+            {courses.length > 0 && (
               <p className={style.footerNote}>
                 روی هر کلاس بزن تا وارد صفحه جزئیات پرداخت ورزشکارها برای ماه انتخاب‌شده شوی.
               </p>

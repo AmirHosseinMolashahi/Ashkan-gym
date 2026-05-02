@@ -1,12 +1,11 @@
+import React from 'react';
+
 const RoleGuard = ({ user, allowedRoles, children }) => {
-  console.log('RoleGuard - user:', user);
-  console.log('RoleGuard - allowedRoles:', allowedRoles);
   
   if (!user) return null;
 
   // roles می‌تواند آرایه یا رشته باشد
   const userRoles = user.roles;
-  console.log('RoleGuard - userRoles:', userRoles);
   
   let hasRole = false;
   
@@ -22,8 +21,6 @@ const RoleGuard = ({ user, allowedRoles, children }) => {
     // رشته ساده (برای سازگاری با کد قدیمی)
     hasRole = allowedRoles.includes(userRoles);
   }
-
-  console.log('RoleGuard - hasRole:', hasRole);
 
   if (!hasRole) {
     return null;

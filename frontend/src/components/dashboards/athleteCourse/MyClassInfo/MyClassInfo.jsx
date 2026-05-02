@@ -3,6 +3,7 @@ import style from './MyClassInfo.module.scss'
 import {UilCheckCircle, UilTimesCircle, UilCheck, UilClock } from '@iconscout/react-unicons';
 import useCurrentDateTime from '../../../../hooks/currentDateTime';
 import api from '../../../../hooks/api';
+import toPersianDigits from '../../../../hooks/convertNumber';
 
 const MyClassInfo = ({myClasses, athleteInfo}) => {
 
@@ -13,6 +14,7 @@ const MyClassInfo = ({myClasses, athleteInfo}) => {
   const fetchThisMonthSession = async () => {
     try {
       const res = await api.get(`/training/my-classes/sessions/?year=${myClasses[0].sessions[0].date_jalali.split('/')[0]}&month=${myClasses[0].sessions[0].date_jalali.split('/')[1]}`)
+      console.log(res.data)
       setThisMonthAllSession(res.data)
     } catch (err) {
       console.log(err);
@@ -49,7 +51,11 @@ const MyClassInfo = ({myClasses, athleteInfo}) => {
                   </li>
                   <li>
                     <h3>شهریه‌ی {month} ماه</h3>
-                    <span className={style.payment}><UilCheck /> پرداخت شده</span>
+                      {item.payment_status.status === 'paid' ? (
+                        <span className={style.payment}><UilCheck /> پرداخت شده</span>
+                      ) : (
+                        <span className={`${style.payment} ${style.unpaid}`}><UilTimesCircle /> پرداخت نشده</span>
+                      )}
                   </li>
                 </ul>
                 <hr />
@@ -108,15 +114,19 @@ const MyClassInfo = ({myClasses, athleteInfo}) => {
           <ul>
             <li>
               <p>وضعیت پرداخت</p>
-              <h3>پرداخت شده</h3>
+              <h3>{athleteInfo?.next_payment?.status === 'unpaid' ? 'پرداخت نشده' : 'پرداخت شده'}</h3>
             </li>
             <li>
               <p>پرداخت بعدی</p>
-              <h3>بهمن 23</h3>
+              <h3>{athleteInfo?.next_payment?.status === 'unapid' ? (
+                toPersianDigits(athleteInfo?.next_payment?.due_date)
+              ) : (
+                'شما هیچ پرداختی ندارید'
+              )}</h3>
             </li>
             <li>
               <p>بدهکاری شما</p>
-              <h3>0</h3>
+              <h3>{toPersianDigits(athleteInfo?.next_payment?.remaining_amount)}</h3>
             </li>
           </ul>
           <p className={style.itemDetail}>شما فقط میتوانید وضعیت کلاس، حضور و پرداخت خودتون رو ببینید و همه‌ی تغییرات توسط مربی و مدیر انجام میگیرد.</p>

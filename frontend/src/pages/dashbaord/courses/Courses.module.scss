@@ -4,7 +4,7 @@
   .container {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem;
     padding: 1rem;
     .header {
       display: flex;
@@ -26,6 +26,53 @@
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(1, 1fr);
       gap: 2rem;
+    }
+  }
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .5rem;
+  background-color: #fff;
+  border-radius: 10px;
+
+  .filterObj {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .7rem;
+      select {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background-color: transparent;
+      }
+      button {
+        padding: .5rem;
+      }
+  }
+  .clearFilterBtn {
+    padding: .5rem;
+  }
+  .inputWrapper {
+    position: relative;
+    display: flex;
+    width: 55%;
+    .searchInput {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .clearSearch {
+      position: absolute;
+      left: 0;
+      margin-left: 2px;
+      cursor: pointer;
+      padding: .5rem;
+      color: $primary;
     }
   }
 }

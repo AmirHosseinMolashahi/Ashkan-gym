@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from .models import Invoice, Payment, OnlinePayment
+from .models import Invoice, Payment, OnlinePayment, PricingRule
 from .utils import generate_shamsi_month_invoices
 from django.urls import path
 from django.shortcuts import redirect
@@ -7,7 +7,15 @@ from django.shortcuts import redirect
 # Register your models here.
 class InvoiceAdmin(admin.ModelAdmin):
     model = Invoice
-    list_display = ['enrollment', 'period_year', 'period_month', 'amount', 'status', 'due_date']
+    list_display = ['enrollment', 'period_year', 'period_month', 'final_amount', 'status', 'final_due_date']
+
+    def final_amount(self, obj):
+        return obj.get_final_amount()
+    final_amount.short_description = "مبلغ نهایی"
+    
+    def final_due_date(self, obj):
+        return obj.get_final_due_date()
+    final_due_date.short_description = "سررسید نهایی"
 
 
     def get_urls(self):
@@ -45,3 +53,10 @@ class OnlinePaymentAdmin(admin.ModelAdmin):
     list_display = ['payment', 'gateway', 'authority', 'ref_id', 'card_mask']
   
 admin.site.register(OnlinePayment, OnlinePaymentAdmin)
+
+
+class PricingRuleAdmin(admin.ModelAdmin):
+    model = PricingRule
+    list_display = ['enrollment', 'monthly_fee', 'discount_percent', 'discount_amount']
+
+admin.site.register(PricingRule, PricingRuleAdmin)

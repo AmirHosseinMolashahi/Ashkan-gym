@@ -7,7 +7,12 @@ import {
   getCurrentShamsiPeriod,
 } from "../../../../hooks/shamsiDate";
 import style from "./PaymentAthletes.module.scss";
-import { UilArrowRight } from "@iconscout/react-unicons";
+import { UilArrowRight, UilEdit } from "@iconscout/react-unicons";
+import Modal from "../../../../components/GlobalComponents/Modal/Modal";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian"
+import persian_en from "react-date-object/locales/persian_fa"
+import { useToast } from '../../../../context/NotificationContext';
 
 const getTodayISO = () => {
   const now = new Date();
@@ -45,13 +50,14 @@ const PaymentAthletes = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
   const [searchParams] = useSearchParams();
+  const { notify } = useToast();
 
   const current = getCurrentShamsiPeriod();
   const year = Number(searchParams.get("year")) || current.year;
   const month = Number(searchParams.get("month")) || current.month;
 
-  const [rows, setRows] = useState([]);
-  const [courseTitle, setCourseTitle] = useState("");
+  const [studentList, setStudentList] = useState([])
+  const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState(null);
@@ -59,70 +65,78 @@ const PaymentAthletes = () => {
   const [methodByInvoice, setMethodByInvoice] = useState({});
   const [searchText, setSearchText] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("all"); // all | paid | unpaid
+  const [changeInvoiceModal, setChangeInvoiceModal] = useState(false)
+  const [selectedInvoice, setSelectedInvoice] = useState(null)
 
+  const [ invoiceFormData, setInvoiceFormData ] = useState({
+    manual_amount: "",
+    manual_due_date: "",
+    manual_reason: "",
+  })
+
+
+  const handleChangeInvoiceModal = (invoiceId) => {
+    if (!changeInvoiceModal) {
+      console.log("invoiceId: ", invoiceId)
+      setSelectedInvoice(invoiceId)
+      setChangeInvoiceModal(!changeInvoiceModal)
+    }
+    setChangeInvoiceModal(!changeInvoiceModal)
+  }
+
+  const handleUpdateInvoiceFormChange = (e) => {
+    const { name, value } = e.target;
+    setInvoiceFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateInvoice = async () => {
+    const data = {
+      manual_amount: invoiceFormData.manual_amount || null,
+      manual_due_date: invoiceFormData.manual_due_date || null,
+      manual_reason: invoiceFormData.manual_reason || '',
+    };
+
+
+    try {
+      const res = await api.put(`/payment/coach/invoices/${selectedInvoice.inv_id}/manual-update/`, data);
+      console.log("Update response: ", res.data);
+      fetchCourseInvoices();
+      setChangeInvoiceModal(false);
+      notify("به روزرسانی با موفقیت انجام شد.", "success")
+    } catch (err) {
+      console.error(err);
+      notify("به‌روزرسانی فاکتور انجام نشد.", "error");
+    }
+  };
+
+  const fetchCourseInvoices = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/payment/coach/invoices/?course_id=${courseId}&year=${year}&month=${month}`)
+      console.log(res.data)
+      setStudentList(res.data.students)
+      setSummary(res.data.summary)
+      const fetchedRows = res.data.students || [];
+      setMethodByInvoice(
+        Object.fromEntries(fetchedRows.map((r) => [r.inv_id, "cash"]))
+      );
+    } catch (err) {
+        setError("خطا در بارگذاری اطلاعات پرداخت ورزشکارها");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [invoiceRes, courseRes] = await Promise.all([
-          api.get(
-            `/payment/coach/invoices/?course_id=${courseId}&year=${year}&month=${month}`
-          ),
-          api.get(`/training/courses/detail/${courseId}/`),
-        ]);
-
-        if (cancelled) return;
-
-        const fetchedRows = invoiceRes.data || [];
-        setRows(fetchedRows);
-        setMethodByInvoice(
-          Object.fromEntries(fetchedRows.map((r) => [r.id, "cash"]))
-        );
-        setCourseTitle(courseRes.data?.title || "کلاس");
-      } catch (e) {
-        if (!cancelled) {
-          setError("خطا در بارگذاری اطلاعات پرداخت ورزشکارها");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
+    fetchCourseInvoices();
   }, [courseId, year, month]);
 
   const monthLabel = `${PERSIAN_MONTH_NAMES[month - 1]} ${year}`;
 
-  const summary = useMemo(() => {
-    const totalExpected = rows.reduce((a, r) => a + Number(r.amount || 0), 0);
-    const collected = rows.reduce((a, r) => a + Number(r.paid_amount || 0), 0);
-    const pending = rows.reduce(
-      (a, r) => a + Number(r.remaining_amount || 0),
-      0
-    );
-    const pendingCount = rows.filter((r) => getRowState(r).key !== "paid").length;
-
-    return {
-      athleteCount: rows.length,
-      totalExpected,
-      collected,
-      pending,
-      pendingCount,
-    };
-  }, [rows]);
-
   const filteredRows = useMemo(() => {
     const q = searchText.trim().toLowerCase();
 
-    return rows.filter((row) => {
+    return studentList.filter((row) => {
       const state = getRowState(row);
 
       const matchesFilter =
@@ -140,21 +154,21 @@ const PaymentAthletes = () => {
 
       return matchesFilter && matchesSearch;
     });
-  }, [rows, searchText, paymentFilter]);
+  }, [studentList, searchText, paymentFilter]);
 
   const handleMarkPaid = async (invoiceId) => {
     try {
       setUpdatingId(invoiceId);
       const method = methodByInvoice[invoiceId] || "cash";
-
-      const res = await api.patch(`/payment/coach/invoices/${invoiceId}/`, {
+      console.log(method)
+      const res = await api.post(`/payment/coach/invoices/${invoiceId}/`, {
         status: "paid",
         payment_method: method,
       });
-
-      setRows((prev) => prev.map((r) => (r.id === invoiceId ? res.data : r)));
+      fetchCourseInvoices();
+      notify("پرداخت با موفقیت انجام شد.", "success")
     } catch (e) {
-      alert("ثبت پرداخت انجام نشد.");
+      notify("ثبت پرداخت انجام نشد.", "error");
     } finally {
       setUpdatingId(null);
     }
@@ -180,9 +194,9 @@ const PaymentAthletes = () => {
 
       <div className={style.topRow}>
         <div>
-          <h2 className={style.title}>{courseTitle}</h2>
+          <h2 className={style.title}>{summary.course_title}</h2>
           <p className={style.subtitle}>
-            {toPersianDigits(String(summary.athleteCount))} ورزشکار
+            {toPersianDigits(String(summary.students_count))} ورزشکار
           </p>
         </div>
 
@@ -192,9 +206,9 @@ const PaymentAthletes = () => {
       <div className={style.summaryGrid}>
         <article className={style.card}>
           <p className={style.cardLabel}>مجموع مورد انتظار</p>
-          <h3>{formatMoney(summary.totalExpected)}</h3>
+          <h3>{formatMoney(summary.total_expected)}</h3>
           <span className={style.subtle}>
-            {toPersianDigits(String(summary.athleteCount))} ورزشکار
+            {toPersianDigits(String(summary.students_count))} ورزشکار
           </span>
         </article>
 
@@ -203,7 +217,7 @@ const PaymentAthletes = () => {
           <h3>{formatMoney(summary.collected)}</h3>
           <span className={`${style.badge} ${style.paid}`}>
             {toPersianDigits(
-              String(rows.filter((r) => getRowState(r).key === "paid").length)
+              String(studentList.filter((r) => getRowState(r).key === "paid").length)
             )}{" "}
             پرداخت شده
           </span>
@@ -213,13 +227,13 @@ const PaymentAthletes = () => {
           <p className={style.cardLabel}>در انتظار</p>
           <h3>{formatMoney(summary.pending)}</h3>
           <span className={`${style.badge} ${style.pending}`}>
-            {toPersianDigits(String(summary.pendingCount))} پرداخت نشده
+            {toPersianDigits(String(summary.pending_count))} پرداخت نشده
           </span>
         </article>
 
         <article className={`${style.card} ${style.actionCard}`}>
           <p className={style.cardLabel}>نیازمند اقدام</p>
-          <h3>{toPersianDigits(String(summary.pendingCount))} ورزشکار در انتظار</h3>
+          <h3>{toPersianDigits(String(summary.pending_count))} ورزشکار در انتظار</h3>
           <button className={style.primaryBtn} onClick={handleRemindAll}>
             یادآوری به همه
           </button>
@@ -251,6 +265,7 @@ const PaymentAthletes = () => {
           <span>ورزشکار</span>
           <span>وضعیت پرداخت</span>
           <span>مبلغ</span>
+          <span>تغییرات</span>
           <span>عملیات</span>
         </div>
 
@@ -261,8 +276,8 @@ const PaymentAthletes = () => {
             <div className={style.tableRow} key={row.id}>
               <div className={style.athleteCell}>
                 <div className={style.avatar}>
-                  {row.student_profile_picture ? (
-                    <img src={row.student_profile_picture} alt={row.student_name} />
+                  {row.profile_picture ? (
+                    <img src={row.profile_picture} alt={row.student_name} />
                   ) : (
                     <span>{row.student_name?.slice(0, 1) || "و"}</span>
                   )}
@@ -273,20 +288,44 @@ const PaymentAthletes = () => {
                 </div>
               </div>
 
-              <div>
-                <span className={`${style.badge} ${style[state.key]}`}>{state.label}</span>
+              <div className={style.paymentStatus}>
+                <div className={`${style.badge} ${style[state.key]}`}>{state.label}</div>
+                {state.key !== 'paid' ? (
+                  <>
+                  <div className={style.notifiedStatus}>
+                    {row.overdue_notified_count ? (
+                    `${toPersianDigits(row.overdue_notified_count)} یادآور ارسال شده است`
+                  ) : ''}
+                  </div>
+                  <div className={style.notifiedDate}>
+                    {row.overdue_notified_at ? (
+                    `در تاریخ: ${toPersianDigits(row.overdue_notified_at)}`
+                  ) : ''}
+                  </div>
+                  </>
+                ): ''}
               </div>
 
               <div>
-                <p className={style.amount}>{formatMoney(row.amount)}</p>
+                <p className={style.amount}>{formatMoney(row.final_amount)}</p>
                 <p className={style.dateText}>
                   {state.key === "paid"
-                    ? formatDateFa(row.updated_at?.slice(0, 10))
+                    ? formatDateFa(row.payments[0].paid_at?.slice(0, 10))
                     : `سررسید: ${formatDateFa(row.due_date)}`}
                 </p>
                 <p className={style.dateText}>
-                  روش پرداخت: {row.last_payment_method_label || "—"}
+                  روش پرداخت: {row.payments[0]?.method_label || "—"}
                 </p>
+              </div>
+
+              <div className={style.changeInvoice}>
+                {state.key !== "paid" ? (
+                  <button onClick={() => handleChangeInvoiceModal(row)}>
+                    <UilEdit /> تغییر فاکتور
+                  </button>
+                ) : (
+                  <span className={style.subtle}>امکات تغییر فاکتور نمیباشد</span>
+                )}
               </div>
 
               <div className={style.actions}>
@@ -296,11 +335,11 @@ const PaymentAthletes = () => {
                   <>
                     <select
                       className={style.methodSelect}
-                      value={methodByInvoice[row.id] || "cash"}
+                      value={methodByInvoice[row.inv_id] || "cash"}
                       onChange={(e) =>
                         setMethodByInvoice((prev) => ({
                           ...prev,
-                          [row.id]: e.target.value,
+                          [row.inv_id]: e.target.value,
                         }))
                       }
                     >
@@ -314,10 +353,10 @@ const PaymentAthletes = () => {
                     </button>
                     <button
                       className={style.primaryBtn}
-                      onClick={() => handleMarkPaid(row.id)}
-                      disabled={updatingId === row.id}
+                      onClick={() => handleMarkPaid(row.inv_id)}
+                      disabled={updatingId === row.inv_id}
                     >
-                      {updatingId === row.id ? "..." : "ثبت پرداخت"}
+                      {updatingId === row.inv_id ? "..." : "ثبت پرداخت"}
                     </button>
                   </>
                 )}
@@ -328,6 +367,56 @@ const PaymentAthletes = () => {
 
         {filteredRows.length === 0 && <p className={style.empty}>موردی با این فیلتر/جستجو پیدا نشد.</p>}
       </div>
+      {changeInvoiceModal && (
+        <Modal handleModal={() => setChangeInvoiceModal(false)} height="500px" width="500px">
+          <h2>تغییر فاکتور</h2>
+          <p><strong>{selectedInvoice?.student_name}</strong> در کلاس {selectedInvoice?.course_title}</p>
+          <h3>مبلغ</h3>
+          <div className={style.invoiceChangeRow}>
+            <label>مبلغ جدید: </label>
+            <input type="number" name="manual_amount" value={invoiceFormData.manual_amount} onChange={handleUpdateInvoiceFormChange} placeholder="مبلغ به تومان" min="0" step="50000"/>
+            <p className={style.subtle}>مبلغ قبلی: {formatMoney(selectedInvoice?.final_amount)}</p>
+          </div>
+
+          <h3>سر رسید</h3>
+          <div className={style.invoiceChangeRow}>
+            <label>تاریخ جدید: </label>
+            <DatePicker
+              value={selectedInvoice?.manual_due_date_jalali}  // اگر تاریخ دستی وجود داشت، اون رو نشون بده
+              calendar={persian}
+              locale={persian_en}
+              onChange={(date) => {
+                const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
+                setInvoiceFormData({ ...invoiceFormData, manual_due_date: miladi });
+              }}
+              render={(value, openCalendar) => (
+              <input
+                onFocus={openCalendar}
+                value={value}           // این فارسی نمایش می‌دهد
+                placeholder="تاریخ سررسید"
+                className={style.formInput}
+                readOnly
+              />
+            )}
+            />
+            <p className={style.subtle}>تاریخ قبلی: {formatDateFa(selectedInvoice?.due_date)}</p>
+          </div>
+
+          <h3>علت تغییر</h3>
+          <div className={style.invoiceChangeRow}>
+            <label>علت تغییر فاکتور</label>
+            <input type="text" name="manual_reason" value={invoiceFormData.manual_reason} onChange={handleUpdateInvoiceFormChange} placeholder="علت تغییر فاکتور" />
+          </div>
+          <div className={style.btnContainer}>
+            <button className={style.closeBtn} onClick={() => setChangeInvoiceModal(false)}>
+              لغو
+            </button>
+            <button className={style.saveBtn} onClick={() => handleUpdateInvoice()}>
+              ذخیره
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

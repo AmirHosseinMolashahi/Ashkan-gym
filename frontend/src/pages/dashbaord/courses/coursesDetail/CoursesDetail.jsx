@@ -12,10 +12,13 @@ import AddTimeTable from '../../../../components/dashboards/courses/addTimeTable
 import { useNavigate } from 'react-router-dom';
 import { hasRole } from '../../../../hooks/roleConverter';
 import DateObject from "react-date-object";
+import DiscountTable from '../../../../components/dashboards/courses/discountTable/DiscountTable';
+import useCurrentDateTime from '../../../../hooks/currentDateTime';
 
 const CoursesDetail = () => {
 
   const { id } = useParams()
+  const {date, weekday, month} = useCurrentDateTime()
   const [ courseDetail, setCourseDetail ] = useState(null)
   const [ courseStudents, setCourseStudents ] = useState([])
   const [ addStudentModal, setAddStudentsModal ] = useState(false)
@@ -72,6 +75,7 @@ const CoursesDetail = () => {
   const fetchCourseStudentsList = async () => {
     try {
       const res = await api.get(`/training/courses/detail/${id}/students/`);
+      console.log(res.data)
       setCourseStudents(res.data)
     } catch (err) {
       console.log(err)
@@ -234,8 +238,8 @@ const CoursesDetail = () => {
             <div className={style.mainHeader}>
               <ul>
                 <li>
-                  <p>تعداد ورزشکاران</p>
-                  <h1>{courseStudents.length}</h1>
+                  <p>تعداد ورزشکاران فعال</p>
+                  <h1>{courseDetail?.active_students}</h1>
                 </li>
                 <li>
                   <p>شهریه کلاس</p>
@@ -289,7 +293,7 @@ const CoursesDetail = () => {
           </div>
           <div className={style.detailCard}>
             <h3>
-              وضعیت پرداخت شهریه
+             وضعیت پرداخت شهریه <span style={{fontSize: '13px'}}>({month} ماه)</span>
             </h3>
             <div className={style.detailCardcontent}>
               <div className={style.detailCardWrapper}>
@@ -300,7 +304,7 @@ const CoursesDetail = () => {
                   </li>
                   <li>
                     <p>در انتظار پرداخت</p>
-                    <p className={style.pending}>{paymentStatus?.partially_paid_count ?? 0}</p>
+                    <p className={style.pending}>{paymentStatus?.unpaid_count ?? 0}</p>
                   </li>
                   <li>
                     <p>شهریه عقب افتاده</p>
@@ -349,23 +353,23 @@ const CoursesDetail = () => {
               </li>
               <li className={activeTab === 3 ? style.active : ''} onClick={() => setActiveTab(3)}>
                 <UilCreditCard />
-                شهریه
+                تنظیمات شهریه
               </li>
             </ul>
           </div>
           { activeTab === 1 && (
-            <StudentsSection students={courseStudents} />
+            <StudentsSection students={courseStudents} fetchStudent={fetchCourseStudentsList} />
           )}
           { activeTab === 2 && (
             <AttendanceTable course_id={id} />
           )}
           { activeTab === 3 && (
-            <p>payment</p>
+            <DiscountTable students={courseStudents} fetchStudent={fetchCourseStudentsList} />
           )}
         </div>
       </div>
       {addStudentModal && (
-        <Modal handleModal={handleAddStudentsModal} height='600px' width='450px'>
+        <Modal handleModal={handleAddStudentsModal} height='600px' width='500px'>
           <div className={style.modalContent}>
             <h2>اضافه کردن ورزشکار</h2>
             <p className={style.subtitle}>جستجوی ورزشکار با نام یا کدملی...</p>

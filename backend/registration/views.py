@@ -83,7 +83,7 @@ class UserDocsListView(ListAPIView):
 #ویو برای مدیر که مدارک یک کاربر رو ببینه و اضافه کنه
 class ManagerAddDocsView(ListCreateAPIView):
     serializer_class = RegistrationDocumentSerializer
-    permission_classes = [IsManager]
+    permission_classes = [IsCoachOrManager]
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']  # از url parameter می‌گیریم

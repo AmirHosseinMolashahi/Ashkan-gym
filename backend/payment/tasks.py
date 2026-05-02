@@ -6,7 +6,11 @@ from training.utils import (
     generate_shamsi_month_attendances,
 )
 from payment.utils import generate_shamsi_month_invoices
-
+from celery import shared_task
+from django.utils import timezone
+from django.db.models import Q
+from .models import Invoice
+from notifications.utils import create_and_send_notification
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def run_monthly_generation(self, year=None, month=None, force=False):
@@ -41,3 +45,41 @@ def run_monthly_generation(self, year=None, month=None, force=False):
         }
     except Exception as exc:
         raise self.retry(exc=exc)
+
+
+@shared_task
+def send_overdue_invoice_notifications():
+    today = timezone.now().date()
+
+    invoices = Invoice.objects.select_related(
+        "enrollment__student",
+        "enrollment__course"
+    ).filter(
+        Q(due_date__lt=today),
+    )
+
+    for invoice in invoices:
+        remaining = invoice.get_remaining_amount()
+
+        # ❌ اگر تسویه شده یا قبلاً نوتیف شده
+        if remaining <= 0 or invoice.overdue_notified_count >= 1:
+            continue
+
+        student = invoice.enrollment.student
+
+        # 📩 ارسال نوتیف
+        create_and_send_notification(
+            user=student,
+            title=f"سررسید پرداخت گذشته",
+            message=f"فاکتور دوره {invoice.enrollment.course.title} هنوز پرداخت نشده است.",
+            type="warning",
+            category="tuition",
+        )
+
+        # ✅ علامت‌گذاری
+        invoice.overdue_notified_count += 1 
+        invoice.overdue_notified_at = timezone.now()
+        invoice.save(update_fields=[
+            "overdue_notified_count",
+            "overdue_notified_at"
+        ])

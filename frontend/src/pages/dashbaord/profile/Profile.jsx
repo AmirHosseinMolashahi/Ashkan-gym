@@ -509,6 +509,16 @@ const EditProfile = () => {
                       <p>{user?.joined_at}</p>
                     </li>
                     <li>
+                      <p>بیمه</p>
+                      <p>{user?.insurance ? 'دارد' : 'ندارد'}</p>
+                    </li>
+                    {user?.insurance && (
+                      <li>
+                        <p>تاریخ انقضای بیمه</p>
+                        <p>{user?.insurance_expiry_jalali}</p>
+                      </li>
+                    )}
+                    <li>
                       {hasRole(user?.roles, 'manager') ? (
                         <>
                           <p>کلاس ها</p>

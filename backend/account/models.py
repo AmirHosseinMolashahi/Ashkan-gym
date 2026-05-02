@@ -73,7 +73,9 @@ class CustomUser(AbstractUser):
     birthdate = models.DateField(verbose_name='تاریخ تولد', null=True)
     address = models.TextField(verbose_name='آدرس',null=True)
     gender = models.CharField(verbose_name='جنسیت', max_length=1, choices=GENDER_CHOICES, null=True)
-    father_name = models.CharField(verbose_name='نام پدر')
+    father_name = models.CharField(verbose_name='نام پدر', max_length=100)
+    insurance = models.BooleanField(verbose_name='بیمه', default=False)
+    insurance_expiry_date = models.DateField(verbose_name='تاریخ انقضای بیمه', null=True, blank=True)
     roles = models.ManyToManyField(
         Role,
         verbose_name="نقش‌ها",

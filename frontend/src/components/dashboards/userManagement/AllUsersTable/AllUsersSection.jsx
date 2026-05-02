@@ -1,11 +1,12 @@
 import styles from "./AllUsersSection.module.scss";
 import { UilImport, UilEdit, UilTrashAlt, UilTimes } from '@iconscout/react-unicons'
 import toPersianDigits from "../../../../hooks/convertNumber";
-import roleConverter from "../../../../hooks/roleConverter";
+import roleConverter, { hasRole } from "../../../../hooks/roleConverter";
 import { useNavigate } from 'react-router-dom';
 import Modal from "../../../GlobalComponents/Modal/Modal";
 
 export default function AllUsersSection({
+  user,
   users,
   page,
   setPage,
@@ -17,6 +18,8 @@ export default function AllUsersSection({
   setRoleFilter,
   isActiveFilter,
   setIsActiveFilter,
+  insuranceFilter,
+  setInsuranceFilter,
   deleteModal,
   handleDeleteModal,
   selectedUser,
@@ -45,19 +48,36 @@ export default function AllUsersSection({
               <option value="deactive">غیرفعال</option>
             </select>
 
-            <p>نقش: </p>
+            <p>بیمه: </p>
             <select
-              value={roleFilter}
+              value={insuranceFilter}
               onChange={e => {
-                setRoleFilter(e.target.value);
+                setInsuranceFilter(e.target.value);
                 setPage(1);
               }}
             >
               <option value="all">همه</option>
-              <option value="coach">مربی</option>
-              <option value="athlete">ورزشکار</option>
-              <option value="manager">مدیر</option>
+              <option value="true">دارای بیمه</option>
+              <option value="false">بدون بیمه</option>
             </select>
+
+            {hasRole(user.roles, 'manager') ? (
+              <>
+              <p>نقش: </p>
+              <select
+                value={roleFilter}
+                onChange={e => {
+                  setRoleFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <option value="all">همه</option>
+                <option value="coach">مربی</option>
+                <option value="athlete">ورزشکار</option>
+                <option value="manager">مدیر</option>
+              </select>
+              </>
+            ) : ''}
           </div>
 
           <div className={styles.inputWrapper}>
@@ -91,6 +111,7 @@ export default function AllUsersSection({
                 <th>نقش</th>
                 <th>وضعیت</th>
                 <th>تاریخ ثبت نام</th>
+                <th>بیمه</th>
                 <th>تغییرات</th>
               </tr>
             </thead>
@@ -116,6 +137,7 @@ export default function AllUsersSection({
                     </span>
                   </td>
                   <td>{toPersianDigits((item.joined_at || "").split(" ")[0] || "-")}</td>
+                  <td>{item.insurance ? `تا ${toPersianDigits(item.insurance_expiry_jalali)}` : 'ندارد'}</td>
                   <td>
                     <div className={styles.btnContainer}>
                       <button onClick={() => navigate(`/dashboard/user-management/${item.id}/edit`)}>

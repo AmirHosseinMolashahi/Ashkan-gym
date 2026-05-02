@@ -6,6 +6,7 @@ import AllUsersSection from '../../../components/dashboards/userManagement/AllUs
 import api from '../../../hooks/api';
 import RecentActivity from '../../../components/dashboards/userManagement/RecentActivity/RecentActivity';
 import { useToast } from '../../../context/NotificationContext';
+import { useSelector } from 'react-redux';
 
 const UserManagement = () => {
   const [ activeTab, setActiveTab] = useState(1)
@@ -13,10 +14,14 @@ const UserManagement = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const { user } = useSelector(
+      state => state.auth
+    )
 
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [isActiveFilter, setIsActiveFilter] = useState("all");
+  const [insuranceFilter, setInsuranceFilter] = useState("all");
 
   const [ deleteModal, setDeleteModal ] = useState(false);
   const [ selectedUser, setSelectedUser ] = useState(null);
@@ -38,15 +43,6 @@ const UserManagement = () => {
     inactive_users: 0,
   });
 
-  const fetchSummary = async () => {
-    try {
-      const res = await api.get("/account/management-summary/");
-      setSummary(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
   const handleDeleteUser = async (id) => {
     try {
       await api.delete(`/account/management-users/${id}/delete/`);
@@ -66,23 +62,23 @@ const UserManagement = () => {
       if (isActiveFilter !== "all") {
         params.is_active = isActiveFilter === "active" ? "true" : "false";
       }
+      if (insuranceFilter !== "all") {
+        params.insurance = insuranceFilter === "true" ? "true" : "false";
+      }
       if (search.trim()) params.search = search.trim();
 
-      const res = await api.get('/account/all-users/', { params });
-      setAllUsers(res.data.results || []);
-      setTotalCount(res.data.count || 0);
+      const res = await api.get('/account/users/managemnet/', { params });
+      console.log(res.data)
+      setSummary(res.data.results.summary)
+      setAllUsers(res.data.results.users)
     } catch (err) {
       console.log(err);
     }
   };
 
   useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  useEffect(() => {
     fetchAllUsers()
-  }, [page, pageSize, search, roleFilter, isActiveFilter])
+  }, [page, pageSize, search, roleFilter, isActiveFilter, insuranceFilter])
 
   return (
     <div className={style.userManagement}>
@@ -133,6 +129,7 @@ const UserManagement = () => {
         </div>
         { activeTab === 1 && (
           <AllUsersSection
+            user={user}
             users={allUsers}
             page={page}
             setPage={setPage}
@@ -144,6 +141,8 @@ const UserManagement = () => {
             setRoleFilter={setRoleFilter}
             isActiveFilter={isActiveFilter}
             setIsActiveFilter={setIsActiveFilter}
+            insuranceFilter={insuranceFilter}
+            setInsuranceFilter={setInsuranceFilter}
             deleteModal={deleteModal}
             handleDeleteModal={handleDeleteModal}
             selectedUser={selectedUser}
