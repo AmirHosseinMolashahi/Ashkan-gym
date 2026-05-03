@@ -105,7 +105,7 @@ const AttendanceStatus = ({ myClasses }) => {
 
           <div className={styles.stats}>
             <div className={styles.statBox}>
-              <h3>{selectedClass ? selectedClass.attendance_summary.attendance_percentage : '--'}</h3>
+              <h3>{selectedClass ? `${selectedClass.attendance_percentage} %` : '--'}</h3>
               <p>درصد حضور در کلاس</p>
             </div>
             <div className={styles.statBox}>

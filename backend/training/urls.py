@@ -8,16 +8,13 @@ from .views import (
             CoursesDetailView,
             CoursesEnrollmentsView,
             AthleteListView,
-            UserEnrollmentsView, 
-            ThisMonthSessionView,
-            UserNextSessionView,
-            UserPreviousMonthSessionsView,
+            AthleteDashboardView,
             UserMonthSessionView,
+            StudentCourseMonthlySummaryView,
             SessionAttendance,
             AvailableMonthSessionView,
             AttendanceBulkUpdateView,
-            StudentCourseMonthlySummaryView,
-            AthleteDashboardView,
+            ThisMonthSessionView,
             CourseCreateView,
             CourseFormOptionsView,
             TimeTableBulkCreateView,
@@ -27,11 +24,13 @@ from .views import (
             CoachDashboardCourses,
             DeactivateEnrollmentView,
             ReactivateEnrollmentView,
+            UserEnrollmentAttendanceView,
             )
 
 app_name = 'training'
 
 urlpatterns = [
+  # coach and manager urls
   path('courses/', CoursesListView.as_view(), name='courses-list'),
   path('courses/detail/<int:id>/', CoursesDetailView.as_view(), name='courses-detail'),
   path('courses/detail/<int:course_id>/students/', CoursesEnrollmentsView.as_view(), name='courses-students-list'),
@@ -55,12 +54,12 @@ urlpatterns = [
 
   path('athletes/', AthleteListView.as_view(), name='athlete-list'),
   
-  path('my-classes/', UserEnrollmentsView.as_view(), name='my-classes-view'),
-  path('my-classes/next-session/', UserNextSessionView.as_view(), name='user-next-session'),
-  # path('my-classes/last-month/', UserPreviousMonthSessionsView.as_view(), name='user-last_month-session'),
+
+  # athlete urls
+  path('my-classes/dashboard/', AthleteDashboardView.as_view(), name='athlete-dashboard'),
   path('my-classes/sessions/', UserMonthSessionView.as_view(), name='user-month-session'),
+  path('my-classes/attendance/', UserEnrollmentAttendanceView.as_view(), name='user-attendance'),
   path('my-classes/<int:course_id>/sessions/attendance-status/', StudentCourseMonthlySummaryView.as_view(), name='user-sessions-attendnace-status'),
-  path('my-classes/info/', AthleteDashboardView.as_view(), name='my-classes-info'),
 
   path('session/<int:session_id>/attendance/',SessionAttendance.as_view(), name='session-attendance'),
   path('session/<int:course_id>/',AvailableMonthSessionView.as_view(), name='available-session'),

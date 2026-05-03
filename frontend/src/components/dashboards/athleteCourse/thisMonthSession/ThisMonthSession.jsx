@@ -4,31 +4,32 @@ import useCurrentDateTime from '../../../../hooks/currentDateTime';
 import toPersianDigits from '../../../../hooks/convertNumber';
 import api from '../../../../hooks/api';
 
-const ThisMonthSession = ({myClasses, athleteInfo}) => {
+const ThisMonthSession = ({athleteInfo}) => {
 
   const {date, weekday, month} = useCurrentDateTime()
 
-  // const [thisMonthAllSession, setThisMonthAllSession] = useState(0)
+  const [monthAttendance, setMonthAttendance] = useState([])
 
-  // const fetchThisMonthSession = async () => {
-  //   try {
-  //     const res = await api.get(`/training/my-classes/sessions/?year=${myClasses[0].sessions[0].date_jalali.split('/')[0]}&month=${myClasses[0].sessions[0].date_jalali.split('/')[1]}`)
-  //     setThisMonthAllSession(res.data)
-  //   } catch (err) {
-  //     console.log(err);
-  //   }
-  // }
+  const fetchMonthAttendance = async () => {
+    try {
+      const res = await api.get('/training/my-classes/attendance/')
+      setMonthAttendance(res.data)
+      console.log(res.data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
-  // useEffect(() => {
-  //     fetchThisMonthSession();
-  //   }, [])
+  useEffect(() => {
+      fetchMonthAttendance();
+    }, [])
   
 
   return (
     <div className={style.classContent}>
       <div className={style.rightContent}>
-        {myClasses ? (
-          myClasses.map((item, index) => {
+        {monthAttendance ? (
+          monthAttendance.map((item, index) => {
             return (
               <div className={style.rightContItem} key={index}>
                 <ul className={style.classInfo}>
@@ -42,16 +43,16 @@ const ThisMonthSession = ({myClasses, athleteInfo}) => {
                 <hr />
                 <p>جلسات {month} ماه</p>
                 <ul className={style.sessionDate}>
-                  {item.sessions.map((s, i) => {
-                    if (s.attendance_status === "unfinished") {
+                  {item.attendances.map((s, i) => {
+                    if (s.session_attendance_status === "unfinished") {
                       return (
-                        <li key={i} className={item.next_session.date === s.date ? style.next : ""}>
+                        <li key={i} className={item.course.next_session.date === s.session_date ? style.next : ""}>
                           <p>{s.day_of_week}</p>
                           <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
                         </li>
                       );
                     } else {
-                      if (s.attendance_status_user === "absent") {
+                      if (s.status === "absent") {
                         return (
                           <li key={i} className={style.absent}>
                             <p>{s.day_of_week}</p>
@@ -60,7 +61,7 @@ const ThisMonthSession = ({myClasses, athleteInfo}) => {
                         );
                       }
 
-                      if (s.attendance_status_user === "present") {
+                      if (s.status === "present") {
                         return (
                           <li key={i} className={style.present}>
                             <p>{s.day_of_week}</p>
@@ -69,7 +70,7 @@ const ThisMonthSession = ({myClasses, athleteInfo}) => {
                         );
                       }
 
-                      if (s.attendance_status_user === "late") {
+                      if (s.status === "late") {
                         return (
                           <li key={i} className={style.late}>
                             <p>{s.day_of_week}</p>
@@ -78,7 +79,7 @@ const ThisMonthSession = ({myClasses, athleteInfo}) => {
                         );
                       } else {
                         return (
-                          <li key={i} className={item.next_session.date === s.date ? style.next : ""}>
+                          <li key={i} className={item.course.next_session.date === s.session_date ? style.next : ""}>
                             <p>{s.day_of_week}</p>
                             <h4>{toPersianDigits(s.date_jalali.split("/")[2])}</h4>
                           </li>

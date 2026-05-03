@@ -86,12 +86,19 @@ class CourseListSerializers(serializers.ModelSerializer):
     payment_status = serializers.SerializerMethodField()
     attendance_percentage_month = serializers.SerializerMethodField()
     active_students = serializers.SerializerMethodField()
+    avatar = serializers.SerializerMethodField()
 
     
     class Meta:
         model = Course
         fields = '__all__'
     
+    def get_avatar(self, obj):
+        request = self.context.get('request')
+        if obj.avatar:
+            return request.build_absolute_uri(obj.avatar.url)
+        return None
+
     def get_schedule(self, obj):
         tables = obj.timeTable.all()
 
@@ -575,122 +582,45 @@ class SessionSerializer(serializers.ModelSerializer):
             return jdatetime.datetime.fromgregorian(datetime=obj.date).strftime("%Y/%m/%d")
         return None
 
+
 class UserEnrollmnetsSerializers(serializers.ModelSerializer):
     course = CourseListSerializers(read_only=True)
     joined_at_jalali = serializers.SerializerMethodField()
-    sessions = serializers.SerializerMethodField()
-    next_session = serializers.SerializerMethodField()
-    attendance_summary = serializers.SerializerMethodField()
-    remaining_sessions = serializers.SerializerMethodField()
+
+    # این‌ها مستقیم از annotate میان
+    remaining_sessions = serializers.IntegerField(read_only=True)
+    total_sessions = serializers.IntegerField(read_only=True)
+    present_count = serializers.IntegerField(read_only=True)
+    absent_count = serializers.IntegerField(read_only=True)
+    late_count = serializers.IntegerField(read_only=True)
+    attendance_percentage = serializers.IntegerField(read_only=True)
+
+    paid_amount = serializers.IntegerField(read_only=True)
+    total_amount = serializers.IntegerField(read_only=True)
+
     payment_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Enrollment
-        fields = '__all__'
+        fields = "__all__"
 
     def get_joined_at_jalali(self, obj):
         if obj.joined_at:
-            return jdatetime.datetime.fromgregorian(datetime=obj.joined_at).strftime("%Y/%m/%d %H:%M")
+            return jdatetime.datetime.fromgregorian(
+                datetime=obj.joined_at
+            ).strftime("%Y/%m/%d %H:%M")
         return None
     
-    def get_sessions(self, obj):
-        start_date, end_date = get_current_shamsi_month_range()
-
-        sessions = Session.objects.filter(
-            time_table__course=obj.course,
-            date__range=(start_date, end_date)
-        ).order_by('date')
-
-        return StudentSessionSerializer(
-            sessions,
-            many=True,
-            context=self.context
-        ).data
-    
-    def get_remaining_sessions(self, obj):
-        start_date, end_date = get_current_shamsi_month_range()
-
-        return Session.objects.filter(
-            time_table__course=obj.course,
-            date__range=(start_date, end_date),
-            attendance_status='unfinished'
-        ).count()
-    
-    def get_attendance_summary(self, obj):
-        start_date, end_date = get_current_shamsi_month_range()
-
-        user = obj.student
-
-        qs = Attendance.objects.filter(
-            session__time_table__course=obj.course,
-            session__date__range=(start_date, end_date),
-            student__student=user
-        )
-
-        summary = qs.aggregate(
-            present_count=Count('id', filter=Q(status='present')),
-            absent_count=Count('id', filter=Q(status='absent')),
-            late_count=Count('id', filter=Q(status='late')),
-            total=Count('id')
-        )
-        total = summary['total'] or 0
-        present = summary['present_count'] or 0
-        late = summary['late_count'] or 0
-
-        summary['attendance_percentage'] = (
-            round(((present + late) / total) * 100, 1) if total > 0 else 0
-        )
-
-        return summary
-    
     def get_payment_status(self, obj):
-        today = jdatetime.date.today()
+        remaining = obj.total_amount - obj.paid_amount
 
-        invoice = obj.invoices.filter(
-            period_year=today.year,
-            period_month=today.month
-        ).first()
-
-        if not invoice:
-            return {
-                "status": "no_invoice",
-                "total_amount": 0,
-                "paid_amount": 0,
-                "remaining_amount": 0,
-            }
-
-        return {
-            "status": invoice.status,
-            "total_amount": invoice.amount,
-            "paid_amount": invoice.paid_amount(),
-            "remaining_amount": invoice.remaining_amount(),
-        }
-
-    def get_next_session(self, obj):
-        today = datetime.date.today()
-
-        session = (
-            Session.objects
-            .filter(
-                time_table__course=obj.course,
-                date__gte=today,
-                attendance_status='unfinished'
-            )
-            .order_by('date')
-            .select_related('time_table')
-            .first()
-        )
-
-        if not session:
-            return None
-
-        return {
-            'id': session.id,
-            'date': session.date,
-            'day_of_week': session.time_table.get_day_of_week_display(),
-            'start_time': session.time_table.start_time,
-            'end_time': session.time_table.end_time,
-        }
+        if obj.total_amount == 0:
+            return "no_invoice"
+        elif remaining <= 0:
+            return "paid"
+        elif obj.paid_amount > 0:
+            return "partial"
+        return "unpaid"
 
 
 class PrevMonthSessionSerializer(serializers.ModelSerializer):
@@ -722,6 +652,33 @@ class PrevMonthSessionSerializer(serializers.ModelSerializer):
         return get_previous_shamsi_month_name()
     
 #سریالایزر ورزشکار
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    session_date = serializers.DateField(source="session.date")
+    session_attendance_status = serializers.CharField(source="session.attendance_status")
+    date_jalali = serializers.SerializerMethodField()
+    day_of_week = serializers.CharField(source="session.time_table.get_day_of_week_display",read_only=True)
+
+    class Meta:
+        model = Attendance
+        fields = ("id", "session_date", "status", "note", "date_jalali", "session_attendance_status", "day_of_week")
+    
+
+    def get_date_jalali(self, obj):
+        return jdatetime.datetime.fromgregorian(
+            datetime=obj.session.date
+        ).strftime("%Y/%m/%d")
+
+
+class EnrollmentAttendanceSerializer(serializers.ModelSerializer):
+    course = CourseListSerializers(read_only=True)
+    attendances = AttendanceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Enrollment
+        fields = ("id", "course", "status", "attendances")
+
+
 #سریالایزر برای هر جلسه ورزشکار به همراه وضعیت حضور و غیاب
 class StudentSessionSerializer(serializers.ModelSerializer):
     day_of_week = serializers.CharField(

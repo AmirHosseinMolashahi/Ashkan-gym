@@ -22,39 +22,49 @@ const AthleteCourse = () => {
   const [ nextSession, setNextSession ] = useState(null)
   const [ athleteInfo, setAthleteInfo ] = useState(null)
 
-  const fetchUserClasses = async () => {
-    try {
-      const res = await api.get('/training/my-classes/');
-      console.log(res.data)
-      setMyClasses(res.data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
+  // const fetchUserClasses = async () => {
+  //   try {
+  //     const res = await api.get('/training/my-classes/');
+  //     console.log(res.data)
+  //     setMyClasses(res.data)
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
 
-  const fetchNextSession = async () => {
+  // const fetchNextSession = async () => {
+  //   try {
+  //     const res = await api.get('/training/my-classes/next-session/');
+  //     setNextSession(res.data.next_session)
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
+
+  // const fetchAthleteInfo = async () => {
+  //   try {
+  //     const res = await api.get('/training/my-classes/info/')
+  //     console.log(res.data)
+  //     setAthleteInfo(res.data)
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+  // }
+
+  const fetchDashboardInfo = async () => {
     try {
-      const res = await api.get('/training/my-classes/next-session/');
+      const res = await api.get('/training/my-classes/dashboard/');
+      console.log(res.data)
       setNextSession(res.data.next_session)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const fetchAthleteInfo = async () => {
-    try {
-      const res = await api.get('/training/my-classes/info/')
-      console.log(res.data)
-      setAthleteInfo(res.data)
+      setAthleteInfo(res.data.dashboard)
+      setMyClasses(res.data.enrollments)
     } catch (err) {
       console.log(err)
     }
   }
 
   useEffect(() => {
-    fetchUserClasses();
-    fetchNextSession();
-    fetchAthleteInfo();
+    fetchDashboardInfo();
   }, [])
 
   return (
@@ -69,23 +79,24 @@ const AthleteCourse = () => {
             icon={<UilClock />} 
             title='جلسه بعدی'
             body={`${nextSession?.day_of_week === weekday ? 'امروز' : nextSession?.day_of_week} - ${nextSession ? toPersianDigits(nextSession?.date_jalali) : ''}`}
-            footer={`${nextSession?.course.title} - ${nextSession?.course.age_ranges.map(item => item.title)}`}
+            footer={`کلاس ${nextSession?.course}`}
           />
+          {/* ${nextSession?.course.age_ranges.map(item => item.title)} */}
           <MyClassCard
             icon={<UilStatistics />}
             title='درصد حضور در ماه'
-            body={`${athleteInfo?.attendance_percentage} %`}
-            footer={athleteInfo?.trend !== null ? `${athleteInfo?.trend === 'up' ? '+' : '-'} ${athleteInfo?.attendance_difference} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد'}
+            body={`${toPersianDigits(athleteInfo?.attendance_percentage)} %`}
+            footer={athleteInfo?.trend !== null ? `${toPersianDigits(athleteInfo?.attendance_difference)} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد'}
           />
           <MyClassCard
             icon={<UilCreditCard />} 
             title='وضعیت پرداخت'
-            body={athleteInfo?.next_payment?.remaining_amount > 0 ? (
+            body={athleteInfo?.next_payment?.remaining > 0 ? (
               <span className={style.unpaid}><UilTimesCircle /> پرداخت نشده - برای کلاس {athleteInfo?.next_payment?.course}</span>
             ) : (
               <span className={style.paid}><UilCheckCircle /> پرداخت شده - برای کلاس {athleteInfo?.next_payment?.course}</span>
             )}
-            footer={athleteInfo?.next_payment?.status === 'unpaid' ? `مبلغ ${toPersianDigits(athleteInfo.next_payment.amount)} تومان - سررسید ${toPersianDigits(athleteInfo.next_payment.due_date)}` : 'شما هیچ پرداختی ندارید'}
+            footer={athleteInfo?.next_payment?.status === 'unpaid' ? `مبلغ ${toPersianDigits(athleteInfo.next_payment.amount)} تومان - سررسید ${toPersianDigits(athleteInfo.next_payment.due_date_jalali)}` : 'شما هیچ پرداختی ندارید'}
           />
         </div>
         <div className={style.classInfoList}>
@@ -106,7 +117,7 @@ const AthleteCourse = () => {
               <MyClassInfo myClasses={myClasses} athleteInfo={athleteInfo}/>
             )}
             { activeList === 2 && (
-              <ThisMonthSession myClasses={myClasses} athleteInfo={athleteInfo}/>
+              <ThisMonthSession athleteInfo={athleteInfo}/>
             )}
             { activeList === 3 && (
               <AttendanceStatus myClasses={myClasses}/>
