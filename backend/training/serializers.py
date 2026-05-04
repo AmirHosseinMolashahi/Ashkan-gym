@@ -70,6 +70,31 @@ class TimeTableSerializer(serializers.ModelSerializer):
         model = TimeTable
         fields = "__all__"
 
+class CourseMiniSerializer(serializers.ModelSerializer):
+    coach = CoachMiniSerializer(read_only=True)
+    schedule = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Course
+        fields = ("id", "title", "coach", "schedule")
+
+    def get_schedule(self, obj):
+        tables = obj.timeTable.all()
+
+        if not tables:
+            return None
+
+        # روزها
+        days = [t.get_day_of_week_display() for t in tables]
+
+        # فرض: ساعت‌ها یکی هستن
+        start_time = tables[0].start_time.strftime('%H:%M')
+        end_time = tables[0].end_time.strftime('%H:%M')
+
+        return f"{' و '.join(days)} {start_time}–{end_time}"
+
+
+
 #سریالایزر اطلاعات کلاس
 class CourseListSerializers(serializers.ModelSerializer):
     timeTable = TimeTableSerializer(many=True, read_only=True)

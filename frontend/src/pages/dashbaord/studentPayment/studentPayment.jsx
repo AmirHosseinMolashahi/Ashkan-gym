@@ -35,24 +35,18 @@ const studentPayment = () => {
 
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [summary, setSummary] = useState({})
   const [invoices, setInvoices] = useState([]);
-  const [myClasses, setMyClasses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        const [invoiceRes, classesRes] = await Promise.all([
-          api.get(`/payment/me/invoices/?year=${selectedYear}&month=${selectedMonth}`),
-          api.get("/training/my-classes/"),
-        ]);
-
-        console.log(invoiceRes.data)
-
-        setInvoices(invoiceRes.data || []);
-        setMyClasses(classesRes.data || []);
+        const res = await api.get(`/payment/me/invoices/?year=${selectedYear}&month=${selectedMonth}`)
+        console.log(res.data)
+        setInvoices(res.data.results || []);
+        setSummary(res.data.summary);
       } catch (err) {
         console.log(err);
       } finally {
@@ -62,46 +56,6 @@ const studentPayment = () => {
 
     fetchData();
   }, [selectedYear, selectedMonth]);
-
-  const classMap = useMemo(() => {
-    const map = {};
-    myClasses.forEach((enroll) => {
-      // ساختار API: enrollment.course.id
-      map[enroll.course?.id] = enroll.course;
-    });
-    return map;
-  }, [myClasses]);
-
-  const rows = useMemo(() => {
-    return invoices.map((inv) => {
-      const course = classMap[inv.course_id];
-      const st = statusInfo(inv);
-
-      return {
-        ...inv,
-        statusLabel: st.label,
-        statusClass: st.className,
-        courseTitle: inv.course_title || course?.title || "بدون عنوان",
-        schedule: course?.schedule || "برنامه ثبت نشده",
-        coachName: course?.coach?.full_name || "نامشخص",
-      };
-    });
-  }, [invoices, classMap]);
-
-  const summary = useMemo(() => {
-    const totalBilled = rows.reduce((s, i) => s + (i.amount || 0), 0);
-    const totalPaid = rows.reduce((s, i) => s + (i.paid_amount || 0), 0);
-    const outstanding = rows.reduce((s, i) => s + (i.remaining_amount || 0), 0);
-
-    return {
-      totalBilled,
-      totalPaid,
-      outstanding,
-      activeCount: rows.length,
-      paidCount: rows.filter((i) => i.status === "paid").length,
-      dueCount: rows.filter((i) => i.remaining_amount > 0).length,
-    };
-  }, [rows]);
 
   const yearOptions = [defaultYear, defaultYear - 1];
 
@@ -150,25 +104,25 @@ const studentPayment = () => {
     <div className={style.summaryGrid}>
       <article className={style.summaryCard}>
         <p className={style.cardTitle}>کل صورتحساب</p>
-        <h3>{formatPrice(summary.totalBilled)}</h3>
+        <h3>{formatPrice(summary.total_invoiced)}</h3>
         <span className={style.cardBadge}>
-          {toPersianDigits(String(summary.activeCount))} کلاس
+          {toPersianDigits(String(summary.count))} کلاس
         </span>
       </article>
 
       <article className={style.summaryCard}>
         <p className={style.cardTitle}>جمع پرداخت‌شده</p>
-        <h3>{formatPrice(summary.totalPaid)}</h3>
+        <h3>{formatPrice(summary.total_paid)}</h3>
         <span className={`${style.cardBadge} ${style.success}`}>
-          {toPersianDigits(String(summary.paidCount))} مورد تسویه
+          {toPersianDigits(String(summary.total_paid_count))} مورد تسویه
         </span>
       </article>
 
       <article className={`${style.summaryCard} ${style.warningCard}`}>
         <p className={style.cardTitle}>مانده قابل پرداخت</p>
-        <h3>{formatPrice(summary.outstanding)}</h3>
+        <h3>{formatPrice(summary.total_remaining)}</h3>
         <span className={`${style.cardBadge} ${style.danger}`}>
-          {toPersianDigits(String(summary.dueCount))} مورد در انتظار
+          {toPersianDigits(String(summary.total_remaining_count))} مورد در انتظار
         </span>
       </article>
     </div>
@@ -184,33 +138,36 @@ const studentPayment = () => {
       <div className={style.tableBody}>
         {loading ? (
           <div className={style.row}>در حال بارگذاری...</div>
-        ) : rows.length === 0 ? (
+        ) : invoices.length === 0 ? (
           <div className={style.row}>برای این ماه صورتحسابی پیدا نشد.</div>
         ) : (
-          rows.map((item, index) => (
+          invoices.map((item, index) => (
             <article className={style.row} key={item.id}>
               <div className={style.classInfo}>
                 <div className={style.classIcon}>{toPersianDigits(String(index + 1))}</div>
                 <div>
-                  <h4>{item.courseTitle}</h4>
+                  <div className={style.classTitle}>
+                    <h4>{item.course.title}</h4>
+                    <span>مربی: {item.course.coach.full_name}</span>
+                  </div>
                   <p>
-                    {item.schedule} - مربی: {item.coachName}
+                    {item.course.schedule}
                   </p>
                 </div>
               </div>
 
               <div>
-                <span className={`${style.statusBadge} ${style[item.statusClass]}`}>
-                  {item.statusLabel}
+                <span className={`${style.statusBadge} ${style[statusInfo(item).className]}`}>
+                  {statusInfo(item).label}
                 </span>
               </div>
 
               <div className={style.amountCol}>
-                <strong>{formatPrice(item.amount)}</strong>
+                <strong>{formatPrice(item.final_amount)}</strong>
                 { item.status === "paid" ? (
-                  <small>سررسید: {toFaDate(item.payments[0].paid_at)}</small>
+                  <small>پرداخت شده: {toFaDate(item.payments[0].paid_at)}</small>
                 ) : (
-                  <small>سررسید: {toFaDate(item.due_date)}</small>
+                  <small>سررسید: {toFaDate(item.final_due_date)}</small>
                 )}
               </div>
 

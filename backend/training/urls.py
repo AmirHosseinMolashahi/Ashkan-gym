@@ -25,6 +25,7 @@ from .views import (
             DeactivateEnrollmentView,
             ReactivateEnrollmentView,
             UserEnrollmentAttendanceView,
+            UserEnrollmentsView,
             )
 
 app_name = 'training'
@@ -56,6 +57,7 @@ urlpatterns = [
   
 
   # athlete urls
+  path('my-classes/', UserEnrollmentsView.as_view(), name='athlete-classes'),
   path('my-classes/dashboard/', AthleteDashboardView.as_view(), name='athlete-dashboard'),
   path('my-classes/sessions/', UserMonthSessionView.as_view(), name='user-month-session'),
   path('my-classes/attendance/', UserEnrollmentAttendanceView.as_view(), name='user-attendance'),

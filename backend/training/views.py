@@ -503,20 +503,20 @@ class StudentCountView(APIView):
 
 # ویو های ورزشکار
 #لیست کلاس های یک ورزشکار
-# class UserEnrollmentsView(ListAPIView):
-#     permission_classes = [IsAuthenticated]
-#     serializer_class = UserEnrollmnetsSerializers
+class UserEnrollmentsView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserEnrollmnetsSerializers
 
-#     def get_queryset(self):
-#         return (
-#             Enrollment.objects
-#             .filter(student=self.request.user)
-#             .select_related('course')
-#             .prefetch_related(
-#                 'course__timeTable__sessions',
-#                 'invoices__payments'
-#             )
-#         )
+    def get_queryset(self):
+        return (
+            Enrollment.objects
+            .filter(student=self.request.user)
+            .select_related('course')
+            .prefetch_related(
+                'course__timeTable__sessions',
+                'invoices__payments'
+            )
+        )
 
 
 # class UserNextSessionView(APIView):

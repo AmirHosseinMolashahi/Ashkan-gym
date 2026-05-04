@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Value, Count, Case, When, F, IntegerField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied, ValidationError
 import jdatetime
@@ -443,10 +444,16 @@ class AthleteInvoiceListView(ListAPIView):
         year = self.request.query_params.get("year")
         month = self.request.query_params.get("month")
 
-        qs = Invoice.objects.filter(
-            enrollment__student=user
-        ).select_related(
-            "enrollment__course",
+        qs = (
+            Invoice.objects
+            .select_related(
+                "enrollment__course__coach"
+            )
+            .prefetch_related(
+                "payments",
+                "enrollment__course__timeTable"
+            )
+            .filter(enrollment__student=user)
         )
 
         if course_id:
@@ -457,6 +464,60 @@ class AthleteInvoiceListView(ListAPIView):
             qs = qs.filter(period_month=int(month))
 
         return qs.order_by("-period_year", "-period_month", "-created_at")
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        # -----------------------------
+        # SUMMARY (MONTH TOTALS)
+        # -----------------------------
+        summary = queryset.aggregate(
+
+
+            total_invoiced=Coalesce(
+                Sum(
+                    Case(
+                        When(manual_amount__isnull=False, then=F("manual_amount")),
+                        default=F("amount"),
+                        output_field=IntegerField()
+                    )
+                ),
+                Value(0)
+            ),
+            
+            total_paid=Coalesce(
+                Sum(
+                    "payments__amount",
+                    filter=Q(payments__status="success")
+                ),
+                Value(0)
+            ),
+            
+            count=Count("id", distinct=True),
+
+            total_paid_count=Count(
+                "id",
+                filter=Q(status="paid"),
+                distinct=True
+            ),
+
+            total_remaining_count=Count(
+                "id",
+                filter=Q(status__in=["unpaid", "partially_paid"]),
+                distinct=True
+            ),
+        )
+
+        summary["total_remaining"] = (
+            summary["total_invoiced"] - summary["total_paid"]
+        )
+
+        return Response({
+            "results": serializer.data,
+            "summary": summary
+        }, status=status.HTTP_200_OK)
 
 
 class AthleteInvoiceDetailView(APIView):

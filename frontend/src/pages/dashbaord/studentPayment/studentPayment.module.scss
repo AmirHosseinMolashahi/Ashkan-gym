@@ -147,6 +147,17 @@
   font-weight: 700;
 }
 
+.classTitle {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .5rem;
+
+  span {
+    font-size: 13px;
+  }
+}
+
 .statusBadge {
   width: fit-content;
   border-radius: 999px;
@@ -187,7 +198,7 @@
 
 .actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .outlineBtn,

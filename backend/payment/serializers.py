@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models import Invoice, Payment, PricingRule
 from training.models import Enrollment
+from training.serializers import CourseMiniSerializer
 import jdatetime
 
 
@@ -159,15 +160,7 @@ class InvoiceManualUpdateSerializer(serializers.ModelSerializer):
 
 
 class AthleteInvoiceSerializer(serializers.ModelSerializer):
-    course_id = serializers.IntegerField(
-        source="enrollment.course.id",
-        read_only=True,
-    )
-    course_title = serializers.CharField(
-        source="enrollment.course.title",
-        read_only=True,
-    )
-
+    course = serializers.SerializerMethodField()
     paid_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
     payments = serializers.SerializerMethodField()
@@ -185,14 +178,18 @@ class AthleteInvoiceSerializer(serializers.ModelSerializer):
             "due_date",
             "created_at",
             "updated_at",
-            "course_id",
-            "course_title",
+            "course",
             "paid_amount",
             "remaining_amount",
             "payments",
             "manual_reason",
+            "final_amount",
+            "final_due_date",
         ]
         read_only_fields = fields  # ورزشکار فقط می‌بیند
+    
+    def get_course(self, obj):
+        return CourseMiniSerializer(obj.enrollment.course).data
 
     def get_paid_amount(self, obj):
         agg = obj.payments.filter(status="success").aggregate(
