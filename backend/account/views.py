@@ -54,7 +54,16 @@ class LoginView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        # === 3) اگر هر دو صحیح، authenticate کنید ===
+        # === 3) چک کردن active بودن کاربر ===
+        if user_obj.is_active != True:
+            return Response(
+                {'error': 'حساب شما غیر فعال شده است'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+
+
+        # === 4) اگر هر دو صحیح، authenticate کنید ===
         user = authenticate(
             request,
             national_id=national_id,

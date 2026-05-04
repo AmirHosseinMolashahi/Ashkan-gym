@@ -78,15 +78,30 @@ const AthleteCourse = () => {
           <MyClassCard
             icon={<UilClock />} 
             title='جلسه بعدی'
-            body={`${nextSession?.day_of_week === weekday ? 'امروز' : nextSession?.day_of_week} - ${nextSession ? toPersianDigits(nextSession?.date_jalali) : ''}`}
-            footer={`کلاس ${nextSession?.course}`}
+            body={
+              nextSession ? (
+                `${nextSession?.day_of_week === weekday ? 'امروز' : nextSession?.day_of_week} - ${nextSession ? toPersianDigits(nextSession?.date_jalali) : ''}`
+              ) : 'هیچ جلسه ای پیدا نشد!'
+            }
+            footer={
+              nextSession ? 
+              `کلاس ${nextSession?.course}` :
+              'در حال حاضر کلاس فعال ندارید.'
+            }
           />
           {/* ${nextSession?.course.age_ranges.map(item => item.title)} */}
           <MyClassCard
             icon={<UilStatistics />}
             title='درصد حضور در ماه'
-            body={`${toPersianDigits(athleteInfo?.attendance_percentage)} %`}
-            footer={athleteInfo?.trend !== null ? `${toPersianDigits(athleteInfo?.attendance_difference)} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد'}
+            body={
+              athleteInfo?.total_courses >= 1 ?
+              `${toPersianDigits(athleteInfo?.attendance_percentage)} %` :
+              '-'
+            }
+            footer={athleteInfo?.total_courses >= 1 ?
+              athleteInfo?.trend !== null ? `${toPersianDigits(athleteInfo?.attendance_difference)} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد' :
+              '-'
+            }
           />
           <MyClassCard
             icon={<UilCreditCard />} 

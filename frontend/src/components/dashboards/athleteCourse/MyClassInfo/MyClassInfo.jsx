@@ -8,22 +8,6 @@ import toPersianDigits from '../../../../hooks/convertNumber';
 const MyClassInfo = ({myClasses, athleteInfo}) => {
 
   const {date, weekday, month} = useCurrentDateTime()
-
-  const [thisMonthAllSession, setThisMonthAllSession] = useState(0)
-
-  const fetchThisMonthSession = async () => {
-    try {
-      const res = await api.get(`/training/my-classes/sessions/?year=${myClasses[0].sessions[0].date_jalali.split('/')[0]}&month=${myClasses[0].sessions[0].date_jalali.split('/')[1]}`)
-      console.log(res.data)
-      setThisMonthAllSession(res.data)
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
-  useEffect(() => {
-    fetchThisMonthSession();
-  }, [])
   
   return (
     <div className={style.classContent}>
@@ -39,26 +23,36 @@ const MyClassInfo = ({myClasses, athleteInfo}) => {
                       <h3>کلاس {item.course.title}</h3>
                       <p>هر {toPersianDigits(item.course.schedule)} - مربی: {item.course.coach.full_name}</p>
                     </div>
-                    <div className={style.attendance}>
-                      <span className={style.present}><UilCheckCircle /> {toPersianDigits(item.present_count)} جلسه حضور</span>
-                      <span className={style.late}><UilClock /> {toPersianDigits(item.late_count)} جلسه تاخیر</span>
-                      <span className={style.absent}><UilTimesCircle /> {toPersianDigits(item.absent_count)} جلسه غیبت</span>
-                    </div>
+                    {item.status !== 'deactive' ? (
+                      <div className={style.attendance}>
+                        <span className={style.present}><UilCheckCircle /> {toPersianDigits(item.present_count)} جلسه حضور</span>
+                        <span className={style.late}><UilClock /> {toPersianDigits(item.late_count)} جلسه تاخیر</span>
+                        <span className={style.absent}><UilTimesCircle /> {toPersianDigits(item.absent_count)} جلسه غیبت</span>
+                      </div>
+                    ) : ''}
                   </li>
                   <li>
                     <h3>درصد حضور</h3>
-                    <span>{toPersianDigits(item.attendance_percentage)} %</span>
+                    {item.status !== 'deactive' ? (
+                      <span>{toPersianDigits(item.attendance_percentage)} %</span>
+                    ) : '-'}
                   </li>
                   <li>
                     <h3>شهریه‌ی {month} ماه</h3>
-                      {item.payment_status.status === 'paid' ? (
+                    {item.status !== 'deactive' ? (  
+                      item.payment_status.status === 'paid' ? (
                         <span className={style.payment}><UilCheck /> پرداخت شده</span>
                       ) : (
                         <span className={`${style.payment} ${style.unpaid}`}><UilTimesCircle /> پرداخت نشده</span>
-                      )}
+                      )
+                      ) : '-'}
                   </li>
                 </ul>
-                <hr />
+                {item.status === 'deactive' ? (
+                  <div className={style.deactiveClass}>
+                    <p>این کلاس برای شما غیر فعال شده است!</p>
+                  </div>
+                ) : ''}
               </div>
             )
         })
@@ -89,25 +83,29 @@ const MyClassInfo = ({myClasses, athleteInfo}) => {
         </div>
         <div className={style.leftContItem}>
           <h3>حضور و غیاب ({month} ماه)</h3>
-          <ul>
-            <li>
-              <p>جلسات این ماه</p>
-              <h3>{toPersianDigits(athleteInfo?.total_sessions)}</h3>
-            </li>
-            <li>
-              <p>حضور</p>
-              <h3 style={{color: '#2ECC71'}}>{toPersianDigits(athleteInfo?.total_present)}</h3>
-            </li>
-            <li>
-              <p>غیبت</p>
-              <h3 style={{color: '#C1121F'}}>{toPersianDigits(athleteInfo?.total_absent)}</h3>
-            </li>
-            <li>
-              <p>باقی مانده</p>
-              <h3 style={{color: '#3b82f6'}}>{toPersianDigits(athleteInfo?.remaining_sessions)}</h3>
-            </li>
-          </ul>
-          <p className={style.itemDetail}>حضور و غیاب برای هر ماه به صورت جداگانه محاسبه میشوند.</p>
+          {athleteInfo?.total_courses >= 1 ? (
+            <>
+            <ul>
+              <li>
+                <p>جلسات این ماه</p>
+                <h3>{toPersianDigits(athleteInfo?.total_sessions)}</h3>
+              </li>
+              <li>
+                <p>حضور</p>
+                <h3 style={{color: '#2ECC71'}}>{toPersianDigits(athleteInfo?.total_present)}</h3>
+              </li>
+              <li>
+                <p>غیبت</p>
+                <h3 style={{color: '#C1121F'}}>{toPersianDigits(athleteInfo?.total_absent)}</h3>
+              </li>
+              <li>
+                <p>باقی مانده</p>
+                <h3 style={{color: '#3b82f6'}}>{toPersianDigits(athleteInfo?.remaining_sessions)}</h3>
+              </li>
+            </ul>
+            <p className={style.itemDetail}>حضور و غیاب برای هر ماه به صورت جداگانه محاسبه میشوند.</p>
+            </>
+          ) : 'کلاسی پیدا نشد'}
         </div>
         <div className={style.leftContItem}>
           <h3>پرداخت شهریه</h3>

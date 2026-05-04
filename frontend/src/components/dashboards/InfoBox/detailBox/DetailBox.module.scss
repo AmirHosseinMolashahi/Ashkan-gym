@@ -52,6 +52,7 @@
 .noInsuranceList {
   list-style: none;
   color: $primary;
+  overflow-y: scroll;
   li {
     position: relative;
     padding: 0.5rem;

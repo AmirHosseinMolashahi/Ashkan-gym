@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value, OuterRef, Subquery, DurationField, Sum, IntegerField
+from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value, OuterRef, Subquery, DurationField, Sum, IntegerField, Exists
 from django.db.models.functions import Coalesce
 from django.db import transaction
 from django.utils import timezone
@@ -802,10 +802,18 @@ class AthleteDashboardView(APIView):
                 ),
 
                 # جلسات باقی‌مانده
-                remaining_sessions=Count(
+                remaining_sessions = Count(
                     "course__timeTable__sessions",
-                    filter=Q(course__timeTable__sessions__attendance_status="unfinished"),
-                    distinct=True 
+                    filter=(
+                        Q(course__timeTable__sessions__date__gte=today) &
+                        Q(course__timeTable__sessions__attendance_status="unfinished") &
+                        Q(course__timeTable__sessions__date__gte=F("start_date")) &
+                        (
+                            Q(end_date__isnull=True) |
+                            Q(course__timeTable__sessions__date__lte=F("end_date"))
+                        )
+                    ),
+                    distinct=True
                 ),
 
                 paid_amount=Coalesce(
@@ -829,13 +837,21 @@ class AthleteDashboardView(APIView):
         # -----------------------------
         # NEXT SESSION (single query)
         # -----------------------------
+        active_enrollment = Enrollment.objects.filter(
+            student=user,
+            course=OuterRef("time_table__course"),
+            status="active"
+        )
         next_session_obj = (
             Session.objects
             .filter(
-                time_table__course__enrollments__student=user,
                 date__gte=today,
                 attendance_status="unfinished"
             )
+            .annotate(
+                has_active_enrollment=Exists(active_enrollment)
+            )
+            .filter(has_active_enrollment=True)
             .select_related("time_table__course")
             .order_by("date")
             .first()
@@ -948,7 +964,7 @@ class AthleteDashboardView(APIView):
                 "course": next_invoice.enrollment.course.title,
                 "due_date": next_invoice.due_date,
                 "due_date_jalali": jdatetime.datetime.fromgregorian(datetime=next_invoice.due_date).strftime("%Y/%m/%d"),
-                "amount": next_invoice.amount,
+                "amount": next_invoice.get_final_amount(),
                 "remaining": next_invoice.get_remaining_amount(),
                 "status": next_invoice.status,
             }

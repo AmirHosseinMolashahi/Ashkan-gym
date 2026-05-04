@@ -83,6 +83,17 @@
           }
         }
       }
+      .deactiveClass {
+        padding: .5rem;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+
+        p {
+          color: $danger;
+          font-weight: bold;
+        }
+      }
     }
   }
   .leftContent {
