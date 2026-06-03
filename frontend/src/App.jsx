@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import HomeLayouts from './layouts/homeLayouts/HomeLayouts'
 import Home from './pages/home/Home';
 import DashboardLayouts from './layouts/dashboardLayouts/DashboardLayouts';
@@ -8,11 +8,10 @@ import Registration from './pages/registrations/Registration';
 import ProtectedRoute from './wrapper/ProtectedRoute';
 import EditProfile from './pages/dashbaord/profile/Profile';
 import Schedule from './pages/dashbaord/schedule/Schedule';
-import Announce from './pages/dashbaord/announcements/Announce';
-import CreateAnnounce from './pages/dashbaord/announcements/createAnnounce/CreateAnnounce';
-import UpdateAnnounce from './pages/dashbaord/announcements/updateAnnounce/UpdateAnnounce';
+import AnnouncementList from './pages/dashbaord/announcements/AnnouncementList';
+import AnnounceForm from './pages/dashbaord/announcements/announceForm/AnnounceForm';
 import NotifList from './pages/dashbaord/notifications/NotifList';
-import { useToast } from './context/notificationContext';
+import { useToast } from './context/NotificationContext';
 import { addNotification, deleteNotification } from './store/notificationSlice';
 import { fetchNotifications, fetchUnreadCount, fetchUnreadNotifList } from "./store/notificationSlice";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,12 +29,29 @@ import AddCourse from './pages/dashbaord/courses/addCourse/AddCourse';
 import EditCourse from './pages/dashbaord/courses/editCourse/EditCourse';
 import NotFound from './components/NotFound/NotFound';
 import Unauthorized from './components/Unauthorized/Unauthorized';
+import { AnimatePresence, motion } from "framer-motion";
+
+
+
+const PageWrapper = ({ children }) => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 25 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -25 }}
+        transition={{ duration: 0.25 }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
 
 function App() {
-  const toast = useToast();
-  const notify = toast?.notify;
+  const { notify } = useToast();
+
   const dispatch = useDispatch();
-  // const { notify } = useToast();
+  const location = useLocation();
+
   const { user } = useSelector(state => state.auth);
   
   useEffect(() => {
@@ -68,7 +84,7 @@ function App() {
           dispatch(addNotification(data));
           dispatch(fetchUnreadCount());
           dispatch(fetchUnreadNotifList());
-          notify(data.title, data.type ?? "info");
+          notify(data.title, data.type ?? "info")
         }
       };
 
@@ -90,7 +106,7 @@ function App() {
         wsRef.current = null;
       }
     };
-  }, [user, dispatch]);
+  }, [user, dispatch, notify]);
 
   useEffect(() => {
     if (user) {
@@ -99,111 +115,115 @@ function App() {
       dispatch(fetchUnreadCount());
       dispatch(fetchUnreadNotifList());
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, notify]);
 
   return (
-    <Router>
-      <Routes>
+    <AnimatePresence mode="wait">  
+      <Routes location={location}>
         <Route element={<HomeLayouts />}>
           <Route path='/' element={<Home />} />
-          <Route path="/registration/login" element={<Registration />} />
+          <Route path="/registration/login" element={
+            <PageWrapper>
+              <Registration />
+            </PageWrapper>
+            } />
         </Route>
         <Route element={<DashboardLayouts />}>
           <Route path='/dashboard' element={
             <ProtectedRoute>
-              <Dashbaord />
+              <PageWrapper><Dashbaord /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/profile' element={
             <ProtectedRoute>
-              <EditProfile />
+              <PageWrapper><EditProfile /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/schedule' element={
             <ProtectedRoute>
-              <Schedule />
+              <PageWrapper><Schedule /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/announcements' element={
             <ProtectedRoute>
-              <Announce />
+              <PageWrapper><AnnouncementList /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/announcements/create' element={
             <ProtectedRoute allowedRoles={'manager'}>
-              <CreateAnnounce />
+              <PageWrapper><AnnounceForm /></PageWrapper>
             </ProtectedRoute>
           } />
-          <Route path='/dashboard/announcements/:id/edit' element={
+          <Route path='/dashboard/announcements/edit/:id' element={
             <ProtectedRoute allowedRoles={'manager'}>
-              <UpdateAnnounce />
+              <PageWrapper><AnnounceForm mode="edit" /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/notifications' element={
             <ProtectedRoute>
-              <NotifList />
+              <PageWrapper><NotifList /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/student-register' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <StudentRegisterations />
+              <PageWrapper><StudentRegisterations /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/courses' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <Courses />
+              <PageWrapper><Courses /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/add' element={
             <ProtectedRoute allowedRoles={'manager'}>
-              <AddCourse />
+              <PageWrapper><AddCourse /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/:id/edit' element={
             <ProtectedRoute allowedRoles={'manager'}>
-              <EditCourse />
+              <PageWrapper><EditCourse /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/courses/:id' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <CoursesDetail />
+              <PageWrapper><CoursesDetail /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/my-courses' element={
             <ProtectedRoute>
-              <AthleteCourse />
+              <PageWrapper><AthleteCourse /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/payment' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <Payment />
+              <PageWrapper><Payment /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/payment/courses/:courseId' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <PaymentAthletes />
+              <PageWrapper><PaymentAthletes /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/student-payment' element={
             <ProtectedRoute>
-              <StudentPayment />
+              <PageWrapper><StudentPayment /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <UserManagement />
+              <PageWrapper><UserManagement /></PageWrapper>
             </ProtectedRoute>
           } />
           <Route path='/dashboard/user-management/:id/edit' element={
             <ProtectedRoute allowedRoles={'manager', 'coach'}>
-              <ManagerEditUser />
+              <PageWrapper><ManagerEditUser /></PageWrapper>
             </ProtectedRoute>
           } />
         </Route>
         <Route path="*" element={<NotFound />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
-    </Router>
+    </AnimatePresence>
   )
 }
 

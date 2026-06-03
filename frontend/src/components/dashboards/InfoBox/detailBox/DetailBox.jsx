@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import toPersianDigits from '../../../../hooks/convertNumber';
 import api from '../../../../hooks/api';
 import Modal from '../../../GlobalComponents/Modal/Modal';
-import { UilEdit, UilCheckCircle, UilExclamationTriangle } from '@iconscout/react-unicons'
+import { UilEdit, UilCheckCircle, UilExclamationTriangle, UilClockFive, UilShieldExclamation, UilHeartRate, UilShieldPlus } from '@iconscout/react-unicons'
 import { useNavigate } from 'react-router-dom';
 import { hasRole } from '../../../../hooks/roleConverter';
 
@@ -38,22 +38,47 @@ const DetailBox = () => {
     <>
       <div className={style.detailBox}>
         <div className={style.container}>
-          <ul>
-            <li>آخرین ورود شما: {toPersianDigits(user?.previous_login_jalali)}</li>
+          <div className={style.detailIcon}>وضعیت فعلی <UilHeartRate /></div>
+          <div className={style.detailList}>
+            <div className={style.lastLogin}>
+              <button>
+                <UilClockFive />
+              </button>
+              <div className={style.lastLoginTime}>
+                آخرین ورود: <span>{toPersianDigits(user?.previous_login_jalali)}</span>
+              </div>
+            </div>
             {hasRole(user?.roles, 'manager') || hasRole(user?.roles, 'coach') ? (
-              <li>
-                تعداد <strong>{noInsuranceCount}</strong> نفر فاقد بیمه میباشند
-                <button onClick={() => setNoInsuranceListModal(true)}>نمایش لیست</button>
-              </li>
+              <>
+                <hr />
+                <div className={style.insuranceList}>
+                  <button>
+                    <UilShieldExclamation />
+                  </button>
+                  <div className={style.insuranceDetail}>
+                     بیمه ورزشکاران: 
+                    <span>
+                      <strong>{noInsuranceCount}</strong> نفر فاقد بیمه
+                    </span>
+                  </div>
+                  <button className={style.viewInsuranceList} onClick={() => setNoInsuranceListModal(true)}>بررسی</button>
+                </div>
+              </>
             ) : null}
-            <li>
-              وضعیت بیمه: {user?.insurance ? (
-                <span className={style.insured}>دارای بیمه <UilCheckCircle size="1.2rem"/></span>
-              ) : (
-                <span className={style.notInsured}>فاقد بیمه<UilExclamationTriangle size="1.2rem"/></span>
-              )}
-            </li>
-          </ul>
+            <hr />
+            <div className={style.insuranceStatus}>
+              <button>
+                <UilShieldPlus />
+              </button>
+              <div className={style.insuranceStatusDetail}>
+                وضعیت بیمه: {user?.insurance ? (
+                  <span className={style.insured}>دارای بیمه <UilCheckCircle size="1.2rem"/></span>
+                ) : (
+                  <span className={style.notInsured}>فاقد بیمه<UilExclamationTriangle size="1.2rem"/></span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       {noIsuranceListModal && (

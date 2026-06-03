@@ -7,8 +7,28 @@ import useCurrentDateTime from "../../../../hooks/currentDateTime";
 import { useToast } from "../../../../context/NotificationContext";
 import AttendanceToolbar from "./AttendanceToolbar";
 import AttendanceRow from "./AttendanceRow";
+import AttendanceCard from "./attendanceCard/AttendanceCard";
+import Pagination from "../../../GlobalComponents/Pagination/Pagination";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
+
+export const useIsMobile = (breakpoint = 768) => {
+  const [isMobile, setIsMobile] = useState(
+    () => window.innerWidth < breakpoint
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${breakpoint}px)`);
+
+    const handler = (e) => setIsMobile(e.matches);
+
+    media.addEventListener("change", handler);
+
+    return () => media.removeEventListener("change", handler);
+  }, [breakpoint]);
+
+  return isMobile;
+};
 
 const AttendanceTable = ({ course_id }) => {
   const [ sessions, setSessions ] = useState([])
@@ -20,6 +40,7 @@ const AttendanceTable = ({ course_id }) => {
   const [ selectedSession, setSelectedSession ] = useState(null)
   const { notify } = useToast()
   const {date, weekday, month} = useCurrentDateTime()
+  const isMobile = useIsMobile();
 
   const monthFromDate = Number(
     date.split('/')[1].replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
@@ -33,20 +54,31 @@ const AttendanceTable = ({ course_id }) => {
   const filteredData = useMemo(() => {
     return sessionAttendance.filter(s => {
       const fullName =
-        s.student.full_name ||
-        `${s.student.first_name || ""} ${s.student.last_name || ""}`.trim();
+        s.student_name ||
+        `${s.student_name || ""}`.trim();
       const email = s.student.email || "";
 
       const matchSearch =
         fullName.toLowerCase().includes(search.toLowerCase()) ||
         email.toLowerCase().includes(search.toLowerCase());
 
-      const matchPayment =
-        paymentFilter === "all" || s.paymentStatus === paymentFilter;
-
-      return matchSearch && matchPayment;
+      return matchSearch;
     });
-  }, [sessionAttendance, search, paymentFilter]);
+  }, [sessionAttendance, search]);
+
+
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+
+    return filteredData.slice(start, end);
+  }, [filteredData, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, selectedSession]);
 
   const fetchCourseSessions = async (month_id = selectedMonth) => {
     try {
@@ -76,16 +108,7 @@ const AttendanceTable = ({ course_id }) => {
     return sessions.find(s => s.id === Number(selectedSession));
   }, [selectedSession, sessions]);
 
-  // const handleStatusChange = (studentId, newStatus) => {
-  //   setSessionAttendance(prev =>
-  //     prev.map(item =>
-  //       item.student === studentId
-  //         ? { ...item, status: newStatus }
-  //         : item
-  //     )
-  //   );
-  // };
-  
+
   const updateAttendanceItem = (studentId, updates) => {
     setSessionAttendance(prev =>
       prev.map(item =>
@@ -164,44 +187,52 @@ const AttendanceTable = ({ course_id }) => {
         setSessionAttendance={setSessionAttendance}
       />
 
-        {/* Table */}
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>ردیف</th>
-                <th>ورزشکار</th>
-                <th>حضور غیاب</th>
-                <th>توضیحات</th>
-              </tr>
-            </thead>
+        {isMobile ? (
+          <AttendanceCard
+            data={paginatedData}
+            onStatusChange={handleStatusChange}
+            onNoteChange={handleNoteChange}
+          />
+        ) : (
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>ردیف</th>
+                  <th>ورزشکار</th>
+                  <th>حضور غیاب</th>
+                  <th>توضیحات</th>
+                </tr>
+              </thead>
 
-            <tbody>
-              {sessionAttendance?.map((item, index) => (
-                <AttendanceRow
-                  key={item.student ?? index}
-                  item={item}
-                  index={index}
-                  onStatusChange={handleStatusChange}
-                  onNoteChange={handleNoteChange}
-                />
-              ))}
-            </tbody> 
-          </table>
+              <tbody>
+                {paginatedData?.map((item, index) => (
+                  <AttendanceRow
+                    key={item.student ?? index}
+                    item={item}
+                    index={(page - 1) * PAGE_SIZE + index}
+                    onStatusChange={handleStatusChange}
+                    onNoteChange={handleNoteChange}
+                  />
+                ))}
+              </tbody> 
+            </table>
+          </div>
+        )}
+
+        <div className={styles.paginationWrapper}>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onNext={() =>
+              setPage(prev => Math.min(prev + 1, totalPages))
+            }
+            onPrev={() =>
+              setPage(prev => Math.max(prev - 1, 1))
+            }
+          />
         </div>
-
-        {/* //Pagination
-        <div className={styles.pagination}>
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              className={page === i + 1 ? styles.activePage : ""}
-              onClick={() => setPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div> */}
       </div>
     </div>
   );

@@ -1,0 +1,131 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
+.notifCard {
+  position: relative;
+  width: 50rem;
+  display: flex;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background-color: $white;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+
+  &.unread {
+    border: 1px solid $blue;
+    background-color: transparent;
+  }
+
+  &.read {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  .newNotifDot {
+    position: absolute;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: $blue;
+    border-radius: 100%;
+    right: 0;
+    top: 50%;
+    margin-right: -0.3rem;
+  }
+
+  .notifCardWrapper {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.5rem;
+    padding: 1rem;
+
+    .notifIcon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .notifIconWrapper {
+        background-color: #eee;
+        border-radius: 100%;
+        padding: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.announcements { background-color: #fbf9da; color: $warning; }
+        &.reminders     { background-color: #fbe8da; color: $orange; }
+        &.tuition       { background-color: #dafbe7; color: $success; }
+        &.courses       { background-color: #daddfb; color: $blue; }
+        &.registration  { background-color: #f4dafb; color: $purple; }
+      }
+    }
+
+    .notifInfo {
+      font-size: 16px;
+      p {
+        font-size: 14px;
+        color: $light-grey;
+      }
+    }
+
+    .notifTime {
+      font-size: 10px;
+      p { color: $light-grey; }
+    }
+
+    .notifAction {
+      opacity: 0;
+      transition: opacity 300ms ease;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.3rem;
+
+      .deleteNotif,
+      .readNotif {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.2rem;
+        border-radius: 100%;
+      }
+
+      .deleteNotif {
+        svg {
+          transition: color 300ms ease;
+          color: $light-grey;
+          width: 1.3rem;
+        }
+        &:hover {
+          background-color: #fbe8da;
+          svg { color: $orange; }
+        }
+      }
+
+      .readNotif {
+        svg {
+          transition: color 300ms ease;
+          color: $light-grey;
+          width: 1.3rem;
+        }
+        &:hover {
+          background-color: #dae7fb;
+          svg { color: $blue; }
+        }
+      }
+    }
+  }
+}
+
+  // هاور اکشن‌ها رو نمایش میده
+.notifCard {
+  &:hover {
+    .notifAction {
+      opacity: 1;
+    }
+  }
+}

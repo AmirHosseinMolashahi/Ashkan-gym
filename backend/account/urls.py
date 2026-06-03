@@ -11,6 +11,7 @@ from .views import (
   UserManagementDetailView,
   ManagerDeleteUserView,
   UsersWithoutInsuranceView,
+  RolesListView,
   )
 from django.urls import path
 
@@ -19,7 +20,7 @@ app_name = 'account'
 urlpatterns = [
     path('user/', userView.as_view(), name='user'),
     path('users/', UsersView.as_view(), name='users'),
-    path('users/managemnet/', UsersManagementView.as_view(), name='users-management'),
+    path('users/management/', UsersManagementView.as_view(), name='users-management'),
     path('login/', LoginView.as_view(), name='login'),
     path('refresh/', RefreshTokenView.as_view(), name='refresh'),
     path('register/', RegisterView.as_view(), name='register'),
@@ -29,5 +30,5 @@ urlpatterns = [
     path('management-users/<int:user_id>/', UserManagementDetailView.as_view(), name='management-user-detail'),
     path('management-users/<int:user_id>/delete/', ManagerDeleteUserView.as_view(), name='management-user-delete'),
     path('users/no-insurance/', UsersWithoutInsuranceView.as_view(), name='users-no-insurance'),
-
+    path('roles/', RolesListView.as_view(), name='role-list')
 ]

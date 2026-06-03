@@ -1,32 +1,32 @@
-from rest_framework.generics import ListAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Notification
 from .serializers import NotificationSerializer
+from .utils import create_and_send_notification
+from .filters import NotificationFilter
+
+from rest_framework.generics import ListAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from account.models import CustomUser
-from .pagination import NotificationPagination
 
-from .utils import create_and_send_notification
+from account.models import CustomUser
+from training.paginations import CustomPagination
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 class NotificationListView(ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = NotificationPagination
+    pagination_class = CustomPagination
+
+    filter_backends = [
+        DjangoFilterBackend
+    ]
+    filterset_class = NotificationFilter
 
     def get_queryset(self):
-        qs = Notification.objects.filter(user=self.request.user)
-
-        notif_type = self.request.query_params.get("type")
-        is_read = self.request.query_params.get("is_read")
-
-        if notif_type:
-            qs = qs.filter(type=notif_type)
-        if is_read in ["true", "false"]:
-            qs = qs.filter(is_read=(is_read == "true"))
-
-        return qs.order_by("-created_at")
+        print(self.request.GET)
+        return Notification.objects.filter(user=self.request.user).order_by("-created_at")
 
 
 class UnreadNotificationListView(ListAPIView):

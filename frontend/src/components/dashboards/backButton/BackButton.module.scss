@@ -1,6 +1,19 @@
 @use '../../../styles/constants.scss' as *;
 .backBtn {
-  width: 10rem;
+  width: fit-content;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: center;
+  gap: .5rem;
   padding: 0;
   background-color: transparent;
+  color: $light-grey;
+
+  &:hover {
+    background-color: transparent;
+  }
+  span {
+    rotate: (180deg);
+  }
 }

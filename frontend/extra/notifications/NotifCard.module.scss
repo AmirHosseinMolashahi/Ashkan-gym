@@ -1,0 +1,192 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
+
+.swipeWrapper {
+  position: relative;
+  overflow: visible;
+  border-radius: 20px;
+}
+
+.readAction {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  padding-right: 24px;
+
+  background: #22c55e;
+  color: white;
+  font-weight: bold;
+}
+
+.notifCard {
+  position: relative;
+  width: auto;
+  display: flex;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background-color: $white;
+  
+  @include desktop {
+    width: 50rem;
+  }
+
+  transition:
+    background-color .25s ease,
+    border-color .25s ease,
+    transform .2s ease,
+    opacity .2s ease;
+
+  &.unread {
+    border: 1px solid $blue;
+    background-color: transparent;
+  }
+
+  // &.read {
+  //   opacity: .7;
+  //   transform: scale(.98);
+  // }
+
+  .newNotifDot {
+    position: absolute;
+    width: .5rem;
+    height: .5rem;
+    background-color: $blue;
+    border-radius: 100%;
+    right: 0;
+    top: 50%;
+    margin-right: -.3rem;
+  }
+  .notifCardWrapper {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: .5rem;
+    padding: .5rem;
+    
+    @include desktop {
+      padding: 1rem;
+    }
+    // div {
+    //   border: 1px solid red;
+    // }
+    .notifIcon, .notifDelete {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .notifIcon {
+      .notifIconWrapper {
+        background-color: #eee;
+        border-radius: 100%;
+        padding: .5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.announcements {
+          background-color: #fbf9da;
+          color: $warning;
+        }
+        &.reminders {
+          background-color: #fbe8da;
+          color: $orange;
+        }
+        &.tuition {
+          background-color: #dafbe7;
+          color: $success;
+        }
+        &.courses {
+          background-color: #daddfb;
+          color: $blue;
+        }
+        &.registration {
+          background-color: #f4dafb;
+          color: $purple;
+        }
+      }
+      }
+
+    .notifTime {
+      font-size: 12px;
+      
+      @include desktop {
+        font-size: 10px;
+      }
+      p {
+        color: $light-grey;
+      }
+    }
+
+    .notifAction {
+      opacity: 0;
+      transition: all 300ms ease;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: .3rem;
+
+      .deleteNotif, .readNotif {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: .2rem;
+        border-radius: 100%;
+      }
+      
+      .deleteNotif {
+        svg {
+          transition: color 300ms ease;
+          color: $light-grey;
+          width: 1.3rem;
+        }
+        &:hover {
+          background-color: #fbe8da;
+
+          svg {
+            color: $orange;
+          }
+        }
+      }
+      .readNotif {
+        svg {
+          transition: color 300ms ease;
+          color: $light-grey;
+          width: 1.3rem;
+        }
+        &:hover {
+          background-color: #dae7fb;
+
+          svg {
+            color: $blue;
+          }
+        }
+      }
+    }
+
+    .notifInfo {
+      font-size: 12px;
+      
+      @include desktop {
+        font-size: 16px;
+      }
+
+      p {
+        font-size: 14px;
+        color: $light-grey;
+      }
+    }
+  }
+}
+
+.notifCard:hover .notifAction {
+  opacity: 1;
+}

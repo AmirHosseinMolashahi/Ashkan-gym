@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Profile.module.scss';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../../../utils/cropImage'; // تابع کمکی برای برش
-import { UilCameraPlus, UilLockAlt, UilEdit, UilCheckCircle, UilCheck, UilEye, UilFile } from '@iconscout/react-unicons'
+import { UilCameraPlus, UilLockAlt, UilEdit, UilCheckCircle, UilCheck, UilEye, UilFile, UilTimes } from '@iconscout/react-unicons'
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian"
 import persian_en from "react-date-object/locales/persian_fa"
@@ -111,7 +111,7 @@ const EditProfile = () => {
   const fetchUserDocs = async () => {
     try {
       const res = await api.get('/registration/documents/list/');
-      setUserDocs(res.data || []);
+      setUserDocs(res.data.results || []);
     } catch (err) {
       console.log(err);
       notify('خطا در دریافت مدارک ❌', 'error');
@@ -186,34 +186,6 @@ const EditProfile = () => {
       setFormData({ ...formData, [name]: value });
     }
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   const form = new FormData();
-  //   form.append('national_id', formData.username);
-  //   form.append('father_name', formData.father_name);
-  //   form.append('first_name', formData.first_name);
-  //   form.append('last_name', formData.last_name);
-  //   form.append('email', formData.email);
-  //   form.append('birthdate', formData.birthdate_jalali);
-  //   form.append('phone_number', formData.phone_number);
-  //   form.append('address', formData.address);
-  //   form.append('role', formData.role);
-
-  //   if (profileImage) {
-  //     form.append('profile_picture', profileImage,'profile.jpg');
-  //   }
-
-  //   try {
-  //     await dispatch(updateUser(form)).unwrap()
-  //     await dispatch(fetchUser()).unwrap();
-  //     notify('اطلاعات با موفقیت ذخیره شد 🙌', 'success');
-  //     window.scrollTo({ top: 0, behavior: 'smooth' });
-  //   } catch (err) {
-  //     notify('خطا در ذخیره اطلاعات!', 'error');
-  //   }
-  // };
 
   const handleSavePersonal = async () => {
     showLoading()
@@ -313,9 +285,9 @@ const EditProfile = () => {
               </div>
             </div>
             <div className={styles.info}>
-              <h1>{user?.full_name}</h1>
-              <p>{roleConverter(user?.roles)}</p>
-              <p>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
+              <h1 className={styles.infoName}>{user?.full_name}</h1>
+              <p className={styles.infoRole}>{roleConverter(user?.roles)}</p>
+              <p className={styles.infoLastLogin}>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
             </div>
           </div>
           <div className={styles.content}>
@@ -323,15 +295,20 @@ const EditProfile = () => {
               <div className={styles.personalInfo}>
                 <div className={styles.infoHeader}>
                   <h3>اطلاعات شخصی</h3>
-                  <button onClick={() => {
-                    if (isEditingPersonal) {
-                      handleSavePersonal()
-                    }
-                    setIsEditingPersonal(!isEditingPersonal);
-                  }}> 
-                  {isEditingPersonal ? 'ذخیره' : 'ویرایش'}
-                  {isEditingPersonal ? <UilCheck /> : <UilEdit />}
-                  </button>
+                  <div className={styles.btnContainer}>
+                    <button onClick={() => {
+                      if (isEditingPersonal) {
+                        handleSavePersonal()
+                      }
+                      setIsEditingPersonal(!isEditingPersonal);
+                    }}> 
+                    {isEditingPersonal ? 'ذخیره' : 'ویرایش'}
+                    {isEditingPersonal ? <UilCheck /> : <UilEdit />}
+                    </button>
+                    {isEditingPersonal ? (
+                      <button onClick={() => setIsEditingPersonal(false)}>لغو <UilTimes /></button>
+                    ) : ''}
+                  </div>
                 </div>
                 <div className={styles.infoContent}>
                   <ul>
@@ -407,7 +384,7 @@ const EditProfile = () => {
                             onFocus={openCalendar}
                             value={value}           // این فارسی نمایش می‌دهد
                             placeholder="تاریخ تولد"
-                            className={styles.formInput}
+                            className={`${styles.formInput} ${styles.calendar}`}
                             readOnly
                           />
                         )}
@@ -422,15 +399,20 @@ const EditProfile = () => {
               <div className={styles.personalInfo}>
                 <div className={styles.infoHeader}>
                   <h3>آدرس و اطلاعات تماس</h3>
-                  <button onClick={() => {
-                    if (isEditingContact) {
-                      handleSaveContact()
-                    }
-                    setIsEditingContact(!isEditingContact);
-                  }}> 
-                  {isEditingContact ? 'ذخیره' : 'ویرایش'}
-                  {isEditingContact ? <UilCheck /> : <UilEdit />}
-                  </button>
+                  <div className={styles.btnContainer}>
+                    <button onClick={() => {
+                      if (isEditingContact) {
+                        handleSaveContact()
+                      }
+                      setIsEditingContact(!isEditingContact);
+                    }}> 
+                    {isEditingContact ? 'ذخیره' : 'ویرایش'}
+                    {isEditingContact ? <UilCheck /> : <UilEdit />}
+                    </button>
+                    {isEditingContact ? (
+                      <button onClick={() => setIsEditingContact(false)}>لغو <UilTimes /></button>
+                    ) : ''}
+                  </div>
                 </div>
                 <div className={styles.infoContent}>
                   <ul>
@@ -460,14 +442,14 @@ const EditProfile = () => {
                         <p>{formData.email}</p>
                       )}
                     </li>
-                    <li>
+                    <li className={styles.addressChange}>
                       <p>آدرس</p>
                       {isEditingContact ? (
                         <input
                           name="address"
                           value={formData.address}
                           onChange={handleChange}
-                          className={styles.formInput}
+                          className={`${styles.formInput} ${styles.addressInput}`}
                         />
                       ) : (
                         <p>{formData.address}</p>

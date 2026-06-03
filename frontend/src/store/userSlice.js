@@ -7,7 +7,7 @@ export const fetchUser = createAsyncThunk(
   "auth/fetchUser",
   async (_, thunkAPI) => {
     try {
-      const res = await api.get('/account/user')
+      const res = await api.get('/account/user/')
       return res.data
     } catch(err) {
       return thunkAPI.rejectWithValue(null);

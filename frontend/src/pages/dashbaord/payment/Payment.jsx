@@ -5,6 +5,8 @@ import api from "../../../hooks/api";
 import { getCurrentShamsiPeriod, PERSIAN_MONTH_NAMES } from "../../../hooks/shamsiDate";
 import toPersianDigits from "../../../hooks/convertNumber";
 import { useNavigate } from "react-router-dom";
+import Pagination from "../../../components/GlobalComponents/Pagination/Pagination";
+import BackButton from "../../../components/dashboards/backButton/BackButton";
 
 
 const Payment = () => {
@@ -16,6 +18,13 @@ const Payment = () => {
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
 
   const [searchText, setSearchText] = useState("");
   const [dayFilter, setDayFilter] = useState("all");
@@ -29,62 +38,72 @@ const Payment = () => {
     [selectedMonth, selectedYear]
   );
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    const fetchInvoices = async () => {
-        try {
-          const res = await api.get(
-            `/payment/coach/invoices/dashboard/?year=${selectedYear}&month=${selectedMonth}`
-          );
-          console.log("Dashboard data:", res.data);
-          if (!cancelled) {
-            setCourses(res.data.courses || []);
-            setSummary(res.data.summary);
-          }
-        } catch (err) {
-          if (!cancelled) setError(err.response?.data?.detail || "خطا در بارگذاری صورتحساب‌ها");
-        } finally {
-          if (!cancelled) setLoading(false);
-        }
-    };
-    fetchInvoices();
-    return () => { cancelled = true; };
-  }, [selectedYear, selectedMonth]);
+  const fetchInvoices = async (
+    url = `/payment/coach/invoices/dashboard/?year=${selectedYear}&month=${selectedMonth}`
+  ) => {
+    try {
+      let finalUrl = url;
 
+      if (url.startsWith("http")) {
+        const parsed = new URL(url);
+        finalUrl = `${parsed.pathname}${parsed.search}`;
+      }
 
-  const filteredRows = useMemo(() => {
-    const q = searchText.trim().toLowerCase();
+      const res = await api.get(finalUrl);
 
-    return courses.filter((row) => {
-      // const state = getRowState(row);
-
-      // const matchesFilter =
-      //   paymentFilter === "all"
-      //     ? true
-      //     : paymentFilter === "paid"
-      //     ? state.key === "paid"
-      //     : state.key !== "paid";
-      const matchGenderFilter = 
-        genderFilter === "both" || row.gender === genderFilter;
+      console.log(res.data)
       
-      const matchDaysFilter =
-        dayFilter === 'all' || row.day_group === dayFilter;
+      setCourses(res.data.results.courses || []);
+      setSummary(res.data.results.summary);
 
-      const name = (row.title || "").toLowerCase();
+      setPage(res.data.current_page);
+      setTotalPages(res.data.total_pages);
+      setTotalCount(res.data.count);
 
-      const matchesSearch =
-        q === "" || name.includes(q);
+      setNextPage(res.data.next);
+      setPrevPage(res.data.previous);
 
-      return matchesSearch && matchGenderFilter && matchDaysFilter;
-    });
-  }, [courses, searchText, dayFilter, genderFilter]);
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
+
+    const buildActivityUrl = (pageNumber = 1) => {
+      const params = new URLSearchParams();
+
+      params.append("year", selectedYear);
+      params.append("month", selectedMonth);
+
+      params.append("page", pageNumber);
+
+      if (searchText.trim()) {
+        params.append("search", searchText);
+      }
+
+      // gender
+      if (genderFilter !== "both") {
+        params.append("gender", genderFilter);
+      }
+
+      // days
+      if (dayFilter !== "all") {
+        params.append("day_group", dayFilter);
+      }
+
+      return `/payment/coach/invoices/dashboard/?${params.toString()}`;
+    };
 
   const handleClearFilter = () => {
     setSearchText('')
     setGenderFilter('both')
-  }
+    setDayFilter('all')
+    setPage(1)
+  } 
+
+  useEffect(() => {
+      fetchInvoices(buildActivityUrl(page));
+    }, [selectedYear, selectedMonth, page, searchText, genderFilter, dayFilter]);
 
   const yearOptions = useMemo(() => {
     const y = getCurrentShamsiPeriod().year;
@@ -104,6 +123,7 @@ const Payment = () => {
 
   return (
     <div className={style.paymentPage}>
+      <BackButton route="/dashboard" title="بازگشت" />
       <div className={style.header}>
         <div className={style.titleWrap}>
           <h2>نمای کلی پرداخت مربی</h2>
@@ -186,30 +206,32 @@ const Payment = () => {
               onChange={(e) => setSearchText(e.target.value)}
             />
 
-            <div className={style.filterObj}>
-              <label htmlFor="">روزها:</label>
-              <select
-                className={style.filterSelect}
-                value={dayFilter}
-                onChange={(e) => setDayFilter(e.target.value)}
-              >
-                <option value="all">همه روزها</option>
-                <option value="even">روزهای زوج</option>
-                <option value="odd">روزهای فرد</option>
-              </select>
-            </div>
+            <div className={style.filterWrap}>
+              <div className={style.filterObj}>
+                <label htmlFor="">روزها:</label>
+                <select
+                  className={style.filterSelect}
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                >
+                  <option value="all">همه روزها</option>
+                  <option value="even">روزهای زوج</option>
+                  <option value="odd">روزهای فرد</option>
+                </select>
+              </div>
 
-            <div className={style.filterObj}>
-              <label htmlFor="">جنسیت:</label>
-              <select
-                className={style.filterSelect}
-                value={genderFilter}
-                onChange={(e) => setGenderFilter(e.target.value)}
-              >
-                <option value="both">فرقی ندارد</option>
-                <option value="male">آقایان</option>
-                <option value="female">بانوان</option>
-              </select>
+              <div className={style.filterObj}>
+                <label htmlFor="">جنسیت:</label>
+                <select
+                  className={style.filterSelect}
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                >
+                  <option value="both">فرقی ندارد</option>
+                  <option value="male">آقایان</option>
+                  <option value="female">بانوان</option>
+                </select>
+              </div>
             </div>
             
             <div className={style.filterObj}>
@@ -226,27 +248,36 @@ const Payment = () => {
             </p>
 
             <div className={style.classList}>
-              {filteredRows?.map((item) => (
+              {courses?.map((item) => (
                 <article key={item.id} className={style.classRow}>
                   <div className={style.classInfo}>
                     <div className={style.classTitle}>
-                      <h4>{item.title} </h4> <span className={`${style.badge} ${item.active ? style.good : style.danger}`}>{item.active ? 'فعال' : 'غیر فعال'}</span>
+                      <h4>{item.title} </h4>
+                      <div className={style.classStatus}>
+                        <span className={`${style.badge} ${item.active ? style.good : style.danger}`}>{item.active ? 'فعال' : 'غیر فعال'}</span>
+                        <span className={`${style.stateBadge} ${style[item.state.type]}`}>
+                          {item.state.label}
+                        </span>
+                      </div>
+
                     </div>
                     <div className={style.classCoach}>
                       <h5>مربی: {item.coach.full_name}</h5>
                     </div>
-                    <p>
-                      {item.timeTable}
+                    <p className={style.timeTable}>
+                      📅 {toPersianDigits(item.timeTable)}
                     </p>
                     <p>
+                      👥
                       {item.gender === 'female' ? (
-                        'بانوان'
+                        ' بانوان'
                       ) : (
-                        'آقایان'
+                        ' آقایان'
                       )} - تعداد  ورزشکاران : {toPersianDigits(String(item?.athletes))}
                     </p>
                     <div className={style.rowMeta}>
                       <span>
+                        💵
                         {toPersianDigits(String(item?.paid_count ?? 0))} / {toPersianDigits(String(item?.inv_count ?? 0))} پرداخت شده
                          - 
                         {toPersianDigits(item?.pending_amount)} تومان در انتظار
@@ -255,9 +286,6 @@ const Payment = () => {
                   </div>
 
                   <div className={style.actions}>
-                    <span className={`${style.stateBadge} ${style[item.state.type]}`}>
-                      {item.state.label}
-                    </span>
                     {item.active && (
                       <button
                         className={style.actionBtn}
@@ -285,6 +313,26 @@ const Payment = () => {
               </p>
             )}
           </section>
+
+          <div className={style.paginationWrapper}>
+            <Pagination 
+              currentPage={page}
+              totalPages={totalPages}
+              onNext={() => {
+                if (nextPage) {
+                  fetchInvoices(nextPage);
+                }
+              }}
+              onPrev={() => {
+                if (prevPage) {
+                  fetchInvoices(prevPage);
+                }
+              }}
+              onPageChange={(pageNumber) => {
+                setPage(pageNumber);
+              }}
+            />
+          </div>
         </>
       )}
     </div>

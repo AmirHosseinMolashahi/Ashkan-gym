@@ -1,4 +1,5 @@
 @use "../../../styles/constants.scss" as *;
+@import "../../../styles/mixins";
 
 .paymentPage {
   color: #1f2937;
@@ -11,40 +12,59 @@
 .header {
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
-}
 
-.titleWrap {
-  h2 {
-    margin-bottom: 0.4rem;
-    font-size: 2rem;
+  @include desktop {
+    flex-direction: row;
   }
 
-  p {
-    color: #6b7280;
-    font-size: 0.95rem;
+  .titleWrap {
+    h2 {
+      margin-bottom: 0.4rem;
+      font-size: 1.5rem;
+      
+      @include desktop {
+        font-size: 2rem;
+      }
+    }
+
+    p {
+      color: #6b7280;
+      font-size: 0.75rem;
+
+      @include desktop {
+        font-size: .95rem;
+      }
+    }
   }
-}
 
-.monthSelectWrap {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
+  .monthSelectWrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 
-.monthBadge {
-  border: 1px solid #dbe1ea;
-  background: #eff3ff;
-  color: #2f53a2;
-  border-radius: 999px;
-  padding: 0.65rem 0.9rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  cursor: pointer;
+    .monthBadge {
+      border: 1px solid #dbe1ea;
+      background: #eff3ff;
+      color: #2f53a2;
+      border-radius: 999px;
+      padding: 0.45rem 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      cursor: pointer;
+      
+      @include desktop {
+        font-size: .9rem;
+        gap: .4rem;
+        padding: 0.65rem 0.9rem;
+      }
+    }
+  }
 }
 
 .loading,
@@ -58,40 +78,161 @@
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 1rem;
-}
+  
+  @include desktop {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+  }
 
-.summaryCard {
-  background: #ffffff;
-  border: 1px solid #e8edf2;
-  border-radius: 12px;
-  padding: 1rem;
+  .summaryCard {
+    background: #ffffff;
+    border: 1px solid #e8edf2;
+    border-radius: 12px;
+    padding: .7rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: .5rem;
+    
+    @include desktop {
+      padding: 1rem;
+      width: 100%;
+      align-items: start;
+    }
 
-  h3 {
-    margin-top: 0.5rem;
-    margin-bottom: 0.8rem;
-    font-size: 2rem;
+    h3 {
+      margin-top: 0.5rem;
+      margin-bottom: 0.8rem;
+      font-size: 1.3rem;
+      
+      @include desktop {
+        font-size: 2rem;
+      }
+    }
+
+    .cardTitle {
+      color: #6b7280;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .subtle {
+      color: #6b7280;
+      font-size: 0.7rem;
+      
+      @include desktop {
+        font-size: 0.86rem;
+      }
+    }
+
+    .miniBadge {
+      width: fit-content;
+      border-radius: 999px;
+      padding: 0.30rem 0.6rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      
+      @include desktop {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.7rem;
+
+      }
+    }
   }
 }
 
-.cardTitle {
-  color: #6b7280;
-  font-size: 0.86rem;
-  font-weight: 600;
-}
 
-.subtle {
-  color: #6b7280;
-  font-size: 0.86rem;
-}
+.filtersBar {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: .5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  
+  @include desktop {
+    position: relative;
+    gap: 1.5rem;
+    flex-direction: row;
+    padding: .8rem;
+  }
 
-.miniBadge {
-  width: fit-content;
-  border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  .searchInput {
+    width: 95%;
+    flex: 1;
+    padding: .7rem .3rem;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #fff;
+    color: #111827;
+    
+    @include desktop {
+      min-width: 350px;
+
+      height: 36px;
+      padding: 0 12px;
+    }
+  }
+
+  .filterWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+  }
+
+  .filterObj {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+
+    .clearFilterBtn {
+      background-color: $white;
+      color: $primary;
+      padding: .5rem;
+      width: 100%;
+      border: 1px solid #d1d5db;
+      
+      @include desktop {
+        position: absolute;
+        left: 0;
+        margin-left: .5rem;
+        background-color: $light-grey;
+        color: $white;
+        border: none;
+        padding: .6rem;
+        width: auto;
+      }
+    }
+
+    .filterSelect {
+      width: 7rem;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: .7rem .3rem;
+      background: #fff;
+      font-size: 13px;
+      color: #111827;
+      
+      @include desktop {
+        padding: .5rem;
+        width: 180px;
+        height: 36px;
+      }
+    }
+  }
 }
 
 .classesSection {
@@ -104,99 +245,130 @@
     font-size: 1.6rem;
     margin-bottom: 0.4rem;
   }
-}
 
-.sectionDescription {
-  color: #6b7280;
-  margin-bottom: 1rem;
-}
+  .sectionDescription {
+    color: #6b7280;
+    margin-bottom: 1rem;
+    font-size: 12px;
 
-.filtersBar {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-
-  .filterObj {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem
+    @include desktop {
+      font-size: 16px;
+    }
   }
-}
 
-.clearFilterBtn {
-  background-color: $light-grey;
-  color: $white;
-  padding: .6rem;
-}
-
-.searchInput {
-  flex: 1;
-  min-width: 220px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0 12px;
-  font-size: 13px;
-  background: #fff;
-  color: #111827;
-}
-
-.filterSelect {
-  width: 180px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0 10px;
-  background: #fff;
-  font-size: 13px;
-  color: #111827;
-}
-
-.classList {
+  .classList {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    // grid-template-rows: repeat(1, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 2rem;
+    
+    @include desktop {
+      grid-template-columns: repeat(2, 1fr);
+
+    }
     .classRow {
       border: 1px solid #e8edf2;
       border-radius: 10px;
       padding: 1rem;
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
       gap: 1rem;
-    }
-}
 
-.classInfo {
-  display: flex;
-  flex-direction: column;
-  gap: .6rem;
-  .classTitle {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    h4 {
-      margin-bottom: 0.3rem;
-      font-size: 1.1rem;
-    }
+      .classInfo {
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+        padding-bottom: .7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-    p {
-      color: #6b7280;
-      margin-bottom: 0.8rem;
-    }
-    .badge {
-      padding: .3rem;
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 11px
+        .classTitle {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          align-items: center;
+          h4 {
+            margin-bottom: 0.3rem;
+            font-size: 1.1rem;
+
+            @include desktop {
+              font-size: 1.3rem;
+            }
+          }
+
+          p {
+            color: #6b7280;
+            margin-bottom: 0.8rem;
+          }
+          .badge {
+            padding: .3rem;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+
+            @include desktop {
+              font-size: 14px;
+            }
+          }
+
+          .stateBadge {
+            border-radius: 10px;
+            padding: 0.35rem;
+            font-size: 0.69rem;
+            font-weight: 700;
+
+            @include desktop {
+              font-size: .8rem;
+            }
+          }
+
+          .classStatus {
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+
+            @include desktop {
+              flex-direction: row;
+              gap: .5rem;
+            }
+          }
+        }
+        .timeTable {
+          font-size: 14px;
+
+          @include desktop {
+            font-size: 16px;
+          }
+        }
+      }
+      .actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.8rem;
+
+        .actionBtn {
+          padding: 0;
+          border-radius: 0;
+          background: transparent;
+          color: $blue;
+          font-size: 0.8rem;
+          
+          @include desktop {
+            color: #627084;
+          }
+        }
+      }
     }
   }
+}
 
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 
@@ -217,29 +389,6 @@
     color: #6b7280;
     font-size: 0.9rem;
   }
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.8rem;
-
-  .actionBtn {
-    padding: 0;
-    border-radius: 0;
-    background: transparent;
-    color: #627084;
-    font-size: 0.8rem;
-  }
-}
-
-.stateBadge {
-  border-radius: 999px;
-  padding: 0.35rem;
-  font-size: 0.69rem;
-  font-weight: 700;
 }
 
 .good {
@@ -266,33 +415,4 @@
   margin-top: 1rem;
   font-size: 0.86rem;
   color: #6b7280;
-}
-
-@media (max-width: $lg) {
-  .summaryGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: $sm) {
-  .header {
-    flex-direction: column;
-  }
-
-  .summaryGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .classRow {
-    flex-direction: column;
-  }
-
-  .actions {
-    align-items: flex-start;
-  }
-
-  .rowMeta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 }

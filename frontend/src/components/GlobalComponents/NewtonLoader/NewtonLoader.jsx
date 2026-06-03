@@ -4,9 +4,6 @@ import { useLoading } from '../../../context/LoadingContext';
 
 
 const NewtonLoader = () => {
-  const { isLoading } = useLoading();
-  
-  if (!isLoading) return null;
 
   return (
     <div className={style.loader}>

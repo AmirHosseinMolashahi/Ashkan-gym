@@ -1,0 +1,234 @@
+@use '../../../../styles/constants.scss'  as *;
+@import '../../../../styles/mixins';
+
+.createAnnounce {
+  min-height: 0;
+
+  .container {
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: right;
+    gap: 1rem;
+    
+    @include desktop {
+      gap:2rem;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+
+      .headerWrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+          color: $primary;
+        }
+
+        .saveBtn {
+          background-color: $blue;
+          color: $white;
+          padding: .5rem;
+          
+          @include desktop {
+            padding: .7rem;
+          }
+        }
+      }
+    }
+
+    .formContainer {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      background-color: #fff;
+      border-radius: 10px;
+      position: relative;
+      padding: .5rem;
+      padding-top: 3rem;
+      
+      @include desktop {
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .clearData {
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin-top: .5rem;
+        margin-left: .5rem;
+        padding: .3rem;
+        background-color: $secondary;
+        transition: all 300ms ease;
+        color: #fff;
+        &:hover {
+          cursor: pointer;
+          transform: scale(1.02);
+        }
+        
+        @include desktop {
+          padding: .7rem;
+          margin-top: 1rem;
+          margin-left: 1rem;
+        }
+
+      }
+
+      .inputContainer {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: right;
+        gap: 1rem;
+        color: $primary;
+
+        p {
+          display: flex;
+          align-items: center;
+          gap: .5rem;
+
+          svg {
+            color: $blue;
+          }
+        }
+          
+        .formInput, textarea {
+          width: 100%;
+          box-sizing: border-box;
+          background-color: $white;
+          padding: 0.4rem;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          font-size: 0.95rem;
+          transition: border 300ms ease-in;
+          box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 6px 18px rgba(16,24,40,0.03);
+          
+          @include desktop {
+            padding: 0.6rem;
+          }
+
+          &:focus {
+              border: 1px solid $blue;
+          }
+        }
+
+        .formInput {
+          width: 100%;
+          
+          @include desktop {
+            width: 50%;
+          }
+        }
+
+        textarea {
+          height: 8rem;
+          max-height: 8rem;
+          min-height: 8rem;
+          overflow: auto;
+        }
+        .userSelectWrapper {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 1rem;
+        }
+        .options {
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+          width: 100%;
+          
+          @include desktop {
+            width: 50%;
+            gap: 0.45rem;
+          }
+
+          .option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1.5px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            transition: background 0.18s, border-color 0.18s;
+
+            &:hover {
+              background: #f8f8fc;
+            }
+
+            &.active {
+              background: #f0effe;
+              border-color: rgba(#6c63ff, 0.25);
+            }
+          }
+
+          .radio {
+            display: none;
+          }
+
+          .radioCustom {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: border-color 0.18s;
+
+            .active & {
+              border-color: #6c63ff;
+            }
+          }
+
+          .radioDot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6c63ff;
+          }
+
+          .optionContent {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 1px;
+          }
+
+          .optionLabel {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #6c63ff;
+            line-height: 1.4;
+          }
+
+          .optionDesc {
+            font-size: 0.75rem;
+            color: $light-grey;
+            line-height: 1.4;
+          }
+
+          .optionIcon {
+            font-size: 1.1rem;
+            opacity: 0.55;
+            flex-shrink: 0;
+
+            .active & {
+              opacity: 0.9;
+            }
+          }
+        }
+      }
+    }
+  }
+}

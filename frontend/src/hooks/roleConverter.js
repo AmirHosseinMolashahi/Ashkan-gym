@@ -28,21 +28,23 @@ const roleConverter = (role) => {
 }
 
 // تابع کمکی برای بررسی اینکه آیا کاربر نقش خاصی دارد
-const hasRole = (userRoles, targetRole) => {
+const hasRole = (userRoles, targetRoles) => {
     if (!userRoles) return false;
     
+    const roles = Array.isArray(targetRoles) ? targetRoles : [targetRoles];
+
     if (Array.isArray(userRoles)) {
         if (userRoles.length > 0 && typeof userRoles[0] === 'object' && 'name' in userRoles[0]) {
-            return userRoles.some(r => r.name === targetRole);
+            return userRoles.some(r => roles.includes(r.name));
         }
-        return userRoles.includes(targetRole);
+        return userRoles.some(r => roles.includes(r));
     }
-    
+
     if (typeof userRoles === 'object' && 'name' in userRoles) {
-        return userRoles.name === targetRole;
+        return roles.includes(userRoles.name);
     }
-    
-    return userRoles === targetRole;
+
+    return roles.includes(userRoles);
 }
 
 export { roleConverter, hasRole };

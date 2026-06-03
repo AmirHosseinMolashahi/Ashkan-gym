@@ -76,9 +76,15 @@ def generate_shamsi_month_invoices(year=None, month=None, default_due_day=7):
             )
         )
 
-    created = Invoice.objects.bulk_create(
+    Invoice.objects.bulk_create(
         invoice_objects,
         ignore_conflicts=True,
+    )
+
+    created = Invoice.objects.filter(
+        period_year=year,
+        period_month=month,
+        enrollment__in=enrollments,
     )
 
     # 🔥 اعمال prorate

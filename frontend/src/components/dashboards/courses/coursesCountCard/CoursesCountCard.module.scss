@@ -1,3 +1,5 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
 
 .countCard {
   background: #fff;
@@ -6,8 +8,35 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  align-items: right;
+  align-items: center;
   gap: 0.5rem;
+  
+  @include desktop {
+    align-items: right;
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    h1 {
+      font-size: 24px;
+
+      @include desktop {
+        font-size: 32px;
+      }
+    }
+
+    p {
+      font-size: 14px;
+      color: $light-grey;
+
+      @include desktop {
+        font-size: 16px;
+      }
+    }
+  }
   .icon {
     display: flex;
     justify-content: center;

@@ -1,4 +1,6 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
 .stepper {
   display: flex;
   justify-content: center;
@@ -10,8 +12,8 @@
     align-items: center;
 
     .circle {
-      width: 36px;
-      height: 36px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: #e0e0e0;
       display: flex;
@@ -19,6 +21,11 @@
       justify-content: center;
       font-weight: 500;
       transition: background 0.3s ease;
+
+      @include desktop {
+        width: 36px;
+        height: 36px;
+      }
 
       &.active {
         background: #4f7cff;
@@ -37,6 +44,7 @@
       background: #e0e0e0;
       margin: 0 10px;
       overflow: hidden;
+
 
       .progress {
         display: block;

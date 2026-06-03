@@ -1,0 +1,59 @@
+@use '../../../styles/constants.scss' as *;
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  background: #fff;
+  padding: .3rem;
+  border: 1px solid #ececec;
+  border-radius: 20px;
+  direction: rtl;
+  font-family: sans-serif;
+
+  .pages {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    gap: .3rem;
+
+    button {
+      background-color: transparent;
+      padding: .5rem;
+
+      &.active {
+        background-color: #2f80ff;
+        color: #fff;
+
+        &:hover {
+          background-color: #2f80ff;
+        }
+      }
+    }
+
+  }
+
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $light-grey;
+    background-color: transparent;
+    cursor: pointer;
+    padding: .3rem;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: auto;
+      transition: none;
+    }
+  }
+
+  .dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    cursor: default;
+  }
+}

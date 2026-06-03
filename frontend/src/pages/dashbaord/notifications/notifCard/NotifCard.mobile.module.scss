@@ -1,0 +1,123 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
+.swipeWrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+// پس‌زمینه چپ — خوانده شد (سبز)
+.readAction {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; // سمت راست چون کارت به چپ میره
+  padding-right: 1.2rem;
+  gap: .4rem;
+  background: $blue;
+  color: white;
+  font-weight: bold;
+  border-radius: 20px;
+  pointer-events: none;
+
+  svg {
+    width: 1.3rem;
+  }
+}
+
+// پس‌زمینه راست — حذف (قرمز)
+.deleteAction {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; // سمت چپ چون کارت به راست میره
+  padding-left: 1.2rem;
+  gap: .4rem;
+  background: #ef4444;
+  color: white;
+  font-weight: bold;
+  border-radius: 20px;
+  pointer-events: none;
+
+  svg {
+    width: 1.3rem;
+  }
+}
+
+.notifCard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background-color: $white;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+
+  // مهم: کارت روی پس‌زمینه‌ها قرار بگیره
+  z-index: 2;
+
+  &.unread {
+    border: 1px solid $blue;
+    background-color: transparent;
+  }
+
+  .newNotifDot {
+    position: absolute;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: $blue;
+    border-radius: 100%;
+    right: 0;
+    top: 50%;
+    margin-right: -0.3rem;
+  }
+
+  .notifCardWrapper {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 0.5rem;
+
+    .notifIcon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .notifIconWrapper {
+        background-color: #eee;
+        border-radius: 100%;
+        padding: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.announcements { background-color: #fbf9da; color: $warning; }
+        &.reminders     { background-color: #fbe8da; color: $orange; }
+        &.tuition       { background-color: #dafbe7; color: $success; }
+        &.courses       { background-color: #daddfb; color: $blue; }
+        &.registration  { background-color: #f4dafb; color: $purple; }
+      }
+    }
+
+    .notifTime {
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      p { color: $light-grey; }
+    }
+
+    .notifInfo {
+      font-size: 12px;
+      p {
+        font-size: 14px;
+        color: $light-grey;
+      }
+    }
+  }
+}

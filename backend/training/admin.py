@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 
 class CourseAdmin(admin.ModelAdmin):
     model = Course
-    list_display = ['title', 'coach', 'gender', 'get_age_ranges','class_status', 'is_active' ]
+    list_display = ['title', 'coach', 'gender', 'days_group', 'get_age_ranges','class_status', 'is_active']
 
     def get_age_ranges(self, obj):
         return ", ".join([str(age) for age in obj.age_ranges.all()])  # یا هر فیلدی که میخوای
@@ -65,7 +65,11 @@ class SessionAdmin(admin.ModelAdmin):
 
 class AttendanceAdmin(admin.ModelAdmin):
     model = Attendance
-    list_display = ['session', 'student']
+    list_display = ['session', 'student', 'get_attendance']
+
+    def get_attendance(self, obj):
+        return obj.session.date
+    get_attendance.short_description = 'رده سنی'
 
     actions = ("status_change",) # Necessary 
 

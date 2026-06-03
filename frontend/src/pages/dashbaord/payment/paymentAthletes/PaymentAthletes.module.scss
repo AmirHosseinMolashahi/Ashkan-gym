@@ -1,87 +1,205 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
 .page {
-  padding: 20px;
   direction: rtl;
   color: #111827;
-}
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 
-.backBtn {
-  background: transparent;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 14px;
-  padding: 0;
-  text-align: right;
+  @include desktop {
+    gap: .5rem;
+  }
 }
 
 .topRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.title {
-  margin: 0;
-  font-size: 32px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.subtitle {
-  margin: 6px 0 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.monthTag {
-  border: 1px solid #dbe3f0;
-  color: #1d4ed8;
-  background: #f8fbff;
-  padding: 8px 12px;
+  background-color: #fff;
+  width: 100%;
   border-radius: 10px;
-  font-size: 13px;
+
+  @include desktop {
+    background-color: transparent;
+  }
+
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      padding: .5rem;
+      
+      @include desktop {
+        gap: 12px;
+        align-items: flex-start;
+        padding: 0;
+      }
+
+      .backBtn {
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        cursor: pointer;
+        font-size: 14px;
+        margin-bottom: 14px;
+        padding: 0;
+        text-align: right;
+      }
+
+      .container {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        .classTitle {
+          padding: .5rem;
+          display: flex;
+          flex-direction: column;
+
+          .title {
+            font-size: 22px;
+            font-weight: 700;
+
+            @include desktop {
+              font-size: 32px;
+            }
+          }
+
+          .subtitle {
+            color: #6b7280;
+            font-size: 14px;
+          }
+        }
+
+        .monthTag {
+          border: 1px solid #dbe3f0;
+          color: #1d4ed8;
+          background: #f8fbff;
+          padding: 8px 12px;
+          border-radius: 10px;
+          font-size: 13px;
+
+          @include desktop {
+            font-size: 16px;
+          }
+        }
+      }
+      
+    }
 }
 
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 12px;
-  margin-bottom: 16px;
+  
+  @include desktop {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+
+  .card {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+    @include desktop {
+      padding: 14px;
+      align-items: start;
+    }
+
+    &.actionCard {
+      background: #eef4ff;
+    }
+
+    .cardLabel {
+      margin: 0 0 8px;
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      
+      @include desktop {
+        font-size: 28px;
+        line-height: 1.1;
+      }
+    }
+
+    .subtle {
+      color: #6b7280;
+      font-size: 12px;
+    }
+  }
 }
 
-.card {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px;
+.filtersBar {
+  background-color: #fff;
+  padding: .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  
+  @include desktop {
+    flex-direction: row;
+  }
+
+  .searchInput {
+    flex: 1;
+    min-width: 95%;
+    height: 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: .7rem .3rem;
+    font-size: 13px;
+    background: #f2f1f1;
+    color: #111827;
+
+    @include desktop {
+      min-width: 220px;
+      padding: 0 12px;
+    }
+  }
+
+  .filterSelect {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: .7rem .3rem;
+    background: #f2f1f1;
+    font-size: 13px;
+    color: #111827;
+    
+    @include desktop {
+      padding: 0 10px;
+      width: 180px;
+      height: 36px;
+    }
+  }
 }
 
-.actionCard {
-  background: #eef4ff;
+
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.cardLabel {
-  margin: 0 0 8px;
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
 
-.card h3 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  line-height: 1.1;
-}
-
-.subtle {
-  color: #6b7280;
-  font-size: 12px;
-}
 
 .tableWrap {
   border: 1px solid #e5e7eb;
@@ -298,82 +416,4 @@
   padding: 0 8px;
   background: #fff;
   font-size: 12px;
-}
-
-.filtersBar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.searchInput {
-  flex: 1;
-  min-width: 220px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0 12px;
-  font-size: 13px;
-  background: #fff;
-  color: #111827;
-}
-
-.filterSelect {
-  width: 180px;
-  height: 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0 10px;
-  background: #fff;
-  font-size: 13px;
-  color: #111827;
-}
-
-@media (max-width: 760px) {
-  .filtersBar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filterSelect {
-    width: 100%;
-  }
-}
-
-
-
-@media (max-width: 1100px) {
-  .summaryGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .tableHead,
-  .tableRow {
-    grid-template-columns: 1.7fr 1fr 1fr 1.2fr;
-  }
-}
-
-@media (max-width: 760px) {
-  .topRow {
-    flex-direction: column;
-  }
-
-  .summaryGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .tableHead {
-    display: none;
-  }
-
-  .tableRow {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .actions {
-    justify-content: flex-start;
-  }
 }

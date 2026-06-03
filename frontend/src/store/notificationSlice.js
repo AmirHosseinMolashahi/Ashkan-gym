@@ -7,21 +7,74 @@ import api from '../hooks/api'
 // =====================
 export const fetchNotifications = createAsyncThunk(
   "notifications/fetchAll",
-  async ({ page = 1, type = "", is_read = "" } = {}, thunkAPI) => {
+  async ({ page = 1, category = "", is_read } = {}, thunkAPI) => {
     try {
-      const res = await api.get(
-        `/notifications/all/?page=${page}&type=${type}&is_read=${is_read}`
-      );
+      console.log(category)
+      let url = `/notifications/all/?page=${page}`;
+
+      if (category) {
+        url += `&category=${category}`;
+      }
+
+      if (is_read !== null && is_read !== undefined) {
+        url += `&is_read=${is_read}`;
+      }
+
+      const res = await api.get(url);
 
       return {
         data: res.data.results,
-        page,
-        totalPages: Math.ceil(res.data.count / 10),
+        page: res.data.current_page,
+        next: res.data.next,
+        previous: res.data.previous,
+        totalPages: res.data.total_pages,
         totalCount: res.data.count,
       };
+
     } catch (err) {
       return thunkAPI.rejectWithValue(err.response?.data);
     }
+  }
+);
+
+export const fetchNextNotifications = createAsyncThunk(
+  "notifications/fetchNext",
+  async (_, thunkAPI) => {
+    const state = thunkAPI.getState().notifications;
+
+    if (!state.next) return thunkAPI.rejectWithValue("No next page");
+
+    const res = await api.get(state.next);
+
+    return {
+      data: res.data.results,
+      page: res.data.current_page,
+      next: res.data.next,
+      previous: res.data.previous,
+      totalPages: res.data.total_pages,
+      totalCount: res.data.count,
+    };
+  }
+);
+
+
+export const fetchPrevNotifications = createAsyncThunk(
+  "notifications/fetchPrev",
+  async (_, thunkAPI) => {
+    const state = thunkAPI.getState().notifications;
+
+    if (!state.previous) return thunkAPI.rejectWithValue("No previous page");
+
+    const res = await api.get(state.previous);
+
+    return {
+      data: res.data.results,
+      page: res.data.current_page,
+      next: res.data.next,
+      previous: res.data.previous,
+      totalPages: res.data.total_pages,
+      totalCount: res.data.count,
+    };
   }
 );
 
@@ -59,6 +112,38 @@ export const markAllAsRead = createAsyncThunk(
   }
 )
 
+
+export const markNotificationAsRead = createAsyncThunk(
+  "notifications/markNotificationAsRead",
+  async ({ id }, thunkAPI) => {
+    try {
+      await api.post(`/notifications/read/${id}/`)
+    } finally {
+      return null
+    }
+  }
+)
+
+export const fetchNotificationsByPage = createAsyncThunk(
+  "notifications/fetchByPage",
+  async (page, thunkAPI) => {
+    try {
+      const res = await api.get(`/notifications/all/?page=${page}`);
+
+      return {
+        data: res.data.results,
+        page: res.data.current_page,
+        next: res.data.next,
+        previous: res.data.previous,
+        totalPages: res.data.total_pages,
+        totalCount: res.data.count,
+      };
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data);
+    }
+  }
+);
+
 const pageSize = 10;
 
 // =====================
@@ -68,11 +153,15 @@ const notificationSlice = createSlice({
   name: "notifications",
   initialState: {
     list: [],
-    unreadList : [],
+    unreadList: [],
     unreadCount: 0,
+
     loading: false,
     error: null,
+
     page: 1,
+    next: null,
+    previous: null,
     totalPages: 1,
     totalCount: 0,
   },
@@ -92,9 +181,10 @@ const notificationSlice = createSlice({
         state.unreadCount += 1;
       }
     },
-
-    markAsRead(state, action) {
+    
+    markNotificationReadLocal(state, action) {
       const notif = state.list.find(n => n.id === action.payload);
+
       if (notif && !notif.is_read) {
         notif.is_read = true;
         state.unreadCount -= 1;
@@ -117,26 +207,87 @@ const notificationSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
-        if (action.payload.page === 1) {
-          state.list = action.payload.data;
+        const { data, page, next, previous, totalPages, totalCount } = action.payload;
+
+        if (page === 1) {
+          state.list = data;
         } else {
-          state.list = action.payload.data;
+          // جلوگیری از duplicate
+          const existingIds = new Set(state.list.map(n => n.id));
+          const newItems = data.filter(n => !existingIds.has(n.id));
+
+          state.list.push(...newItems);
         }
 
-        state.page = action.payload.page;
-        state.totalPages = action.payload.totalPages;
-        state.totalCount = action.payload.totalCount;
+        state.page = page;
+        state.next = next;
+        state.previous = previous;
+        state.totalPages = totalPages;
+        state.totalCount = totalCount;
         state.loading = false;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchNextNotifications.fulfilled, (state, action) => {
+        const { data, page, next, previous, totalPages, totalCount } = action.payload;
+
+        state.page = page;
+        state.list = data;
+        state.next = next;
+        state.previous = previous;
+        state.totalPages = totalPages;
+        state.totalCount = totalCount;
+        state.loading = false;
+      })
+
+      // 🔵 prev page
+      .addCase(fetchPrevNotifications.fulfilled, (state, action) => {
+        const { data, page, next, previous, totalPages, totalCount } = action.payload;
+
+        state.page = page;
+        state.list = data;
+        state.next = next;
+        state.previous = previous;
+        state.totalPages = totalPages;
+        state.totalCount = totalCount;
+        state.loading = false;
+      })
+      .addCase(fetchNotificationsByPage.fulfilled, (state, action) => {
+        const { data, page, next, previous, totalPages, totalCount } = action.payload;
+
+        state.page = page;
+        state.list = data;
+        state.next = next;
+        state.previous = previous;
+        state.totalPages = totalPages;
+        state.totalCount = totalCount;
+        state.loading = false;
+      })
       .addCase(fetchUnreadCount.fulfilled, (state, action) => {
         state.unreadCount = action.payload;
       })
       .addCase(fetchUnreadNotifList.fulfilled, (state, action) => {
         state.unreadList = action.payload;
+      })
+      .addCase(markNotificationAsRead.fulfilled, (state, action) => {
+        const notif = state.list.find(n => n.id === action.payload);
+
+        if (notif && !notif.is_read) {
+          notif.is_read = true;
+          state.unreadCount -= 1;
+        }
+      })
+      .addCase(markNotificationAsRead.rejected, (state, action) => {
+        const notif = state.list.find(
+          n => n.id === action.payload.id
+        );
+
+        if (notif) {
+          notif.is_read = false;
+          state.unreadCount += 1;
+        }
       })
       .addCase(markAllAsRead.pending, (state) => {
         state.loading = true;
@@ -159,7 +310,7 @@ const notificationSlice = createSlice({
 
 export const {
   addNotification,
-  markAsRead,
+  markNotificationReadLocal,
   deleteNotification,
 } = notificationSlice.actions;
 

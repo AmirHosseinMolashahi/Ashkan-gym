@@ -1,19 +1,24 @@
 import React, {useEffect, useState} from 'react'
 import style from './UserManagement.module.scss';
 import toPersianDigits from '../../../hooks/convertNumber';
-import { UilUsersAlt, UilCheckCircle} from '@iconscout/react-unicons'
+import { UilUsersAlt, UilHeartRate} from '@iconscout/react-unicons'
 import AllUsersSection from '../../../components/dashboards/userManagement/AllUsersTable/AllUsersSection'
 import api from '../../../hooks/api';
 import RecentActivity from '../../../components/dashboards/userManagement/RecentActivity/RecentActivity';
 import { useToast } from '../../../context/NotificationContext';
 import { useSelector } from 'react-redux';
+import BackButton from '../../../components/dashboards/backButton/BackButton';
 
 const UserManagement = () => {
   const [ activeTab, setActiveTab] = useState(1)
   const [ allUsers, setAllUsers ] = useState([])
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
+
   const { user } = useSelector(
       state => state.auth
     )
@@ -54,36 +59,89 @@ const UserManagement = () => {
     }
   }
 
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = async (
+    url = "/account/users/management/"
+  ) => {
     try {
-      const params = { page, page_size: pageSize };
+      let finalUrl = url;
 
-      if (roleFilter !== "all") params.role = roleFilter; // backend uses roles__name filter
-      if (isActiveFilter !== "all") {
-        params.is_active = isActiveFilter === "active" ? "true" : "false";
+      if (url.startsWith("http")) {
+        const parsed = new URL(url);
+        finalUrl = `${parsed.pathname}${parsed.search}`;
       }
-      if (insuranceFilter !== "all") {
-        params.insurance = insuranceFilter === "true" ? "true" : "false";
-      }
-      if (search.trim()) params.search = search.trim();
 
-      const res = await api.get('/account/users/managemnet/', { params });
+      const res = await api.get(finalUrl);
+
       console.log(res.data)
       setSummary(res.data.results.summary)
       setAllUsers(res.data.results.users)
+
+      setPage(res.data.results.current_page);
+      setTotalCount(res.data.results.total_count);
+      setTotalPages(res.data.results.total_pages);
+
+      setNextPage(res.data.results.next);
+      setPrevPage(res.data.results.previous);
+
     } catch (err) {
       console.log(err);
     }
   };
 
+  const buildActivityUrl = (pageNumber = 1) => {
+    const params = new URLSearchParams();
+
+    params.append("page", pageNumber);
+
+    // search
+    if (search.trim()) {
+      params.append("search", search);
+    }
+
+    // role filter
+    if (roleFilter !== "all") {
+      params.append(
+        "roles__name",
+        roleFilter
+      );
+    }
+
+    if (isActiveFilter !== "all") {
+      params.append(
+        "is_active",
+        isActiveFilter === "active" ? "true" : "false"
+      );
+    }
+
+    if (insuranceFilter !== "all") {
+      params.append(
+        "insurance",
+        insuranceFilter === "true" ? "true" : "false"
+      );
+    }
+
+    return `/account/users/management/?${params.toString()}`;
+  };
+
   useEffect(() => {
-    fetchAllUsers()
-  }, [page, pageSize, search, roleFilter, isActiveFilter, insuranceFilter])
+    fetchAllUsers(buildActivityUrl(page))
+  }, [page, search, roleFilter, isActiveFilter, insuranceFilter])
+
+
+  const clearFilters = () => {
+    setSearch("");
+    setRoleFilter("all");
+    setIsActiveFilter("all");
+    setInsuranceFilter("all");
+
+    setPage(1);
+  };
 
   return (
     <div className={style.userManagement}>
+      <BackButton route="/dashboard" title="بازگشت" />
       <div className={style.header}>
-
+        <h3>مدیریت کاربران</h3>
       </div>
       <div className={style.summaryGrid}>
         <article className={style.summaryCard}>
@@ -122,7 +180,7 @@ const UserManagement = () => {
               ورزشکاران
             </li>
             <li className={activeTab === 2 ? style.active : ''} onClick={() => setActiveTab(2)}>
-              <UilCheckCircle />
+              <UilHeartRate />
               فعالیت های اخیر
             </li>
           </ul>
@@ -133,8 +191,11 @@ const UserManagement = () => {
             users={allUsers}
             page={page}
             setPage={setPage}
-            pageSize={pageSize}
+            totalPages={totalPages}
             totalCount={totalCount}
+            nextPage={nextPage}
+            prevPage={prevPage}
+            fetchAllUsers={fetchAllUsers}
             search={search}
             setSearch={setSearch}
             roleFilter={roleFilter}
@@ -147,6 +208,7 @@ const UserManagement = () => {
             handleDeleteModal={handleDeleteModal}
             selectedUser={selectedUser}
             handleDeleteUser={handleDeleteUser}
+            clearFilters={clearFilters}
           />
         )}
         { activeTab === 2 && (

@@ -4,6 +4,7 @@ import { UilArrowRight } from '@iconscout/react-unicons'
 import { useNavigate } from 'react-router-dom';
 import api from "../../../../hooks/api";
 import { useToast } from "../../../../context/NotificationContext";
+import BackButton from "../../../../components/dashboards/backButton/BackButton";
 
 const AddCourse = () => {
   const [form, setForm] = useState({
@@ -83,9 +84,7 @@ const AddCourse = () => {
   return (
     <div className={styles.addClassPage} dir="rtl">
       <div className={styles.topBar}>
-        <button className={styles.backLink} type="button" onClick={() => navigate('/dashboard/courses')}>
-          <UilArrowRight /> بازگشت به برنامه کلاس ها
-        </button>
+        <BackButton route="/dashboard/courses" title="بازگشت" />
 
         <div className={styles.topActions}>
           <button className={`${styles.btn} ${styles.btnSecondary}`} type="button">
@@ -105,7 +104,7 @@ const AddCourse = () => {
 
       <form id="add-class-form" onSubmit={handleSubmit} className={styles.contentGrid}>
         <div className={styles.leftCol}>
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.basicInfo}`}>
             <h3>اطلاعات پایه</h3>
             <p className={styles.subtitle}>جزئیات اصلی این کلاس را وارد کنید.</p>
 
@@ -130,7 +129,7 @@ const AddCourse = () => {
             </div>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.targetAudience}`}>
             <h3>مخاطب هدف و مربی</h3>
             <p className={styles.subtitle}>مربی را انتخاب کنید و مشخص کنید چه کسانی می توانند شرکت کنند.</p>
 
@@ -190,7 +189,7 @@ const AddCourse = () => {
         </div>
 
         <div className={styles.rightCol}>
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.courseImage}`}>
             <h3>تصویر دوره</h3>
             <p className={styles.subtitle}>برای کلاس یک تصویر کاور یا بندانگشتی آپلود کنید.</p>
 
@@ -205,7 +204,7 @@ const AddCourse = () => {
             </label>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.displayStatus}`}>
             <h3>وضعیت نمایش</h3>
             <p className={styles.subtitle}>مشخص کنید این کلاس چه زمانی و با چه وضعیتی نمایش داده شود.</p>
 

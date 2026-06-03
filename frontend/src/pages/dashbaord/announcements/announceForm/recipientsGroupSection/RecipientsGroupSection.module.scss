@@ -1,0 +1,451 @@
+@import '../../../../../styles/mixins';
+
+$font: "Vazirmatn", "Tahoma", sans-serif;
+$radius-sm: 10px;
+$radius-md: 14px;
+$radius-lg: 18px;
+
+$primary: #6c63ff;
+$primary-light: #f0effe;
+$primary-dark: #4e46e5;
+$border: #e8e8f0;
+$bg: #ffffff;
+$bg-soft: #f8f8fc;
+$bg-muted: #f1f1f7;
+$text: #1a1a2e;
+$text-muted: #7b7b9a;
+$text-light: #b0b0c8;
+$green: #43a047;
+$green-light: #edf7ee;
+$gray-light: #f3f3f7;
+
+.wrapper {
+  font-family: $font;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: $radius-lg;
+  padding: 1.25rem 1.5rem;
+  direction: rtl;
+
+  @media (max-width: 640px) {
+    padding: 1rem 1.1rem;
+    border-radius: $radius-md;
+  }
+}
+
+// Header
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+}
+
+.headerIcon {
+  font-size: 1.1rem;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+  flex: 1;
+}
+
+.selectedCount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $primary;
+  background: $primary-light;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+// Announcement
+.announcementRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  background: $bg-soft;
+  border-radius: $radius-md;
+  margin-bottom: 0.75rem;
+}
+
+.announcementInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.announcementTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.announcementBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+// Toggle
+.toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 20px;
+  background: $text-light;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.22s;
+
+  &.toggleOn {
+    background: $primary;
+  }
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.22s;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+  .toggleOn & {
+    transform: translateX(-20px);
+  }
+}
+
+// Type selector
+.typeSelector {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.typeBtn {
+  font-family: $font;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid $border;
+  background: transparent;
+  color: $text-muted;
+  cursor: pointer;
+  transition: all 0.16s;
+
+  &:hover {
+    border-color: rgba($primary, 0.4);
+    color: $primary;
+  }
+
+  &.typeBtnActive {
+    background: $primary-light;
+    border-color: rgba($primary, 0.3);
+    color: $primary;
+    font-weight: 600;
+  }
+}
+
+// Search
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  background: $bg-muted;
+  border-radius: $radius-sm;
+  border: 1.5px solid transparent;
+  margin-bottom: 0.85rem;
+  transition: border-color 0.18s;
+
+  &:focus-within {
+    border-color: rgba($primary, 0.35);
+    background: $bg;
+  }
+}
+
+.searchIcon {
+  font-size: 0.9rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  font-family: $font;
+  font-size: 0.85rem;
+  color: $text;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.65rem 0;
+  direction: rtl;
+
+  &::placeholder {
+    color: $text-light;
+  }
+}
+
+.searchClear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: $text-muted;
+  padding: 0 0.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+// Tabs
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1.5px solid $border;
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  font-family: $font;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: $text-muted;
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: color 0.16s, border-color 0.16s;
+  
+  gap: 0.35rem;
+  @include desktop {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.83rem;
+  }
+
+  &.tabActive {
+    color: $primary;
+    font-weight: 700;
+    border-bottom-color: $primary;
+  }
+
+  &:hover:not(.tabActive) {
+    color: $text;
+  }
+}
+
+.tabBadge {
+  background: $primary;
+  color: white;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: .1rem;
+  border-radius: 20px;
+  min-width: 18px;
+  text-align: center;
+  
+  @include desktop {
+    padding: 1px 6px;
+    font-size: 0.68rem;
+  }
+}
+
+// List
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: $text-light;
+  font-size: 0.85rem;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: $radius-sm;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: $bg-soft;
+  }
+
+  &.listItemSelected {
+    background: $primary-light;
+    border-color: rgba($primary, 0.18);
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.6rem 0.6rem;
+    gap: 0.6rem;
+  }
+}
+
+.checkbox {
+  display: none;
+}
+
+.checkCustom {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid $text-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+
+  .listItemSelected & {
+    background: $primary;
+    border-color: $primary;
+  }
+}
+
+.checkMark {
+  font-size: 0.7rem;
+  color: white;
+  font-weight: 700;
+  line-height: 1;
+}
+
+// Avatar
+.avatar {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+// Item content
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1px;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: .7rem;
+  font-weight: 600;
+  color: $text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @include desktop {
+    font-size: 0.875rem;
+  }
+
+  .itemGender {
+    font-size: 0.6rem;
+    color: $text-muted;
+  }
+}
+
+.itemMeta {
+  font-size: 0.6rem;
+  color: $text-muted;
+  
+  @include desktop {
+    font-size: 0.75rem;
+  }
+}
+
+// Status dot
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--active {
+    background: $green;
+    box-shadow: 0 0 0 3px $green-light;
+  }
+
+  &--inactive {
+    background: $text-light;
+  }
+}
+
+// Badges
+.badge {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: $font;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: .1rem;
+  border-radius: 20px;
+  white-space: nowrap;
+
+  svg {
+    width: 1.2rem;
+
+    @include desktop {
+      width: 1.5rem;
+    }
+  }
+  
+  @include desktop {
+    font-size: 0.72rem;
+  }
+
+  &--purple {
+    color: $primary;
+  }
+
+  &--gray {
+    color: $text-muted;
+  }
+
+  &--green {
+    color: $green;
+  }
+}
+
+.badgeRemove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: inherit;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}

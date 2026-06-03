@@ -30,17 +30,19 @@ const MultiStepForm = () => {
   return (
     <div className={style.formWrapper}>
 
-      <StepIndicator steps={steps} currentStep={currentStep} />
+      <div className={style.container}>
+        <StepIndicator steps={steps} currentStep={currentStep} />
 
-      {currentStep === 1 && (
-        <FirstStepRegister onSuccess={() => setCurrentStep(2)} setUserId={setUserId} />
-      )}
-      {currentStep === 2 && userId && (
-        <SecondStepInfo userId={userId} onSuccess={() => setCurrentStep(3)} setUserId={setUserId}/>
-      )}
-      {currentStep === 3 && userId && (
-        <ThirdStepDocs userId={userId} onSuccess={() => clearRegisterProgress()} />
-      )}
+        {currentStep === 1 && (
+          <FirstStepRegister onSuccess={() => setCurrentStep(2)} setUserId={setUserId} />
+        )}
+        {currentStep === 2 && userId && (
+          <SecondStepInfo userId={userId} onSuccess={() => setCurrentStep(3)} setUserId={setUserId}/>
+        )}
+        {currentStep === 3 && userId && (
+          <ThirdStepDocs userId={userId} onSuccess={() => clearRegisterProgress()} />
+        )}
+      </div>
       {/* {currentStep === 4 && userId && (
         <LastStepAddClass userId={userId} onSuccess={() => clearRegisterProgress()} />
       )} */}

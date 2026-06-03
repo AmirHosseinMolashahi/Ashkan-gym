@@ -1,16 +1,17 @@
 from django.contrib import admin
-from .models import Announcements, AnnouncementRecipient
+from .models import Announcement, AnnouncementRead
 
 # Register your models here.
 
-class AnnouncementsAdmin(admin.ModelAdmin):
-    model = Announcements
+class AnnouncementAdmin(admin.ModelAdmin):
+    model = Announcement
     list_display = [
         'title',
         'user',
-        'time',
+        'created_at',
         'status',
+        'is_global',
     ]
 
-admin.site.register(Announcements, AnnouncementsAdmin)
-admin.site.register(AnnouncementRecipient)
+admin.site.register(Announcement, AnnouncementAdmin)
+admin.site.register(AnnouncementRead)

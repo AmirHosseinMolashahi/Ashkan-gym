@@ -1,0 +1,50 @@
+// TaskListSkeleton.module.scss
+@use '../../../../styles/constants.scss' as *;
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%sk {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+.taskList { display: flex; flex-direction: column; gap: 1rem; }
+
+.group { display: flex; flex-direction: column; gap: 10px; }
+
+.groupHeader { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.groupIcon  { @extend %sk; width: 16px; height: 16px; border-radius: 4px; }
+.groupLabel { @extend %sk; width: 60px; height: 13px; }
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: .7rem;
+  border-radius: 12px;
+  background: $surface;
+  border: 1px solid $border;
+}
+
+.sk { @extend %sk; }
+
+.checkbox { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+
+.content { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.titleRow { display: flex; align-items: center; gap: 8px; }
+.title    { width: 130px; height: 14px; }
+.tag      { width: 48px;  height: 18px; border-radius: 20px; }
+.descLine      { width: 90%; height: 11px; }
+.descLineShort { width: 55%; height: 11px; }
+
+.left { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+.timeLine { width: 44px; height: 11px; }
+.dateLine { width: 64px; height: 11px; }
+
+.actions { display: flex; gap: 4px; }
+.actionBtn { width: 28px; height: 28px; border-radius: 7px; }

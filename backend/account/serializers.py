@@ -214,3 +214,10 @@ class ManagerUserUpdateSerializer(UserUpdateSerializer):
             'roles': {'required': False},
             'is_active': {'required': False},
         }
+
+
+
+class RoleListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = '__all__'

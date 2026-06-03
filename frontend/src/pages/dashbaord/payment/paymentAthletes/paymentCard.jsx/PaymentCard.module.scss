@@ -1,0 +1,181 @@
+@use '../../../../../styles/constants.scss' as *;
+
+.paymentCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .card {
+    position: relative;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+
+    .cardHeader {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 1rem;
+
+      img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+
+      .info{ 
+        font-size: 14px;
+        strong {
+          color: $primary;
+        }
+      }
+
+      .paymentStatus {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: end;
+        gap: .3rem;
+      }
+    }
+
+    .cardInfo {
+      border-bottom: 1px solid #eee;
+      padding-bottom: .5rem;
+      ul {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: .5rem;
+
+        li {
+          font-size: 14px;
+          strong {
+            color: $primary;
+          }
+          p {
+            color: $light-grey;
+          }
+
+          .notifiedStatus, .notifiedDate {
+            font-size: 10px;
+          }
+        }
+      }
+    }
+
+    .cardActions {
+      width: 100%;
+      display: flex;
+      
+      .changeInvoice {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .subtle {
+          color: #6b7280;
+          font-size: 12px;
+        }
+
+        .ghostBtn {
+          background: #fff;
+          border: 1px solid #eee;
+          color: #374151;
+          padding: .2rem 1rem;
+        }
+      }
+
+      .actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: .5rem;
+        
+        .changeInvoiceBtn {
+          background: transparent;
+          border: none;
+          color: #2563eb;
+          cursor: pointer;
+          font-size: 14px;
+          padding: 0;
+
+          svg {
+            width: 1rem;
+          }
+        }
+        
+        .paymentActions {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+
+          .methodSelect {
+            height: 32px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: .3rem;
+            background: #fff;
+            font-size: 14px;
+          }
+
+          .primaryBtn,
+          .ghostBtn {
+            border-radius: 8px;
+            height: 32px;
+            padding: .3rem 1rem;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid transparent;
+          }
+
+          .primaryBtn {
+            background: #2563eb;
+            color: #fff;
+          }
+          .ghostBtn {
+            background: #fff;
+            border: 1px solid #eee;
+            color: #374151;
+          }
+        }
+      }
+    }
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.paid {
+  color: #0f766e;
+  background: #d1fae5;
+}
+
+.pending {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.overdue {
+  color: #b91c1c;
+  background: #fee2e2;
+}

@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import style from './BackButton.module.scss';
 
-const BackButton = () => {
+const BackButton = ({route, title}) => {
   const navigate = useNavigate();
   return (
-    <button onClick={() => navigate(-1)} className={style.backBtn}>
-      بازگشت ←
+    <button onClick={() => navigate(route)} className={style.backBtn}>
+      {title} <span>←</span>
     </button>
   );
 };

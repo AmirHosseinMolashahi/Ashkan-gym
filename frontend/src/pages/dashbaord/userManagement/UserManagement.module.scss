@@ -1,4 +1,6 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins.scss';
+
 .userManagement {
   color: $primary;
   display: flex;
@@ -6,8 +8,12 @@
   gap: 1rem;
   .summaryGrid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    
+    @include desktop {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
 
     .summaryCard {
       background: #ffffff;
@@ -15,10 +21,23 @@
       border-radius: 12px;
       padding: 1rem;
 
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      
+      @include desktop {
+        align-items: start;
+      }
+
       h3 {
         margin-top: 0.5rem;
         margin-bottom: 0.8rem;
-        font-size: 2rem;
+        font-size: 1.5rem;
+        
+        @include desktop {
+          font-size: 2rem;
+        }
       }
 
       .cardTitle {

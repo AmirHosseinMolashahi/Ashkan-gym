@@ -5,20 +5,26 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, UpdateAPIView, ListAPIView, ListCreateAPIView, DestroyAPIView, RetrieveUpdateAPIView
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
+from django.utils.decorators import method_decorator
 
-from .models import CustomUser, LoginHistory
+
+from django_ratelimit.decorators import ratelimit
+from django_filters.rest_framework import DjangoFilterBackend
+
+from .models import CustomUser, LoginHistory, Role
 from .serializers import (
     userSerializers,
     RegisterSerializer,
     UserUpdateSerializer,
     ManagerUserUpdateSerializer,
+    RoleListSerializer,
 )
 
 from .permissions import IsManager, IsCoachOrManager
@@ -27,14 +33,25 @@ from .models import CustomUser, LoginHistory
 
 from registration.models import Registration
 from notifications.utils import create_and_send_notification
+from training.paginations import CustomPagination
 
 from datetime import timedelta
+
 
 class LoginView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @method_decorator(ratelimit(key='ip', rate='5/m', block=False))
     def post(self, request):
+        if getattr(request, 'limited', False):
+            return Response(
+                {
+                    "error": "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱ دقیقه صبر کنید و دوباره تلاش کنید."
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS
+            )
+        
         national_id = request.data.get('national_id')
         password = request.data.get('password')
 
@@ -62,13 +79,13 @@ class LoginView(APIView):
             )
 
 
-
         # === 4) اگر هر دو صحیح، authenticate کنید ===
         user = authenticate(
             request,
             national_id=national_id,
             password=password
         )
+
 
         user.previous_login = user.last_login
         user.last_login = timezone.now()
@@ -87,7 +104,7 @@ class LoginView(APIView):
         res.set_cookie(
             key='access',
             value=str(refresh.access_token),
-            httponly=False,
+            httponly=True,
             samesite='Lax',
             secure=False,
             path='/'
@@ -228,16 +245,30 @@ class UsersWithoutInsuranceView(ListAPIView):
 
 
 
-class AllUsersPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = "page_size"
-    max_page_size = 100
-
 
 class UsersManagementView(ListAPIView):
     serializer_class = userSerializers
     permission_classes = [IsAuthenticated]
-    pagination_class = AllUsersPagination
+    pagination_class = CustomPagination
+
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter
+    ]
+
+    filterset_fields = {
+        "roles__name": ["exact"],
+        "is_active": ["exact"],
+        "insurance": ["exact"],
+    }
+
+    search_fields = [
+        "first_name",
+        "last_name",
+        "national_id",
+        "phone_number",
+        "email",
+    ]
 
     def get_base_queryset(self):
         user = self.request.user
@@ -258,36 +289,10 @@ class UsersManagementView(ListAPIView):
 
         return CustomUser.objects.none()
 
-    def filter_queryset_custom(self, qs):
-        role = self.request.query_params.get("role")
-        is_active = self.request.query_params.get("is_active")
-        insurance = self.request.query_params.get("insurance")
-        search = self.request.query_params.get("search")
-
-        if role and role != "all":
-            qs = qs.filter(roles__name=role)
-
-        if is_active in ["true", "false"]:
-            qs = qs.filter(is_active=(is_active == "true"))
-
-        if insurance in ["true", "false"]:
-            qs = qs.filter(insurance=(insurance == "true"))
-
-        if search:
-            qs = qs.filter(
-                Q(first_name__icontains=search)
-                | Q(last_name__icontains=search)
-                | Q(national_id__icontains=search)
-                | Q(phone_number__icontains=search)
-                | Q(email__icontains=search)
-            )
-
-        return qs
-
     def get_queryset(self):
-        qs = self.get_base_queryset()
-        qs = self.filter_queryset_custom(qs)
-        return qs.order_by("-date_joined")
+        return self.get_base_queryset().order_by(
+            "-date_joined"
+        )
 
     def get_summary(self, qs):
         now = timezone.now()
@@ -321,7 +326,9 @@ class UsersManagementView(ListAPIView):
         }
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(
+            self.get_queryset()
+        )
 
         # pagination
         page = self.paginate_queryset(queryset)
@@ -338,6 +345,7 @@ class UsersManagementView(ListAPIView):
 class UserManagementDetailView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated, IsCoachOrManager]
     lookup_url_kwarg = 'user_id'
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -401,3 +409,9 @@ class UpdateUserView(UpdateAPIView):
     def get_object(self):
         # برمی‌گرداند کاربر فعلی
         return self.request.user
+
+
+class RolesListView(ListAPIView):
+    queryset = Role.objects.all()
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+    serializer_class = RoleListSerializer

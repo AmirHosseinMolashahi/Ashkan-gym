@@ -1,46 +1,162 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
 .detailBox {
-  height: 100%;
-  display: flex;
-  justify-content: center;
+  width: 100%;
   background-color: #fff;
   border-radius: 10px;
   color: $primary;
+  
+  @include desktop {
+    height: 18rem;
+  }
   .container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
     gap: 1rem;
-    ul {
+
+    .detailIcon {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: .3rem;
+      flex-direction: row-reverse;
+      color: $light-grey;
+      font-size: 12px;
+    }
+
+    .detailList {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      li {
-        font-size: 0.9rem;
+
+      hr {
+        margin: .5rem;
+        background-color: $secondary;
+      }
+
+      .lastLogin {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-
-        .insured {
-          color: green;
-          display: flex;
-          align-items: center;
-          gap: 0.2rem;
+        gap: .5rem;
+        button {
+          padding: .8rem;
+          border-radius: 100%;
+          background-color: #e4ecfb;
+          svg {
+            path {
+              fill: $blue;
+            }
+          }
         }
-        .notInsured {
-          color: red;
+        .lastLoginTime {
           display: flex;
-          align-items: center;
-          gap: 0.2rem;
+          flex-direction: column;
+          font-size: 14px;
+          color: $light-grey;
+
+          span {
+            color: $primary;
+          }
+        }
+      }
+
+      .insuranceList {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+
+        .insuranceDetail {
+          display: flex;
+          flex-direction: column;
+          font-size: 14px;
+          color: $light-grey;
+
+          span {
+            color: $danger;
+          }
         }
         button {
-          color: $primary;
-          font-size: 0.8rem;
-          padding: 0.2rem 0.5rem;
+          padding: .8rem;
+          border-radius: 100%;
+          background-color: #fae2e4;
+          svg {
+            path {
+              fill: $danger;
+            }
+          }
+        }
+        .viewInsuranceList {
+          position: absolute;
+          top: 0;
+          left: 0;
+          font-size: 14px;
           border-radius: 5px;
         }
       }
+
+      .insuranceStatus {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        button {
+          padding: .8rem;
+          border-radius: 100%;
+          background-color: #e8e5e5;
+          svg {
+            path {
+              fill: $primary;
+            }
+          }
+        }
+        .insuranceStatusDetail {
+          display: flex;
+          flex-direction: column;
+          font-size: 14px;
+          color: $light-grey;
+
+          .insured {
+            color: green;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+          }
+          .notInsured {
+            color: red;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+          }
+        }
+      }
+      // li {
+      //   font-size: 0.9rem;
+      //   display: flex;
+      //   align-items: center;
+      //   gap: 0.5rem;
+
+      //   .insured {
+      //     color: green;
+      //     display: flex;
+      //     align-items: center;
+      //     gap: 0.2rem;
+      //   }
+      //   .notInsured {
+      //     color: red;
+      //     display: flex;
+      //     align-items: center;
+      //     gap: 0.2rem;
+      //   }
+      //   button {
+      //     color: $primary;
+      //     font-size: 0.8rem;
+      //     padding: 0.2rem 0.5rem;
+      //     border-radius: 5px;
+      //   }
+      // }
     }
   }
 }

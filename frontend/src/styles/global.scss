@@ -1,4 +1,10 @@
+@use './constants.scss' as *;
 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+@import './mixins';
+
+html, body, #root {
+  height: 100%;
+}
 
 * {
   margin: 0;
@@ -7,9 +13,13 @@
 body {
   font-family: 'Vazirmatn', sans-serif;
   color: #E7E7E7;
+  margin: 0;
 }
 h1, h2, h3, h4, h5, h6, p{
   margin: 0;
+}
+p {
+  color: $primary;
 }
 a {
   text-decoration: none;
@@ -20,6 +30,8 @@ button, input, textarea, select, option {
 }
 
 button {
+  font-family: inherit;
+  font-size: inherit;
   border: none;
   border-radius: 10px;
   padding: 1rem;
@@ -29,6 +41,12 @@ button {
   justify-content: center;
   align-items: center;
   gap: .5rem;
+  font-size: 14px;
+  
+  @include desktop {
+    font-size: 14px;
+  }
+
   &:hover {
     transform: scale(1.02);
     cursor: pointer;

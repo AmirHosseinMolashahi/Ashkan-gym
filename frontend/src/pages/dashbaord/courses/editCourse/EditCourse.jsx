@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../../hooks/api";
 import { useToast } from "../../../../context/NotificationContext";
 import Modal from "../../../../components/GlobalComponents/Modal/Modal";
+import BackButton from "../../../../components/dashboards/backButton/BackButton";
 
 const EditCourse = () => {
   const { id } = useParams();
@@ -126,9 +127,7 @@ const EditCourse = () => {
   return (
     <div className={styles.addClassPage} dir="rtl">
       <div className={styles.topBar}>
-        <button className={styles.backLink} type="button" onClick={() => navigate(`/dashboard/courses/${id}`)}>
-          <UilArrowRight /> بازگشت به جزئیات کلاس
-        </button>
+        <BackButton route={`/dashboard/courses/${id}`} title="بازگشت" />
 
         <div className={styles.topActions}>
           <button className={`${styles.btn} ${styles.btnSecondary}`} type="button" onClick={() => navigate(`/dashboard/courses/${id}`)}>
@@ -144,7 +143,7 @@ const EditCourse = () => {
 
       <form id="edit-course-form" onSubmit={handleSubmit} className={styles.contentGrid}>
         <div className={styles.leftCol}>
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.basicInfo}`}>
             <h3>اطلاعات پایه</h3>
             <p className={styles.subtitle}>جزئیات اصلی کلاس را ویرایش کنید.</p>
 
@@ -159,7 +158,7 @@ const EditCourse = () => {
             </div>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.targetAudience}`}>
             <h3>مخاطب هدف و مربی</h3>
             <p className={styles.subtitle}>اطلاعات مربی و شرایط کلاس را به‌روزرسانی کنید.</p>
 
@@ -220,7 +219,7 @@ const EditCourse = () => {
         </div>
 
         <div className={styles.rightCol}>
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.courseImage}`}>
             <h3>تصویر دوره</h3>
             <p className={styles.subtitle}>در صورت نیاز تصویر جدید آپلود کنید.</p>
 
@@ -240,7 +239,7 @@ const EditCourse = () => {
             </label>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.displayStatus}`}>
             <h3>وضعیت نمایش</h3>
             <p className={styles.subtitle}>وضعیت کلاس را تعیین کنید.</p>
 

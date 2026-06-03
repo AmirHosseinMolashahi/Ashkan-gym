@@ -1,4 +1,6 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
 .navbar {
     top: 0;
     display: block;
@@ -12,9 +14,15 @@
         justify-content: space-between;
         gap: 2rem;
         padding: 1rem;
-        @media (max-width:$sm){
-          justify-content: space-between;
-          padding: 0;
+        @include desktop {
+          padding: 2rem;
+        }
+
+        .sidebarBtn {
+          
+          @include desktop {
+            display: none;
+          }
         }
 
         h1 {
@@ -25,10 +33,13 @@
           justify-content: center;
           gap: 2rem;
           .search {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            text-align: center;
+            display: none;
+            @include desktop {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              text-align: center;
+            }
         
           
           .search__input {

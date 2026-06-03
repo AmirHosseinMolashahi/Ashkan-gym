@@ -84,6 +84,7 @@ class UserDocsListView(ListAPIView):
 class ManagerAddDocsView(ListCreateAPIView):
     serializer_class = RegistrationDocumentSerializer
     permission_classes = [IsCoachOrManager]
+    pagination_class = None
 
     def get_queryset(self):
         user_id = self.kwargs['user_id']  # از url parameter می‌گیریم

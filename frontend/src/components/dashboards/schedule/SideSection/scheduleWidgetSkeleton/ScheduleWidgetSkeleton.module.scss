@@ -1,0 +1,55 @@
+// ScheduleWidgetSkeleton.module.scss
+@use '../../../../../styles/constants.scss' as *;
+@import '../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+%sk {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+.widget {
+  background: $surface;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid $border;
+
+  @include tablet {
+    padding: 18px;
+  }
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.widgetHeaderRight { display: flex; align-items: center; gap: 6px; }
+
+.sk { @extend %sk; }
+.badge  { width: 64px;  height: 22px; border-radius: 20px; }
+.icon   { width: 16px;  height: 16px; border-radius: 4px; }
+.title  { width: 72px;  height: 14px; }
+
+.scheduleList { display: flex; flex-direction: column; gap: 8px; }
+
+.scheduleItem {
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #f9fafb;
+}
+
+.scheduleInfo { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.tag  { width: 40px; height: 11px; }
+.time { width: 36px; height: 11px; }

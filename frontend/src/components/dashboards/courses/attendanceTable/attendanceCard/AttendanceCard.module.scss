@@ -1,0 +1,99 @@
+@use '../../../../../styles/constants.scss' as *;
+@import '../../../../../styles/mixins';
+
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: .5rem;
+
+  .card {
+    position: relative;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    .cardHeader {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+
+      img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+      }
+      .info {
+        font-size: 14px;
+
+        strong {
+          color: $primary;
+        }
+      }
+    }
+
+    .cardInfo {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+
+      .btnContainer {
+        width: 100%;
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+        justify-content: center;
+
+        button {
+          width: 100%;
+          padding: .3rem;
+          font-size: 14px;
+          border: 1px solid transparent;
+        }
+        .present {
+          background-color: transparent;
+          border-color: #1c9c5d;
+          color: #1c9c5d;
+          &.active {
+            background-color: #1c9c5d;
+            color: #fff;
+          }
+        }
+        .absent {
+          background-color: transparent;
+          border-color: #e02424;
+          color: #e02424;
+          &.active {
+            background-color: #e02424;
+            color: #fff;
+          }
+        }
+        .late {
+          background-color: transparent;
+          border-color: #f59e0b;
+          color: #f59e0b;
+          &.active {
+            background-color: #f59e0b;
+            color: #fff;
+          }
+        }
+      }
+
+      .inputContainer {
+        width: 100%;
+        
+        input {
+          width: 93%;
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        }
+      }
+    }
+  }
+}

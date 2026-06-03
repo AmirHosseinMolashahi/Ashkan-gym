@@ -6,7 +6,6 @@ from .views import (
             UserCoursesCount,
             StudentCountView,
             CoursesDetailView,
-            CoursesEnrollmentsView,
             AthleteListView,
             AthleteDashboardView,
             UserMonthSessionView,
@@ -26,6 +25,8 @@ from .views import (
             ReactivateEnrollmentView,
             UserEnrollmentAttendanceView,
             UserEnrollmentsView,
+            CourseEnrollmentsMonthlyStatusView,
+            CourseEnrollmentsFinancialView,
             )
 
 app_name = 'training'
@@ -34,7 +35,8 @@ urlpatterns = [
   # coach and manager urls
   path('courses/', CoursesListView.as_view(), name='courses-list'),
   path('courses/detail/<int:id>/', CoursesDetailView.as_view(), name='courses-detail'),
-  path('courses/detail/<int:course_id>/students/', CoursesEnrollmentsView.as_view(), name='courses-students-list'),
+  path('courses/detail/<int:course_id>/students/', CourseEnrollmentsMonthlyStatusView.as_view(), name='courses-students-list'),
+  path('courses/detail/<int:course_id>/students/financial/', CourseEnrollmentsFinancialView.as_view(), name='courses-students-financial-list'),
   path('courses/detail/<int:course_id>/sessions/current-month/',ThisMonthSessionView.as_view(), name='course-session' ),
   path('courses/count/', UserCoursesCount.as_view(), name='courses-count'),
   path('courses/students/count/', StudentCountView.as_view(), name='student-count'),

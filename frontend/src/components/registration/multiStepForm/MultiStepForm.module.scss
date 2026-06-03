@@ -1,11 +1,21 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
 .formWrapper {
-  width: 900px;
-  max-width: 900px;
+  width: 100%;
   background: #fff;
-  padding: 40px;
   border-radius: 12px;
   margin: auto;
+  
+  @include desktop {
+    padding: 40px;
+    width: 900px;
+    max-width: 900px;
+  }
+
+  .container {
+    padding: 1rem;
+  }
 
   h2 {
     text-align: center;

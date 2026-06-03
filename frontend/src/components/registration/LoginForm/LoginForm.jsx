@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import style from './LoginForm.module.scss';
 import { Link } from 'react-router-dom';
 import { useNavigate  } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { UilEye, UilEyeSlash  } from '@iconscout/react-unicons';
 import { useLoading } from '../../../context/LoadingContext';
 import { useSelector, useDispatch } from 'react-redux';
 import { loginUser } from '../../../store/userSlice';
+import AshkanLogo from '../../../assets/home/AshkanLogo.png'
 
 
 const LoginForm = () => {
@@ -29,6 +30,13 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     showLoading()
+
+    setErrors({
+      national_id: "",
+      password: "",
+      general: "",
+    });
+    
     try {
       await dispatch(
         loginUser({national_id, password})
@@ -39,7 +47,7 @@ const LoginForm = () => {
     } catch (err){
       notify(err.error, 'error');
       const msg = err.error || "خطا";
-      console.log(msg)
+      console.log(err)
 
       if (msg.includes("کد ملی")) {
         setErrors({ national_id: msg, password: "", general: "" });
@@ -57,47 +65,50 @@ const LoginForm = () => {
   return (
     <div className={style.container}>
       <div className={style.wrapper}>
-        <h1>صفحه ورود</h1>
-        <span>به صفحه ورود خوش آمدید</span>
-        <form action="" onSubmit={handleSubmit} className={style.formContainer}>
-          <div className={style.inputWrapper}>
-            <label>کد ملی</label>
-            <input
-              className={`${style.input} ${errors.national_id ? style.inputError : "" }`}
-              type="text"
-              placeholder="کد ملی"
-              value={national_id}
-              onChange={(e) => setNational_id(e.target.value)}
-              required
-            />
-            {errors.national_id && (
-              <span className={style.errorText}>{errors.national_id}</span>
-            )}
-          </div>
-          <div className={style.inputWrapper}>
-            <label>رمز ورود</label>
-            <div className={style.passwordWrapper}>
+        <img src={AshkanLogo} alt="" />
+        <div className={style.content}>
+          <h1>صفحه ورود</h1>
+          <span>به صفحه ورود خوش آمدید</span>
+          <form onSubmit={handleSubmit} className={style.formContainer}>
+            <div className={style.inputWrapper}>
+              <label>کد ملی</label>
               <input
-                className={`${style.passwordinput} ${errors.password ? style.inputError : "" }`}
-                type={showPassword ? "text" : "password"}
-                placeholder="رمز ورود"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                className={`${style.input} ${errors.national_id ? style.inputError : "" }`}
+                type="text"
+                placeholder="کد ملی"
+                value={national_id}
+                onChange={(e) => setNational_id(e.target.value)}
                 required
               />
-              <span className={style.togglePassword} onClick={() => setShowPassword((prev) => !prev)}>
-                {showPassword ? <UilEye /> : <UilEyeSlash /> }
-              </span>
+              {errors.national_id && (
+                <span className={style.errorText}>{errors.national_id}</span>
+              )}
             </div>
-            {errors.password && (
-              <span className={style.errorText}>{errors.password}</span>
-            )}
-          </div>
-          <a className={style.forgetPass}>رمز عبور خود را فراموش کرده اید؟</a>
-          <button type="submit" className={style.submitBtn}>
-            <span>ورود</span>
-          </button>
-        </form>
+            <div className={style.inputWrapper}>
+              <label>رمز ورود</label>
+              <div className={style.passwordWrapper}>
+                <input
+                  className={`${style.passwordinput} ${errors.password ? style.inputError : "" }`}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="رمز ورود"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <span className={style.togglePassword} onClick={() => setShowPassword((prev) => !prev)}>
+                  {showPassword ? <UilEye /> : <UilEyeSlash /> }
+                </span>
+              </div>
+              {errors.password && (
+                <span className={style.errorText}>{errors.password}</span>
+              )}
+            </div>
+            <a className={style.forgetPass}>رمز عبور خود را فراموش کرده اید؟</a>
+            <button type="submit" className={style.submitBtn}>
+              <span>ورود</span>
+            </button>
+          </form>
+        </div>
         {/* <div className={style.registerLink}>
           <p>حساب کاربری ندارید؟ <Link to="/registration/register">ثبت نام</Link></p>
         </div> */}

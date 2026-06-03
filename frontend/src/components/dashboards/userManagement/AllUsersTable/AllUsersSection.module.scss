@@ -1,4 +1,6 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins.scss';
+
 .container {
   background: #fff;
   border-radius: 12px;
@@ -6,35 +8,102 @@
   .wrapper {
     display: flex;
     flex-direction: column;
+    padding-bottom: 1rem;
     .toolbar {
       display: flex;
+      flex-direction: column-reverse;
       align-items: center;
-      padding: 1rem;
+      padding: .5rem;
       gap: 1rem;
+      
+      @include desktop {
+        padding: 1rem;
+        flex-direction: row-reverse;
+        justify-content: space-between;
+      }
 
-      .left {
+      .clearSearch {
+        width: 100%;
         display: flex;
         justify-content: center;
-        align-items: center;
-        gap: 1rem;
+
+        @include desktop {
+          justify-content: flex-end;
+          padding-left: 1rem;
+        }
         button {
-          padding: .5rem;
+          width: 100%;
+          background-color: transparent;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: .3rem;
+          
+          @include desktop {
+            width: auto;
+          }
         }
       }
 
-      select {
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
+      .left {
+        width: 100%;
+        display: flex;
+        justify-content:space-between;
+        align-items: center;
+
+        @include desktop {
+          justify-content: center;
+          gap: 1rem;
+        }
+        button {
+          padding: .5rem;
+        }
+
+        .filterObj {
+          width: 6.5rem;
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: .3rem;
+          font-size: 10px;
+
+          @include desktop {
+            width: 100%;
+          }
+          
+          p {
+            position: absolute;
+            right: 0;
+            margin-right: .2rem;
+            font-size: 12px;
+          }
+          
+          select {
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: .3rem 3rem;
+            width: 100%;
+            background-color: transparent;
+
+            option {
+              padding: 0 2rem;
+            }
+          }
+        }
       }
+
 
       button {
         margin-right: 8px;
       }
       .inputWrapper {
         position: relative;
-        width: 30%;
+        width: 100%;
         display: flex;
+        
+        @include desktop {
+
+        }
         .searchInput {
           width: 100%;
           padding: 8px 12px;
@@ -109,6 +178,11 @@
             }
           }
         }
+    }
+    .paginationWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 }

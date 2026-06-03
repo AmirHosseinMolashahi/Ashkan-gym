@@ -14,14 +14,16 @@ import { hasRole } from '../../../../hooks/roleConverter';
 import DateObject from "react-date-object";
 import DiscountTable from '../../../../components/dashboards/courses/discountTable/DiscountTable';
 import useCurrentDateTime from '../../../../hooks/currentDateTime';
+import toPersianDigits from '../../../../hooks/convertNumber';
+import BackButton from '../../../../components/dashboards/backButton/BackButton';
 
 const CoursesDetail = () => {
 
   const { id } = useParams()
   const {date, weekday, month} = useCurrentDateTime()
-  const [ courseDetail, setCourseDetail ] = useState(null)
-  const [ courseStudents, setCourseStudents ] = useState([])
-  const [ addStudentModal, setAddStudentsModal ] = useState(false)
+  const [courseDetail, setCourseDetail] = useState(null)
+
+  const [addStudentModal, setAddStudentsModal] = useState(false)
   const navigate = useNavigate();
 
   const initialSchedule = [
@@ -71,23 +73,14 @@ const CoursesDetail = () => {
       console.log(err)
     }
   }
-
-  const fetchCourseStudentsList = async () => {
-    try {
-      const res = await api.get(`/training/courses/detail/${id}/students/`);
-      console.log(res.data)
-      setCourseStudents(res.data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
   
-
+  
+  
   const fetchAthletes = async () => {
     try {
       const res = await api.get('/training/athletes/')
-      setAthletes(res.data)
+      console.log(res.data.results)
+      setAthletes(res.data.results)
     } catch (err) {
       console.log(err)
     }
@@ -95,7 +88,6 @@ const CoursesDetail = () => {
 
   useEffect(() => {
     fetchCourseDetail();
-    fetchCourseStudentsList();
     fetchAthletes();
   }, [])
 
@@ -209,6 +201,7 @@ const CoursesDetail = () => {
   return (
     <div className={style.coursesDetail}>
       <div className={style.container}>
+        <BackButton route='/dashboard/courses' title='بازگشت' />
         <div className={style.header}>
           <div className={style.headerContainer}>
             <div className={style.topHeader}>
@@ -226,7 +219,7 @@ const CoursesDetail = () => {
                 </button>
               </div>
             </div>
-            <p>
+            <p className={style.classTitle}>
               {courseDetail?.age_ranges.map((item, index) => {
                 return(
                   <span key={index}>{item.title} </span>
@@ -239,15 +232,15 @@ const CoursesDetail = () => {
               <ul>
                 <li>
                   <p>تعداد ورزشکاران فعال</p>
-                  <h1>{courseDetail?.active_students}</h1>
+                  <h1>{toPersianDigits(courseDetail?.active_students)}</h1>
                 </li>
                 <li>
                   <p>شهریه کلاس</p>
-                  <h1>{courseDetail?.price}</h1>
+                  <h1>{toPersianDigits(courseDetail?.price)}</h1>
                 </li>
                 <li>
                   <p>میانگین حضور در کلاس</p>
-                  <h1>{courseDetail?.attendance_percentage_month ?? 0}%</h1>
+                  <h1>{toPersianDigits(courseDetail?.attendance_percentage_month ?? 0)}%</h1>
                 </li>
               </ul>
             </div>
@@ -276,7 +269,7 @@ const CoursesDetail = () => {
                     </li>
                     <li>
                       <UilClockFive />
-                      <p>{courseDetail?.timeTable[0]?.start_time} تا {courseDetail?.timeTable[0]?.end_time}</p>
+                      <p>{toPersianDigits(courseDetail?.timeTable[0]?.start_time)} تا {toPersianDigits(courseDetail?.timeTable[0]?.end_time)}</p>
                     </li>
                   </ul>
                 </div>
@@ -300,15 +293,15 @@ const CoursesDetail = () => {
                 <ul className={style.payList}>
                   <li>
                     <p>تعداد پرداختی این ماه</p>
-                    <p className={style.paid}>{paymentStatus?.paid_count ?? 0}</p>
+                    <p className={style.paid}>{toPersianDigits(paymentStatus?.paid_count ?? 0)}</p>
                   </li>
                   <li>
                     <p>در انتظار پرداخت</p>
-                    <p className={style.pending}>{paymentStatus?.unpaid_count ?? 0}</p>
+                    <p className={style.pending}>{toPersianDigits(paymentStatus?.unpaid_count ?? 0)}</p>
                   </li>
                   <li>
                     <p>شهریه عقب افتاده</p>
-                    <p className={style.unpaid}>{paymentStatus?.overdue_count ?? 0}</p>
+                    <p className={style.unpaid}>{toPersianDigits(paymentStatus?.overdue_count ?? 0)}</p>
                   </li>
                 </ul>
                 <div className={style.progressWrapper}>
@@ -328,11 +321,11 @@ const CoursesDetail = () => {
               <ul className={style.nextSession}>
                 <li className={style.date}>
                   <h1>{nextSession?.day_of_week ?? '—'}</h1>
-                  <p>{nextSession?.date_jalali ?? 'جلسه‌ای ثبت نشده'}</p>
+                  <p>{toPersianDigits(nextSession?.date_jalali ?? 'جلسه‌ای ثبت نشده')}</p>
                 </li>
                 <li className={style.time}>
                   <p>
-                    از {nextSession?.start_time?.slice(0, 5) ?? '--:--'} تا {nextSession?.end_time?.slice(0, 5) ?? '--:--'}
+                    از {toPersianDigits(nextSession?.start_time?.slice(0, 5) ?? '--:--')} تا {toPersianDigits(nextSession?.end_time?.slice(0, 5) ?? '--:--')}
                   </p>
                 </li>
               </ul>
@@ -345,7 +338,7 @@ const CoursesDetail = () => {
             <ul>
               <li className={activeTab === 1 ? style.active : ''} onClick={() => setActiveTab(1)}>
                 <UilUsersAlt />
-                ورزشکاران ({courseStudents.length})
+                ورزشکاران ({toPersianDigits(courseDetail?.active_students ?? 0)})
               </li>
               <li className={activeTab === 2 ? style.active : ''} onClick={() => setActiveTab(2)}>
                 <UilCheckSquare />
@@ -358,13 +351,13 @@ const CoursesDetail = () => {
             </ul>
           </div>
           { activeTab === 1 && (
-            <StudentsSection students={courseStudents} fetchStudent={fetchCourseStudentsList} />
+            <StudentsSection course_id={id} />
           )}
           { activeTab === 2 && (
             <AttendanceTable course_id={id} />
           )}
           { activeTab === 3 && (
-            <DiscountTable students={courseStudents} fetchStudent={fetchCourseStudentsList} />
+            <DiscountTable course_id={id}/>
           )}
         </div>
       </div>

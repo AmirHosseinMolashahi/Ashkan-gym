@@ -1,4 +1,5 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
 
 .editUser {
   color: $primary;
@@ -74,15 +75,57 @@
 
 .layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
+  align-items: start;
 
-  .main {
+  /* موبایل */
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "profile"
+    "personal"
+    "docs"
+    "account"
+    "danger";
+
+  @include desktop {
+    grid-template-columns: 2fr 1fr;
+
+    grid-template-areas:
+      "personal profile"
+      "account docs"
+      "account danger";
+  }
+}
+
+.left,
+.right {
+  display: contents;
+
+  @include desktop {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
   }
+}
 
+.personal {
+  grid-area: personal;
+}
+
+.profile {
+  grid-area: profile;
+}
+
+.account {
+  grid-area: account;
+}
+
+.docs {
+  grid-area: docs;
+}
+
+.danger {
+  grid-area: danger;
 }
 
 .card,

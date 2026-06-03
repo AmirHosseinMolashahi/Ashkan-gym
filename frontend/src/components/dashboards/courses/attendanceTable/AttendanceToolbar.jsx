@@ -108,32 +108,26 @@ const AttendanceToolbar = ({
 
           {sessionAttendance.length !== 0 &&
           selectedSessionObject?.attendance_status === "unfinished" ? (
-            <>
-              <li>
-                <button
-                  className={styles.present}
-                  onClick={() => handleAllStatusChange("p")}
-                >
-                  حاضری برای همه
-                </button>
-              </li>
-              <li>
-                <button
-                  className={styles.absent}
-                  onClick={() => handleAllStatusChange("a")}
-                >
-                  غیبت برای همه
-                </button>
-              </li>
-              <li>
-                <button
-                  className={styles.late}
-                  onClick={() => handleAllStatusChange("l")}
-                >
-                  تاخیر برای همه
-                </button>
-              </li>
-            </>
+            <li className={styles.attendanceAction}>
+              <button
+                className={styles.present}
+                onClick={() => handleAllStatusChange("p")}
+              >
+                حاضری برای همه
+              </button>
+              <button
+                className={styles.absent}
+                onClick={() => handleAllStatusChange("a")}
+              >
+                غیبت برای همه
+              </button>
+              <button
+                className={styles.late}
+                onClick={() => handleAllStatusChange("l")}
+              >
+                تاخیر برای همه
+              </button>
+            </li>
           ) : (
             ""
           )}

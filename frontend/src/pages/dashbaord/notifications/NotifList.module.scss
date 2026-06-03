@@ -1,181 +1,221 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
 
 .NotifList {
-    color: $primary;
-    .container {
+	color: $primary;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+	.container {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+			.header {
+      display: flex;
+      justify-content: space-between;
+      flex-direction: column;
+      gap: .7rem;
+      align-items: start;
+      
+      @include desktop {
+        gap: 2rem;
+        align-items: center;
+        flex-direction: row;
+      }
+
+      .headerTitle {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+        span {
+          font-size: 11px;
+          font-weight: bold;
+          color: $white;
+          background-color: $blue;
+          border-radius: 20px;
+          padding: .1rem .3rem;
+          
+          @include desktop {
+            font-size: 14px;
+          }
+        }
+      }
+      .actions {
+        display: flex;
+        gap: 0.7rem;
+        justify-content: center;
+        align-items: center;
+        .filterDropdown {
+          position: relative;
+          display: inline-block;
+          margin-left: 1rem;
+            
+          .dropdownToggle {
+            padding: 0;
+            background-color: transparent;
+            color: $light-grey;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            flex-direction: row-reverse;
+            gap: .3rem;
+            svg {
+              width: 1.2rem;
+            }
+
+            &:hover {
+              color: $primary;
+            }
+          }
+
+          .dropdownMenu {
+            position: absolute;
+            top: 140%;
+            right: 0;
+            width: 160px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            z-index: 10;
+
+            li {
+              padding: 10px 12px;
+              cursor: pointer;
+              transition: background 0.2s;
+
+              &:hover {
+                background-color: #f1f1f1;
+              }
+            }
+
+              .active {
+              background-color: #007bff;
+              color: white;
+              }
+            }
+          }
+
+        .markAllRead {
+          padding: 0;
+          background-color: transparent;
+          font-size: 14px;
+          gap: .3rem;
+          color: $blue;
+          flex-direction: row-reverse;
+          svg {
+            width: 1rem;
+          }
+          }
+          &.disabled {
+            span {
+                background-color: #cfcecf;
+                cursor: not-allowed;
+                transition: none;
+              }
+            }
+      }
+
+			}
+
+      .toolbar {
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: start;
         gap: 1rem;
-        .header {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-
-            .buttons {
-                display: flex;
-                gap: 0.5rem;
-                justify-content: center;
-                align-items: center;
-                .filterDropdown {
-                    position: relative;
-                    display: inline-block;
-                    margin-left: 1rem;
-
-                    .dropdownToggle {
-                        padding: 8px 12px;
-                        background-color: #007bff;
-                        color: white;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-weight: bold;
-                        transition: background 0.2s;
-
-                        &:hover {
-                        background-color: #0056b3;
-                        }
-                    }
-
-                    .dropdownMenu {
-                        position: absolute;
-                        top: 140%;
-                        right: 0;
-                        width: 160px;
-                        background-color: white;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                        padding: 0;
-                        margin: 0;
-                        list-style: none;
-                        z-index: 10;
-
-                        li {
-                        padding: 10px 12px;
-                        cursor: pointer;
-                        transition: background 0.2s;
-
-                        &:hover {
-                            background-color: #f1f1f1;
-                        }
-                        }
-
-                        .active {
-                        background-color: #007bff;
-                        color: white;
-                        }
-                    }
-                }
-
-                .markAllRead {
-                    span {
-                        padding: 8px 12px;
-                        background-color: $light-grey;
-                        color: white;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        font-weight: bold;
-                        transition: background 0.2s;
-
-                        &:hover {
-                            background-color: $secondary;
-                        }
-                    }
-                    &.disabled {
-                        span {
-                            background-color: #cfcecf;
-                            cursor: not-allowed;
-                            transition: none;
-                        }
-                    }
-                }
-            }
-
+        
+        @include desktop {
+          align-items: center;
         }
-        .wrapper {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 14px;
-                border-radius: 10px;
+        .btnContainer {
+          width: auto;
+          display: flex;
+          gap: 1rem;
+          
+          @include desktop {
+            width: 50rem;
+          }
 
-                thead {
-                    background: #f6f6f6;
+          .filterObj {
+            background-color: $white;
+            padding: .3rem;
+            font-size: 14px;
+            color: $light-grey;
+            border: 1px solid rgba($color: #333, $alpha: 0.2);
+            transition: background 300ms ease;
 
-                    th {
-                    padding: 12px;
-                    text-align: center;
-                    font-weight: 600;
-                    border-bottom: 2px solid #e3e3e3;
-                    }
-                }
-
-                tbody {
-                    tr {
-                    transition: 0.2s;
-
-                    &:hover {
-                        background: #fafafa;
-                    }
-
-                    td {
-                        padding: 10px;
-                        text-align: center;
-                        border-bottom: 1px solid #eee;
-                        span {
-                        width: 10px;
-                        height: 10px;
-                        border-radius: 50%;
-                        background-color: $success;
-                        }
-                    }
-                    .actions {
-                        svg {
-                            cursor: pointer;
-                            transition: all 300ms ease;
-
-                            &:hover {
-                                transform: scale(1.05);
-                            }
-                        }
-                    }
-                    }
-                    .unreadNotif {
-                        background-color: $new2;
-
-                        &:hover {
-                            background-color: $blue;
-                        }
-                    }
-                }
+            &.active {
+              background-color: $blue;
+              
+              color: $white;
+              border-color: transparent;
             }
-            .pagination {
-                display: flex;
-                gap: 1rem;
-                button {
-                    padding: 0;
-                    background-color: transparent;
-                }
+
+            &:hover {
+              background-color: $blue;
+              color: $white;
+              border-color: transparent;
             }
+          }
         }
-    }
-    .deleteModal {
+      }
+			.wrapper {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
 
-        .buttons {
-        display: flex;
-        gap: 2rem;
-
-        .deleteBtn {
-            background-color: $danger;
-            color: $secondary-white;
+        .skleteonContainer {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 1rem;
         }
-    }
+
+        .cardContainer {
+          display: flex;
+          flex-direction: column;
+          gap: .7rem;
+
+          h3 {
+            font-weight: 600;
+            font-size: 14px;
+            align-items: start;
+            color: $light-grey;
+          }
+        }
+			}
+	}
+
+  .paginationWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
+	.deleteModal {
+			display: flex;
+			flex-direction: column;
+			gap: 2rem;
+
+			.buttons {
+			display: flex;
+			gap: 2rem;
+
+			.deleteBtn {
+					background-color: $danger;
+					color: $secondary-white;
+			}
+
+      .saveBtn {
+        background-color: $blue;
+        color: $secondary-white;
+      }
+	}
+}
 }

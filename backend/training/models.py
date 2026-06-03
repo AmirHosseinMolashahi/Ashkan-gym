@@ -21,12 +21,18 @@ class Course(models.Model):
         ('private', 'خصوصی'),
     )
 
+    DAY_GROUP_CHOICES = (
+        ('even', 'زوج'),
+        ('odd', 'فرد'),
+        ('mixed', 'ترکیبی'),
+    )
+
     title = models.CharField(max_length=256, verbose_name='عنوان کلاس')
     avatar = models.ImageField(upload_to='courses/', null=True, default='default/dumble.jpg')
     coach = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        limit_choices_to={"role" : "coach"},
+        limit_choices_to={"roles" : 2},
         related_name="courses",
         verbose_name='مربی'
     )
@@ -41,10 +47,37 @@ class Course(models.Model):
         verbose_name="رده‌های سنی"
     )
     class_status = models.CharField(max_length=10, choices=CLASS_STATUS, verbose_name='نوع کلاس')
+    days_group = models.CharField(
+        max_length=10,
+        choices=DAY_GROUP_CHOICES,
+        default='mixed',
+        verbose_name='گروه روزهای کلاس'
+    )
 
     def __str__(self):
             age_ranges = ", ".join([str(age) for age in self.age_ranges.all()])
             return self.title + ' رده سنی ' + age_ranges + ' مربی: ' + self.coach.first_name + ' ' + self.coach.last_name
+    
+
+    def update_days_group(self):
+        tables = self.timeTable.all()
+
+        if not tables.exists():
+            self.days_group = 'mixed'
+            return
+
+        days = [t.day_of_week for t in tables]
+
+        if all(day % 2 == 0 for day in days):
+            self.days_group = 'odd'
+
+        elif all(day % 2 == 1 for day in days):
+            self.days_group = 'even'
+
+        else:
+            self.days_group = 'mixed'
+
+        self.save(update_fields=['days_group'])
     
     class Meta:
         verbose_name = 'کلاس'

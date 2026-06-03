@@ -15,6 +15,7 @@ import Modal from '../../../../components/GlobalComponents/Modal/Modal';
 import FileUpload from '../../../../components/registration/FileUpload/FileUpload';
 import FileModal from '../../../../components/GlobalComponents/FileModal/FileModal';
 import { useSelector } from 'react-redux';
+import BackButton from '../../../../components/dashboards/backButton/BackButton';
 
 const INITIAL_FORM = {
   first_name: '',
@@ -318,10 +319,7 @@ const ManagerEditUser = () => {
   return (
     <div className={styles.editUser} dir="rtl">
       <div className={styles.pageHeader}>
-        <button className={styles.backBtn} onClick={() => navigate('/dashboard/user-management')}>
-          <UilArrowLeft />
-          بازگشت به لیست کاربران
-        </button>
+        <BackButton route="/dashboard/user-management" title="بازگشت" />
 
         <div className={styles.actions}>
           <button className={styles.cancelBtn} onClick={() => navigate('/dashboard/user-management')}>
@@ -338,8 +336,8 @@ const ManagerEditUser = () => {
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.layout}>
-        <form className={styles.main} onSubmit={handleSubmit}>
-          <section className={styles.card}>
+        <div className={styles.right}>
+          <section className={`${styles.card} ${styles.personal}`}>
             <h3>اطلاعات فردی</h3>
             <p className={styles.cardDesc}>اطلاعات پایه کاربر را به‌روزرسانی کنید.</p>
 
@@ -430,7 +428,7 @@ const ManagerEditUser = () => {
             </div>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.account}`}>
             <h3>وضعیت حساب و نقش</h3>
             <p className={styles.cardDesc}>سطح دسترسی و وضعیت فعلی حساب را مدیریت کنید.</p>
 
@@ -462,10 +460,10 @@ const ManagerEditUser = () => {
               <input value={`USR-${userData?.id || '-'}`} readOnly />
             </div>
           </section>
-        </form>
-
-        <aside className={styles.side}>
-          <section className={styles.profileCard}>
+        </div>
+        
+        <div className={styles.left}>
+          <section className={`${styles.profileCard} ${styles.profile}`}>
             <div className={styles.avatarWrap}>
               <div className={styles.centerWrapper}>
                 <div className={styles.profileImageWrapper}>
@@ -509,7 +507,7 @@ const ManagerEditUser = () => {
             </div>
           </section>
 
-          <section className={styles.profileCard}>
+          <section className={`${styles.profileCard} ${styles.docs}`}>
             <div className={styles.docHeader}>
               <h3>مدارک ثبت‌نام</h3>
               <button className={styles.addBtn} onClick={() => handleUploadModal()}>
@@ -541,7 +539,7 @@ const ManagerEditUser = () => {
 
           </section>
 
-          <section className={styles.dangerCard}>
+          <section className={`${styles.dangerCard} ${styles.danger}`}>
             <h3 className={styles.dangerTitle}>منطقه خطر</h3>
 
             <button className={styles.dangerAction} type="button" onClick={handlePasswordReset}>
@@ -558,7 +556,7 @@ const ManagerEditUser = () => {
               </button>
             ): ''}
           </section>
-        </aside>
+        </div>
       </div>
       {cropModalOpen && (
         <div className={styles.modal}>

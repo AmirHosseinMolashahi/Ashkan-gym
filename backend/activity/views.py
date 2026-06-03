@@ -3,11 +3,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.filters import SearchFilter
+
+from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 
 from .models import ActivityLog
 from .serializers import ActivityLogSerializer
 from account.permissions import IsCoachOrManager
+from training.paginations import CustomPagination
 
 
 class RecentActivityView(APIView):
@@ -28,7 +32,23 @@ class ActivityPagination(PageNumberPagination):
 class ManagerRecentActivityView(ListAPIView):
     serializer_class = ActivityLogSerializer
     permission_classes = [IsAuthenticated, IsCoachOrManager]
-    pagination_class = ActivityPagination
+
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+
+    filterset_fields = {
+        'verb': ['exact'],
+        'actor': ['exact'],
+        'actor__roles__name': ['exact'],
+    }
+
+    search_fields = [
+        'description',
+        'path',
+        'actor__first_name',
+        'actor__last_name',
+        'actor__national_id'
+    ]
 
     def get_queryset(self):
         user = self.request.user
@@ -47,26 +67,5 @@ class ManagerRecentActivityView(ListAPIView):
                 ).distinct()
             else:
                 return ActivityLog.objects.none()
-
-        # ------------------ فیلترها ------------------
-
-        verb = self.request.query_params.get("verb")
-        actor_id = self.request.query_params.get("actor_id")
-        search = self.request.query_params.get("search")
-
-        if verb:
-            qs = qs.filter(verb=verb)
-
-        if actor_id:
-            qs = qs.filter(actor_id=actor_id)
-
-        if search:
-            qs = qs.filter(
-                Q(description__icontains=search) |
-                Q(path__icontains=search) |
-                Q(actor__first_name__icontains=search) |
-                Q(actor__last_name__icontains=search) |
-                Q(actor__national_id__icontains=search)
-            )
-
+        
         return qs

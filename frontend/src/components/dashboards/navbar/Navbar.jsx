@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import style from './Navbar.module.scss';
-import { UilBell, UilUser } from '@iconscout/react-unicons'
+import { UilBell, UilUser, UilBars } from '@iconscout/react-unicons'
 import api from '../../../hooks/api';
 import { useSelector } from "react-redux";
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import NotifIcon from '../../../hooks/notifIcon';
 
-const Navbar = () => {
+const Navbar = ({sidebarToggle, setSidebarToggle}) => {
 
   const { unreadCount, loading, unreadList } = useSelector(
     state => state.notifications
@@ -48,6 +48,11 @@ const Navbar = () => {
   return (
     <nav className={style.navbar}>
       <div className={style.container}>
+        <div className={style.sidebarBtn}>
+          <button onClick={() => {setSidebarToggle(true); console.log(sidebarToggle)}}>
+            <UilBars />
+          </button>
+        </div>
         <h1>
           {appLocations[location.pathname]}
         </h1>

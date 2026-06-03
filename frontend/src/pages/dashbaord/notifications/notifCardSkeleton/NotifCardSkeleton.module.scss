@@ -1,0 +1,114 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
+.card {
+  width: auto;
+  border-radius: 20px;
+  background-color: $white;
+  display: flex;
+
+  @include desktop {
+    width: 50rem;
+  }
+}
+
+.wrapper {
+  width: auto;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: .5rem;
+  padding: .5rem;
+  
+  @include desktop {
+    width: 100%;
+    padding: 1rem;
+  }
+}
+
+.icon,
+.date,
+.message,
+.messageShort,
+.button {
+  position: relative;
+  overflow: hidden;
+  background: #e5e5e5;
+  border-radius: 8px;
+}
+
+.icon::after,
+.date::after,
+.message::after,
+.messageShort::after,
+.button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -150px;
+  width: 150px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.6),
+    transparent
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+.icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 100%;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  .message {
+    width: 8rem;
+    height: 14px;
+    
+    @include desktop {
+      width: 10rem;
+    }
+  }
+
+  .messageShort {
+    width: 12rem;
+    height: 14px;
+
+    @include desktop {
+      width: 15rem;
+    }
+  }
+}
+
+.date {
+  width: 80px;
+  height: 16px;
+}
+
+.bottom {
+  display: none;
+  gap: .3rem;
+  justify-content: center;
+  align-items: center;
+
+  @include desktop {
+    display: flex;
+  }
+  .button {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 100%;
+  }
+}
+
+
+@keyframes shimmer {
+  100% {
+    right: 100%;
+  }
+}

@@ -6,7 +6,7 @@ import style from './Modal.module.scss';
 const Modal = ({children, handleModal, width, height}) => {
   return (
     <div className={style.modal}>
-      <div className={style.container} style={{ width: width || "400px", height: height || "400px" }}>
+      <div className={style.container}>
         <div className={style.closeBtn} onClick={handleModal}>
           <UilTimesCircle />
         </div>

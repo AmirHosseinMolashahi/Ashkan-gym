@@ -22,18 +22,7 @@ const AnnounceList = () => {
   const [deleteModal, setDeleteModal] = useState(false)
   const navigate = useNavigate()
 
-  const fetchListItems = async (page = 1) => {
-    try {
-      const res = await api.get(`announcements/lists/?page=${page}`);
-      setListItems(res.data.results)
-      setPage(page)
-      setTotalPages(Math.ceil(res.data.count / 10));
-      console.log(res.data)
-    } catch (err) {
-      console.log(err)
-      notify('خطا در دریافت اطلاعات!', 'error')
-    }
-  }
+  
 
   useEffect(() => {
     fetchListItems();

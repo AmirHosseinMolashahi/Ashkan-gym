@@ -1,27 +1,44 @@
 @use '../../styles/constants.scss' as *;
+@import '../../styles/mixins';
 
 .dashboard {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  
   .userInfo {
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    margin-top: 1.5rem;
-    height: 18rem;
-    gap: 1rem;
+    //margin-top: 5rem;
+    gap: .3rem;
+    @include desktop {
+      flex-direction: row;
+      margin-top: 1rem;
+      gap: 1rem;
+      height: 18rem;
+    }
     .right {
-      flex: 2;
+      @include desktop {
+        flex: 2;
+      }
     }
     .left {
-      flex: 1
+      @include desktop {
+        flex: 1;
+      }
     }
   }
 
   .userContent {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    @include desktop {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 2rem;
+    }
   }
 }

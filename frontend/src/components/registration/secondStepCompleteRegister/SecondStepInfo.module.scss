@@ -1,11 +1,18 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
 .container {
   .wrapper {
-    padding: 2rem;
     display: flex;
     flex-direction: column;
     h2 {
-      margin-bottom: 1.5rem;
+      @include desktop {
+        margin-bottom: 1.5rem;
+      }
+    }
+    
+    @include desktop {
+      padding: 2rem;
     }
 
     .form {
@@ -15,9 +22,15 @@
 
       .inputContainer {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        gap: 2rem;
+        gap: 1rem;
+        
+        @include desktop {
+          gap: 2rem;
+          flex-direction: row;
+        }
         .inputWrapper {
           width: 100%;
           display: flex;
@@ -26,14 +39,17 @@
           label {
             font-weight: 600;
             margin-bottom: 0.2rem;
-        }
+          }
+          
+          @include desktop {
+          }
 
         .formInput,
         select {
-            padding: 0.6rem;
             border-radius: 6px;
             border: 1px solid #ccc;
             font-size: 0.95rem;
+            padding: .6rem;
           } 
         } 
       }

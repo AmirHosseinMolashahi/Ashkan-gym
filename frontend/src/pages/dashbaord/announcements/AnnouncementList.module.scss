@@ -1,0 +1,478 @@
+@use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
+
+@mixin flex($dir: row, $align: center, $justify: flex-start) {
+  display: flex;
+  flex-direction: $dir;
+  align-items: $align;
+  justify-content: $justify;
+}
+
+// ── Page ─────────────────────────────────────────────────
+.page {
+  direction: rtl;
+  background: $bg;
+  min-height: 100vh;
+  padding: 1rem;
+
+  @include desktop {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+}
+
+// ── Header ───────────────────────────────────────────────
+.pageHeader {
+  @include flex(row, center, space-between);
+  margin-bottom: 1.25rem;
+
+  .pageHeaderText {
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: $text;
+      margin: 0 0 .15rem;
+
+      @include desktop { font-size: 1.5rem; }
+    }
+    p {
+      font-size: .75rem;
+      color: $text-sub;
+      margin: 0;
+    }
+  }
+}
+
+.newBtn {
+  @include flex(row, center, center);
+  gap: .35rem;
+  background: $blue;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: .5rem 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+
+  svg { width: 1.1rem; height: 1.1rem; }
+
+  &:hover {
+    background: darken($blue, 8%);
+    transform: translateY(-1px);
+  }
+  &:active { transform: translateY(0); }
+}
+
+// ── Filters ──────────────────────────────────────────────
+.filters {
+  @include flex(row, center, flex-start);
+  gap: .5rem;
+  overflow-x: auto;
+  padding-bottom: .25rem;
+  margin-bottom: 1.25rem;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.filterCount {
+  @include flex(row, center, center);
+  gap: .2rem;
+  background: $blue;
+  color: #fff;
+  border-radius: 10px;
+  padding: .35rem .65rem;
+  font-size: .8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  svg { width: 1rem; height: 1rem; }
+}
+
+.filterBtn {
+  @include flex(row, center, center);
+  gap: .35rem;
+  background: $surface;
+  color: $text-sub;
+  border: 1.5px solid $border;
+  border-radius: 10px;
+  padding: .35rem .8rem;
+  font-size: .8rem;
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .2s ease;
+
+  &:hover {
+    border-color: $blue;
+    color: $blue;
+  }
+}
+
+.filterActive {
+  background: $blue-light;
+  border-color: $blue;
+  color: $blue;
+  font-weight: 700;
+}
+
+.filterDot {
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  display: inline-block;
+
+  &[data-status='all'] { background: $blue; }
+  &[data-status='p'] { background: $green; }
+  &[data-status='r']    { background: $orange; }
+  &[data-status='d']     { background: $gray; }
+  &[data-status='b']  { background: $red; }
+}
+
+// ── List ─────────────────────────────────────────────────
+.list {
+  @include flex(column, stretch, flex-start);
+  gap: .85rem;
+}
+
+.empty {
+  text-align: center;
+  color: $text-sub;
+  padding: 3rem 0;
+  font-size: .9rem;
+}
+
+// ── pagination ─────────────────────────────────────────────────
+
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: .5rem;
+}
+
+// ── Card ─────────────────────────────────────────────────
+.card {
+  background: $surface;
+  border-radius: 16px;
+  border: 1.5px solid $border;
+  padding: .9rem 1rem;
+  transition: box-shadow .2s ease, transform .2s ease, border-color 0.3s ease;
+
+  &.unread {
+    border-color: $green;  /* ثابت، بدون انیمیشن */
+  }
+
+  &.active {
+    animation: fadeActive 2s ease forwards;
+  }
+
+  @include desktop {
+    padding: 1.1rem 1.4rem;
+    &:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,.07);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+@keyframes fadeActive {
+    0%   { border-color: $green; }
+    100% { border-color: $border; }
+}
+
+.cardHeader {
+  @include flex(row, center, space-between);
+  margin-bottom: .6rem;
+  gap: .3rem;
+
+  .newItem, .readItem {
+    padding: .1rem;
+    background-color: $green-light;
+    color: $green;
+    border-radius: 10px;
+    font-size: 10px;
+    
+    @include desktop {
+      padding: .225rem;
+      font-size: 12px;
+    }
+  }
+
+  .readItem {
+    background-color: $gray-light;
+    color: $gray;
+  }
+}
+
+.cardTitle {
+  font-size: .95rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+  text-align: right;
+
+  @include desktop { font-size: 1.05rem; }
+}
+
+.cardBody {
+  font-size: .82rem;
+  line-height: 1.8;
+  color: $text-sub;
+  margin: 0 0 .85rem;
+  text-align: right;
+
+  @include desktop { font-size: .88rem; }
+}
+
+.cardFooter {
+  border-top: 1px solid $border;
+  gap: .5rem;
+
+  .footerContainer {
+    @include flex(row, center, space-between);
+    padding-top: .7rem;
+    gap: .5rem;
+  }
+  
+  .recipients {
+    @include flex(row, center, flex-start);
+    gap: 1rem;
+    p {
+      @include flex(row, center, flex-start);
+      gap: .3rem;
+      font-size: 14px;
+
+      svg {
+        width: 1rem;
+      }
+    }
+
+    span {
+      font-size: 12px;
+      color: $light-grey
+    }
+  }
+}
+
+// ── Meta ─────────────────────────────────────────────────
+.meta {
+  @include flex(column, flex-end, flex-start);
+  gap: .25rem;
+
+  @include desktop {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.metaItem {
+  @include flex(row, center, flex-start);
+  gap: .3rem;
+  font-size: .75rem;
+  color: $text-sub;
+  direction: rtl;
+}
+
+.metaIcon {
+  width: .85rem;
+  height: .85rem;
+  color: $gray;
+}
+
+.metaRole {
+  color: $gray;
+  font-size: .7rem;
+  &::before { content: '·'; margin: 0 .2rem; }
+}
+
+// ── Card Actions ─────────────────────────────────────────
+.cardActions {
+  @include flex(row, center, flex-end);
+  gap: .4rem;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  @include flex(row, center, center);
+  width: 2rem;
+  height: 2rem;
+  padding: .3rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+
+  svg { width: 1rem; height: 1rem; }
+
+  &:active { transform: scale(.93); }
+}
+
+.deleteBtn {
+  background: $red-light;
+  color: $red;
+  &:hover { background: darken($red-light, 4%); }
+
+}
+
+.editBtn {
+  background: $blue-light;
+  color: $blue;
+  &:hover { background: darken($blue-light, 4%); }
+}
+
+.viewBtn {
+  background: $green-light;
+  color: $green;
+  &:hover { background: darken($green-light, 4%); }
+
+  &.read {
+    background-color: $gray-light;
+    color: $gray
+  }
+}
+
+// ── Badge ─────────────────────────────────────────────────
+.badge {
+  @include flex(row, center, center);
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: .2rem .6rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &.green  { background: $green-light;  color: darken($green, 10%); }
+  &.orange { background: $orange-light; color: darken($orange, 10%); }
+  &.gray   { background: $gray-light;   color: darken($gray, 20%); }
+  &.red    { background: $red-light;    color: darken($red, 10%); }
+}
+
+.dot {
+  width: .4rem;
+  height: .4rem;
+  border-radius: 50%;
+  background: $green;
+  animation: pulse 1.8s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.4); }
+}
+ 
+
+// ── Skeleton Base ───────────────────────────────────────
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e5e7eb;
+  border-radius: 8px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.6),
+      transparent
+    );
+    animation: shimmer 1.4s infinite;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// ── skletop Card ────────────────────────────────────────────────
+.skeletonCard {
+  pointer-events: none;
+}
+
+// Header
+.badgeSkeleton {
+  width: 4.5rem;
+  height: 1.6rem;
+  border-radius: 8px;
+}
+
+.titleSkeleton {
+  width: 45%;
+  height: 1rem;
+}
+
+// Body
+.bodySkeleton {
+  margin-bottom: .9rem;
+}
+
+.line {
+  width: 100%;
+  height: .8rem;
+  margin-bottom: .5rem;
+}
+
+.shortLine {
+  width: 70%;
+  height: .8rem;
+}
+
+// Footer
+.metaSkeleton {
+  width: 8rem;
+  height: .75rem;
+}
+
+.metaSkeletonSmall {
+  width: 6rem;
+  height: .75rem;
+}
+
+.actionSkeleton {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+}
+
+
+.deleteModal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  .buttons {
+    display: flex;
+    gap: 2rem;
+
+    .deleteBtn {
+      background-color: $danger;
+      color: $secondary-white;
+    }
+
+    .saveBtn {
+      background-color: $blue;
+      color: $secondary-white;
+    }
+	}
+}
+
+.previewModal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h3 {
+    color: $primary;
+  }
+}

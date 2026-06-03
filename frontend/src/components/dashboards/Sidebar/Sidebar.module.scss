@@ -1,37 +1,32 @@
 @use '../../../styles/constants.scss' as *;
+@import "../../../styles/mixins";
 .sidebar {
-  @media (max-width: $sm) {
-    // top: auto;
-    bottom: 0;
-    width: 100%;
-    height: 5rem;
-    flex-direction: row;
-    padding-top: 0;
-    transition: all 0.3s ease;
-    justify-content: center;
-    align-items: center;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 250px;
+  height: 100vh;
+
+  background-color: $primary;
+  
+  z-index: 1000;
+  
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  
+  &.active {
+    transform: translateX(0);
   }
 
-  @media (min-width: $md) {
-    top: 0;
-    right: 0;
+  @include desktop {
+    transform: translateX(0);
   }
-    width: 250px;
-    height: 100%;
-    background-color: $primary;
-    color: white;
-    position: fixed;
-    transition: right 0.3s ease;
-    z-index: 1000;
-    padding-top: 20px;
+
+  .container {
     display: flex;
     flex-direction: column;
-    gap: 4rem;
-
+    height: 100%;
     .logo {
-      @media (max-width: $sm) {
-        display: none;
-      }
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -46,27 +41,20 @@
   
     .sidebarLinks {
       position: relative;
-      height: 100%;
       display: flex;
       flex-direction: column;
       list-style: none;
       padding: 1rem;
       gap: 1.2rem;
-      @media (max-width: $sm) {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+      height: 100%;
+      @include desktop {
+
       }
   
       li {
         border-radius: 10px;
         cursor: pointer;
 
-        span {
-          @media (max-width: $sm){
-            display: none;
-          }
-        }
         a, .logoutButton {
           padding: .7rem;
           padding-right: 2rem;
@@ -95,11 +83,6 @@
         }
 
           &:last-child {
-            @media (max-width: $sm) {
-              position: relative;
-              margin: 0;
-              width: fit-content;
-            }
             position: absolute;
             bottom: 3rem;
             margin-right: 2rem;
@@ -120,4 +103,5 @@
           } 
         }
       }
+  }
     }

@@ -1,0 +1,40 @@
+@use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+.Header {
+  padding: .1rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
+  .container {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    padding: .5rem .7rem;
+    @include desktop {
+      justify-content: center;
+    }
+    .logo {
+      img {
+        width: 3.5rem;
+        height: 3.5rem;
+      }
+    }
+    .bars {
+      display: block;
+      justify-content: center;
+      align-items: center;
+      background-color: transparent;
+
+      svg {
+        path {
+          fill: $white;
+        }
+      }
+
+      @include desktop {
+        display: none;
+      }
+    }
+  }
+}

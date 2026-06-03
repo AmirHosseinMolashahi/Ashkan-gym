@@ -1,3 +1,5 @@
+from urllib import request
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Q, Value, Count, Case, When, F, IntegerField
 from django.db.models.functions import Coalesce
@@ -10,9 +12,13 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.filters import SearchFilter
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 from account.permissions import IsCoachOrManager
 from training.models import Course, Enrollment
+from training.paginations import CustomPagination
 from .models import Invoice, Payment
 from .serializers import (
         StudentInvoiceSerializer,
@@ -35,6 +41,7 @@ class CoachInvoiceListView(ListAPIView):
     """
     permission_classes = [IsAuthenticated, IsCoachOrManager]
     serializer_class = StudentInvoiceSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -75,8 +82,18 @@ class CoachInvoiceListView(ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
+        search = request.query_params.get("search")
+        status_filter = request.query_params.get("status")
+
         course_id = request.query_params.get("course_id")
         course = get_object_or_404(Course, id=course_id)
+
+        if search:
+            queryset = queryset.filter(
+                Q(enrollment__student__first_name__icontains=search)
+                | Q(enrollment__student__last_name__icontains=search)
+                | Q(enrollment__student__national_id__icontains=search)
+            )
 
         total_expected = 0
         collected = 0
@@ -85,11 +102,17 @@ class CoachInvoiceListView(ListAPIView):
         pending_students = set()
 
         students = []
-
+        
         for inv in queryset:
             final_amount = inv.get_final_amount()
             paid = inv.paid_amount_db or 0
             remaining = max(final_amount - paid, 0)
+
+            status_value = inv.calculate_status()
+
+            if status_filter and status_filter != "all":
+                if status_value != status_filter:
+                    continue
 
             total_expected += final_amount
             collected += paid
@@ -125,8 +148,15 @@ class CoachInvoiceListView(ListAPIView):
                 "remaining_amount": remaining,
                 "status": inv.calculate_status(),
             })
+        
+        paginator = self.pagination_class()
 
-        return Response({
+        paginated_students = paginator.paginate_queryset(
+            students,
+            request
+        )
+
+        return paginator.get_paginated_response({
             "summary": {
                 "course_id": course.id,
                 "course_title": course.title,
@@ -138,7 +168,7 @@ class CoachInvoiceListView(ListAPIView):
 
                 "pending_count": len(pending_students),
             },
-            "students": students
+            "students": paginated_students
         })
     
 class CoachPaymentDashboardView(APIView):
@@ -159,6 +189,20 @@ class CoachPaymentDashboardView(APIView):
                 {"detail": "شما به این داشبورد دسترسی ندارید."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        
+        # filters
+        gender = request.query_params.get("gender")
+        day_group = request.query_params.get("day_group")
+        search = request.query_params.get("search")
+
+        if gender and gender != "all":
+            courses = courses.filter(gender=gender)
+
+        if day_group and day_group != "all":
+            courses = courses.filter(days_group=day_group)
+
+        if search:
+            courses = courses.filter(title__icontains=search)
 
 
         data = []
@@ -254,32 +298,13 @@ class CoachPaymentDashboardView(APIView):
 
                 return f"{' و '.join(days)} {start_time}–{end_time}"
 
-
-            def get_day_group(obj):
-                tables = obj.timeTable.all()
-
-                if not tables:
-                    return None
-
-                days = sorted([t.day_of_week for t in tables])
-
-                # تشخیص زوج یا فرد
-                if all(day % 2 == 0 for day in days):
-                    day_type = "odd"
-                elif all(day % 2 == 1 for day in days):
-                    day_type = "even"
-                else:
-                    day_type = "mixed"
-
-                return day_type
-
             data.append({
                 "id": course.id,
                 "title": course.title,
                 "active": course.is_active,
                 "gender": course.gender,
                 "timeTable": get_schedule(course),
-                "day_group": get_day_group(course),
+                "day_group": course.days_group,
                 "coach": {"full_name": course.coach.get_full_name()},
                 "athletes": enrollments.count(),
 
@@ -290,8 +315,15 @@ class CoachPaymentDashboardView(APIView):
 
                 "state": state,
             })
+        
+        paginator = CustomPagination()
 
-        return Response({
+        paginated_data = paginator.paginate_queryset(
+            data,
+            request
+        )
+
+        return paginator.get_paginated_response({
             "summary": {
                 "total_expected": total_expected,
                 "collected": collected,
@@ -300,7 +332,7 @@ class CoachPaymentDashboardView(APIView):
                 "collected_percent": round((collected / total_expected) * 100) if total_expected else 0,
                 "pending_athletes": pending_athletes,
             },
-            "courses": data
+            "courses": paginated_data
         })
 
 

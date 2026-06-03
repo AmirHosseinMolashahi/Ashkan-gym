@@ -1,0 +1,132 @@
+@use '../../../../../styles/constants.scss' as *;
+
+.cardsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .card {
+    position: relative;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+
+    .cardHeader {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+
+      img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+      }
+
+      .actionBtn {
+        position: absolute;
+        background-color: transparent;
+        padding: 0;
+        left: 0;
+        transform: rotate(90deg);
+        cursor: pointer;
+      }
+      .cardActions {
+        position: absolute;
+        top: 35px;
+        left: 5px;
+
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease,
+          visibility 0.2s;
+
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+
+        padding: 8px;
+        z-index: 100;
+
+        &.active {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+
+        button {
+          padding: .3rem;
+          background-color: transparent;
+          border-radius: 0;
+          font-size: 14px;
+        }
+      }
+
+      .info {
+        font-size: 14px;
+
+        strong {
+          color: $primary;
+        }
+      }
+
+      .phone_number {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: $secondary-white;
+        padding: .3rem;
+        border-radius: 10px;
+        color: $primary;
+        font-size: 14px;
+      }
+    }
+
+    .cardInfo {
+      display: flex;
+      gap: 1rem;
+      .row {
+        span {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: .3rem;
+          font-size: 14px;
+          border: 1px solid $secondary-white;
+          padding: .3rem;
+          border-radius: 20px;
+          color: $primary;
+        }
+
+        &.status {
+          .active {
+            border-color: $success;
+            color: $success;
+          }
+          .inactive {
+            border-color: $danger;
+            color: $danger;
+          }
+        }
+        &.payment {
+          .badge {
+            font-size: 12px;
+            &.paid { background: #e6f9ee; color: #1c9c5d; }
+            &.unpaid { background: #fde8e8; color: #e02424; }
+            &.partially_paid { background: #fff4e5; color: #f59e0b; }
+            &.canceled { background: #fde8e8; color: #e02424; }
+          }
+        }
+      }
+    }
+  }
+}

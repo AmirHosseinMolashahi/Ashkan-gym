@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value, OuterRef, Subquery, DurationField, Sum, IntegerField, Exists
+from django.db.models import Prefetch, Count, Q, F, FloatField, ExpressionWrapper, Case, When, Value, OuterRef, Subquery, DurationField, Sum, IntegerField, Exists, BooleanField
 from django.db.models.functions import Coalesce
 from django.db import transaction
 from django.utils import timezone
@@ -16,12 +16,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 from account.permissions import IsCoachOrManager, IsManager
 from account.models import CustomUser
 from payment.models import Invoice
 from payment.utils import _last_day_of_jalali_month
 
+from .paginations import CustomPagination
+from .filters import EnrollmentFinancialFilter
 from .models import Course, Enrollment, TimeTable, Session, Attendance, AgeRange
 from .utils import get_current_shamsi_month_range, get_previous_shamsi_month_range, get_shamsi_month_range, PERSIAN_MONTHS 
 from .serializers import (
@@ -29,7 +34,6 @@ from .serializers import (
     AddEnrollmentSerializer,
     EnrollmentListSerializer,
     TimeTableSerializer,
-    EnrollmentSerializer,
     StudentSerializer,
     UserEnrollmnetsSerializers,
     SessionSerializer,
@@ -39,10 +43,11 @@ from .serializers import (
     SessionAttendanceSerializers,
     AttendanceBulkUpdateSerializer,
     MonthlyAttendanceSummarySerializer,
-    AthleteDashboardSerializer,
     CourseCreateSerializer,
     TimeTableBulkItemSerializer,
     EnrollmentAttendanceSerializer,
+    EnrollmentMonthlyStatusSerializer,
+    EnrollmentFinancialSerializer,
     )
 
 
@@ -53,6 +58,13 @@ from .serializers import (
 class CoursesListView(ListAPIView):
     permission_classes = [IsAuthenticated, IsCoachOrManager]
     serializer_class = CourseListSerializers
+
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+
+    filterset_fields = ['gender', 'days_group']
+    search_fields = ['title']
+
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -349,12 +361,105 @@ class AddEnrollmentView(CreateAPIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 #نمایش لیست ثبت نامی های یک کلاس
-class CoursesEnrollmentsView(ListAPIView):
+# class CoursesEnrollmentsView(ListAPIView):
+#     permission_classes = [IsAuthenticated, IsCoachOrManager]
+#     serializer_class = EnrollmentSerializer
+
+#     pagination_class = CustomPagination
+
+#     def get_queryset(self):
+#         course_id = self.kwargs['course_id']
+#         start_date, end_date = get_current_shamsi_month_range()
+
+#         priority_invoice = Invoice.objects.filter(
+#             enrollment=OuterRef('pk'),
+#             status__in=['unpaid', 'partially_paid']
+#         ).order_by('due_date')
+
+#         all_invoice = Invoice.objects.filter(
+#             enrollment=OuterRef('pk')
+#         ).order_by('due_date')
+
+#         return (
+#             Enrollment.objects
+#             .filter(
+#                 course_id=course_id,
+#                 # status='active'
+#             )
+#             .select_related('student', 'course')
+#             .annotate(
+#                 total_sessions=Count(
+#                     'attendances',
+#                     filter=Q(
+#                         attendances__session__attendance_status='finished',
+#                         attendances__session__date__range=(start_date, end_date)
+#                     ),
+#                     distinct=True
+#                 ),
+
+#                 present_count=Count(
+#                     'attendances',
+#                     filter=Q(
+#                         attendances__session__attendance_status='finished',
+#                         attendances__session__date__range=(start_date, end_date),
+#                         attendances__status__in=['present', 'late']
+#                     ),
+#                     distinct=True
+#                 ),
+#             )
+#             .annotate(
+#                 attendance_percentage=Case(
+#                     When(
+#                         total_sessions=0,
+#                         then=Value(0.0)
+#                     ),
+#                     default=ExpressionWrapper(
+#                         100.0 * F('present_count') / F('total_sessions'),
+#                         output_field=FloatField()
+#                     ),
+#                     output_field=FloatField()
+#                 )
+#             )
+#             .annotate(
+#                 next_invoice_status=Coalesce(
+#                     Subquery(priority_invoice.values('status')[:1]),
+#                     Subquery(all_invoice.values('status')[:1])
+#                 ),
+#                 next_invoice_amount=Coalesce(
+#                     Subquery(priority_invoice.values('amount')[:1]),
+#                     Subquery(all_invoice.values('amount')[:1])
+#                 ),
+#                 next_invoice_due_date=Coalesce(
+#                     Subquery(priority_invoice.values('due_date')[:1]),
+#                     Subquery(all_invoice.values('due_date')[:1])
+#                 ),
+#             )
+#         )
+
+
+class CourseEnrollmentsMonthlyStatusView(ListAPIView):
     permission_classes = [IsAuthenticated, IsCoachOrManager]
-    serializer_class = EnrollmentSerializer
+
+    serializer_class = EnrollmentMonthlyStatusSerializer
+    pagination_class = CustomPagination
+
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+    ]
+
+    filterset_fields = ['status']
+
+    search_fields = [
+        'student__first_name',
+        'student__last_name',
+        'student__phone_number',
+        'student__national_id',
+    ]
 
     def get_queryset(self):
         course_id = self.kwargs['course_id']
+
         start_date, end_date = get_current_shamsi_month_range()
 
         priority_invoice = Invoice.objects.filter(
@@ -368,11 +473,11 @@ class CoursesEnrollmentsView(ListAPIView):
 
         return (
             Enrollment.objects
-            .filter(
-                course_id=course_id,
-                # status='active'
+            .filter(course_id=course_id)
+            .select_related(
+                'student',
+                'course',
             )
-            .select_related('student', 'course')
             .annotate(
                 total_sessions=Count(
                     'attendances',
@@ -395,10 +500,7 @@ class CoursesEnrollmentsView(ListAPIView):
             )
             .annotate(
                 attendance_percentage=Case(
-                    When(
-                        total_sessions=0,
-                        then=Value(0.0)
-                    ),
+                    When(total_sessions=0, then=Value(0.0)),
                     default=ExpressionWrapper(
                         100.0 * F('present_count') / F('total_sessions'),
                         output_field=FloatField()
@@ -409,19 +511,69 @@ class CoursesEnrollmentsView(ListAPIView):
             .annotate(
                 next_invoice_status=Coalesce(
                     Subquery(priority_invoice.values('status')[:1]),
-                    Subquery(all_invoice.values('status')[:1])
+                    Subquery(all_invoice.values('status')[:1]),
                 ),
+
                 next_invoice_amount=Coalesce(
                     Subquery(priority_invoice.values('amount')[:1]),
-                    Subquery(all_invoice.values('amount')[:1])
+                    Subquery(all_invoice.values('amount')[:1]),
                 ),
+
                 next_invoice_due_date=Coalesce(
                     Subquery(priority_invoice.values('due_date')[:1]),
-                    Subquery(all_invoice.values('due_date')[:1])
+                    Subquery(all_invoice.values('due_date')[:1]),
                 ),
             )
         )
 
+
+class CourseEnrollmentsFinancialView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsCoachOrManager]
+
+    serializer_class = EnrollmentFinancialSerializer
+
+    pagination_class = CustomPagination
+
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+    ]
+
+    filterset_class = EnrollmentFinancialFilter
+
+    search_fields = [
+        'student__first_name',
+        'student__last_name',
+        'student__phone_number',
+        'student__national_id',
+    ]
+
+
+    def get_queryset(self):
+        course_id = self.kwargs['course_id']
+
+        return (
+            Enrollment.objects
+            .filter(course_id=course_id)
+            .select_related(
+                'student',
+                'course',
+                'pricing',
+            )
+            .annotate(
+                has_discount=Case(
+                    When(
+                        Q(pricing__monthly_fee__isnull=False) |
+                        Q(pricing__discount_amount__gt=0) |
+                        Q(pricing__discount_percent__gt=0),
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            )
+        )
+    
 # ویو های مربی
 #نمایش لیست تمام ثبت نامی های هر کلاس
 class EnrollmentListView(ListAPIView):
@@ -1097,6 +1249,7 @@ class UserPreviousMonthSessionsView(ListAPIView):
 # این ویو واسه مربیه و جلسه هایی از کلاس رو میبینه که گذشته
 class AvailableMonthSessionView(ListAPIView):
     serializer_class = SessionSerializer
+    pagination_class = None
 
     def get_queryset(self):
 
@@ -1152,6 +1305,7 @@ class AvailableMonthSessionView(ListAPIView):
 class SessionAttendance(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SessionAttendanceSerializers
+    pagination_class = None
 
     def get_queryset(self):
         session_id = self.kwargs['session_id']

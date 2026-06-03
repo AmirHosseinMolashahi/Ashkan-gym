@@ -1,0 +1,280 @@
+@use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  width: 100%;
+
+  @include desktop {
+    width: 280px;
+    min-width: 260px;
+    gap: 1rem;
+  }
+}
+
+.widget {
+  background: $surface;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid $border;
+
+  @include tablet {
+    padding: 18px;
+  }
+}
+
+// Calendar
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.monthTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+}
+
+.navBtn {
+  background: $gray-light;
+  border: none;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: $text-sub;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: $border;
+  }
+}
+
+.calendarGrid {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  flex: 1;
+  transition: background 0.15s;
+  position: relative;
+
+  &:hover {
+    background: $gray-light;
+  }
+}
+
+.activeDay {
+  background: $blue !important;
+
+  .weekday,
+  .dayNum {
+    color: #fff !important;
+  }
+
+  .dot {
+    background: rgba(255, 255, 255, 0.8) !important;
+  }
+}
+
+.weekday {
+  font-size: 11px;
+  color: $text-sub;
+}
+
+.dayNum {
+  font-size: 14px;
+  font-weight: 600;
+  color: $text;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: $blue;
+}
+
+// Widget Header
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.widgetHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.widgetHeaderLeft {
+  display: flex;
+  align-items: center;
+}
+
+.widgetTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: $text;
+}
+
+.widgetIcon {
+  font-size: 15px;
+}
+
+.eventBadge {
+  background: $blue-light;
+  color: $blue;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+// Schedule
+.scheduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scheduleItem {
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scheduleInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.scheduleTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text;
+}
+
+.scheduleTag {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.scheduleTime {
+  font-size: 11px;
+  color: $text-sub;
+  white-space: nowrap;
+}
+
+// Quick Add
+.addCircleBtn {
+  background: $blue-light;
+  color: $blue;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: darken(#eef0fd, 4%);
+  }
+}
+
+.quickForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quickInput {
+  background: $gray-light;
+  box-sizing: border-box;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: $text;
+  text-align: right;
+  width: 100%;
+
+  &::placeholder {
+    color: $text-sub;
+  }
+}
+
+.quickRow {
+  display: flex;
+  gap: 8px;
+}
+
+.quickMeta {
+  background: $gray-light;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: darken(#f1f5f9, 3%);
+  }
+}
+
+.metaIcon {
+  font-size: 13px;
+}
+
+.metaLabel {
+  font-size: 12px;
+  color: $text-sub;
+}
+
+.quickSubmit {
+  background: $blue;
+  color: #fff;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s, transform 0.15s;
+
+  &:hover {
+    background: darken(#3b82f6, 8%);
+    transform: translateY(-1px);
+  }
+}

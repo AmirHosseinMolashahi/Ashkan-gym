@@ -1,408 +1,291 @@
-import React, { useState, useEffect } from 'react'
-import style from './Schedule.module.scss';
-import { Calendar } from 'react-multi-date-picker';
-import persian from "react-date-object/calendars/persian"
-import persian_fa from "react-date-object/locales/persian_fa"
-import { UilPlusCircle, UilTimesCircle, UilTrashAlt, UilEdit, UilCheckCircle, UilHourglass   } from '@iconscout/react-unicons'
-import DatePicker from "react-multi-date-picker";
+import React, { useState, useMemo, useEffect } from 'react';
+import styles from './Schedule.module.scss';
+import Header from '../../../components/dashboards/schedule/Header/Header';
+import SideSection from '../../../components/dashboards/schedule/SideSection/SideSection';
+import FilterBar from '../../../components/dashboards/schedule/FilterBar/FilterBar';
+import TaskList from '../../../components/dashboards/schedule/TaskList/TaskList';
 import api from '../../../hooks/api';
-import toPersianDigits from '../../../hooks/convertNumber';
-import Filter from '../../../components/dashboards/Filter/Filter';
+import Pagination from '../../../components/GlobalComponents/Pagination/Pagination';
+import Modal from '../../../components/GlobalComponents/Modal/Modal';
+import NewTaskForm from '../../../components/dashboards/schedule/newTaskForm/NewTaskForm';
 import { useToast } from '../../../context/NotificationContext';
+import Loader from '../../../components/GlobalComponents/NewLoader/Loader';
+import NewTaskFormSkeleton from '../../../components/dashboards/schedule/newTaskForm/newTaskFormSkeleton/NewTaskFormSkeleton';
+import BackButton from '../../../components/dashboards/backButton/BackButton';
+
 
 const Schedule = () => {
+  const [tasks, setTasks] = useState([]);
+  const [finishedFilter, setFinishedFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all')
 
-  const initialForm = {
-    title: '',
-    descriptions: '',
-    time: '',
-    finished: false,
-  }
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const [modal, setModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [editModal, setEditModal] = useState(false)
-  const [completeModal, setCompleteModal] =useState(false)
-  const { notify } = useToast();
-  const [selectedId, setSelectedId] = useState(null);
+  const [nextPage, setNextPage] = useState(null);
+  const [prevPage, setPrevPage] = useState(null);
 
-  const [filters, setFilters] = useState({
-    finished: false,
-    notFinished: false,
-    times: [],
-  });
+  const [newTaskModal, setNewTaskModal] = useState(false)
+  const [updateTaskModal, setUpdateTaskModal] = useState(false)
+  const [deleteModal, setDeleteModal] = useState(false)
 
- 
+  const [selectedReminder, setSelectedReminder] = useState(null)
 
-  const [remindersList, setRemindersList] = useState([]);
-  const selectedReminder = remindersList?.find(item => item.id === selectedId);
 
-  const [formData, setFormData] = useState(initialForm);
-  const [editFormData, setEditFormData] = useState(initialForm);
+  const { notify } = useToast()
+  const [pageLoading, setPageLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [updateLoading, setUpdateLoading] = useState(false)
 
-  const handleModal = () => {
-    if (modal) {
-    // اگر مودال در حال بسته شدن است → فرم پاک شود
-    setFormData(initialForm);
+
+
+  const handleDeleteModal = (item = null) => {
+    if (!deleteModal) {
+      setSelectedReminder(item)
+      setDeleteModal(true)
+    } else {
+      setSelectedReminder(null)
+      setDeleteModal(false)
     }
-    setModal(!modal);
-  }
-  const handleDeleteModal = (id) => {
-    setSelectedId(id);
-    setDeleteModal(!deleteModal);
   }
 
-  const handleEditModal = (item) => {
-    setSelectedId(item.id)
-    setEditFormData({
-      title: item.title,
-      descriptions: item.descriptions,
-      time: item.time_jalali,
-    });
-    setEditModal(!editModal);
+
+  const handleDelete = async (id) => {
+    try {
+      setLoading(true)
+      await api.delete(`/reminder/${id}/delete/`);
+      notify('یادآور با موفقیت حذف شد 👍🏻', 'info')
+      setTasks(prev => prev.filter(task => task.id !== id));
+      handleDeleteModal()
+    } catch (err) {
+      console.log(err.response)
+      notify('خطا در حذف یادآور جدید ☹️', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleCompleteModal = (item) => {
-    setSelectedId(item.id)
-    setEditFormData({
-      title: item.title,
-      descriptions: item.descriptions,
-      time: item.time_jalali,
-      finished: true,
-    });
-    setCompleteModal(!completeModal);
+
+  const handleUpdateModal = (id) => {
+    if (!updateTaskModal) {
+      fetchReminderData(id)
+      setUpdateTaskModal(true)
+    } else {
+      setSelectedReminder(null)
+      setUpdateTaskModal(false)
+    }
   }
 
-  const fethchReminders = async () => {
-      try {
-        const res = await api.get('schedule/lists/');
-        setRemindersList(res.data);
-        console.log(res.data)
-      } catch (err) {
-        console.log(err)
-        notify('خطا در دریافت اطلاعات!', 'error');
+  
+  const handleSave = async (payload) => {
+    try {
+      setLoading(true)
+      await api.post('/reminder/create/', payload)
+      notify('یادآور با موفقیت ایجاد شد 👍🏻', 'success')
+      fetchReminders(buildActivityUrl(page))
+    } catch (err) {
+      console.log(err.response)
+      notify('خطا در ایجاد یادآور جدید ☹️', 'error')
+    } finally {
+      setNewTaskModal(false)
+      setLoading(false)
+    }
+  }
+
+  const fetchReminderData = async (id) => {
+    try {
+      const res = await api.get(`/reminder/${id}/`)
+      setSelectedReminder(res.data)
+      console.log(res.data)
+    } catch (err) {
+      console.log(err.response)
+    }
+  }
+
+  const handleUpdate = async (payload) => {
+    try {
+      setUpdateLoading(true)
+      await api.patch(`/reminder/${payload.id}/update/`, payload)
+      notify('یادآور با موفقیت تغییر کرد 👍🏻', 'success')
+      fetchReminders(buildActivityUrl(page))
+    } catch (err) {
+      console.log(err.response)
+      notify('خطا در تغییر یادآور ☹️', 'error')
+    } finally {
+      handleUpdateModal()
+      setUpdateLoading(false)
+    }
+  }
+
+
+  const handleFinishedReminder = async (id) => {
+    try {
+      setLoading(true)
+      await api.patch(`/reminder/${id}/finish/`)
+      setTasks(prev => prev.map(a => 
+        a.id === id ? { ...a, finished: true } : a
+      ))
+      notify('یادآور با موفقیت پایان یافت ✔️', 'success')
+    } catch (err) {
+      console.log(err.response)
+      notify('خطا در عملیات ☹️', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
+  const fetchReminders = async (
+    url = '/reminder/list/'
+  ) => {
+    try {
+      setPageLoading(true)
+      let finalUrl = url;
+
+      if (url.startsWith("http")) {
+        const parsed = new URL(url);
+        finalUrl = `${parsed.pathname}${parsed.search}`;
       }
-    };
+
+      const res = await api.get(finalUrl);
+
+      console.log(res.data.results)
+
+      setTasks(res.data.results)
+      setPage(res.data.current_page);
+      setTotalPages(res.data.total_pages);
+      setTotalCount(res.data.count);
+
+      setNextPage(res.data.next);
+      setPrevPage(res.data.previous);
+
+    } catch (err) {
+      console.log(err.response)
+    } finally {
+      setPageLoading(false)
+    }
+  }
+
+    const buildActivityUrl = (pageNumber = 1) => {
+    const params = new URLSearchParams();
+
+    params.append("page", pageNumber);
+
+    if (searchQuery.trim()) {
+      params.append("search", searchQuery);
+    }
+
+    //finished
+    if (finishedFilter !== "all") {
+      params.append("finished", finishedFilter);
+    }
+
+    //priority
+    if (priorityFilter, setPriorityFilter !== 'all') {
+      params.append("priority", priorityFilter)
+    }
+
+    return `/reminder/list/?${params.toString()}`;
+  };
+
 
   useEffect(() => {
-    fethchReminders();
-  }, []);
+    fetchReminders(buildActivityUrl(page))
+  }, [page, finishedFilter, priorityFilter, searchQuery])
 
-  const filtered = remindersList
-  // فیلتر وضعیت: اگر فعال نبود → همه عبور کنند
-  .filter(r => (filters.finished ? r.finished === true : true))
-  .filter(r => (filters.notFinished ? r.finished === false : true))
-
-  // فیلتر تاریخ خاص با DatePicker
-  .filter(r => {
-    if (filters.times.length === 0) return true; // اگر هیچ تاریخی انتخاب نشده → همه عبور کنند
-
-    // تبدیل رشته تاریخ Reminder به Date
-    const reminderDate = new Date(r.time.split(",")[0]);
-
-    // تبدیل تاریخ‌های انتخاب شده به Date
-    const selectedDates = filters.times.map(d => new Date(d));
-
-    // پیدا کردن کمترین و بیشترین تاریخ انتخاب شده
-    const minDate = new Date(Math.min(...selectedDates));
-    const maxDate = new Date(Math.max(...selectedDates));
-
-    // بررسی اینکه reminder بین این بازه است
-    return reminderDate >= minDate && reminderDate <= maxDate;
-  });
-
-  const handleChange = (e) => {
-    const { name, value, type } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const form = new FormData();
-    form.append('title', formData.title);
-    form.append('descriptions', formData.descriptions);
-    form.append('time', formData.time);
-
-    try {
-      await api.post('schedule/create/', form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      notify('یادآور با موفقیت ذخیره شد 🙌', 'success');
-      fethchReminders()
-    } catch (err) {
-      notify('خطا در ذخیره اطلاعات!', 'error');
-    } finally {
-      handleModal()
-    }
-  };
-
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    try {
-      await api.delete(`/schedule/delete/${selectedId}/`);
-      notify('یادآور با موفقیت حذف شد!', 'info')
-      setRemindersList(prev => prev.filter(item => item.id !== selectedId));
-      handleDeleteModal()
-    } catch {
-      notify('خطا در حذف یادآور!', 'error');
-    }
-  };
-
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      await api.put(`/schedule/update/${selectedId}/`, editFormData, {
-        headers: {'Content-Type': 'multipart/form-data'}
-      });
-      notify('یادآور با موفقیت ویرایش شد!', 'info')
-      fethchReminders()
-      handleEditModal(editFormData)
-    } catch(err) {
-      console.log(err)
-      notify('خطا در ویرایش یادآور!', 'error');
-    } finally {
-    }
-  }
-
-  const handleFinished = async (e) => {
-    e.preventDefault();
-    try {
-      await api.put(`/schedule/update/${selectedId}/`, editFormData, {
-        headers: {'Content-Type': 'multipart/form-data'}
-      });
-      notify('یادآور با موفقیت به پایان رسید !', 'info')
-      fethchReminders()
-      handleCompleteModal(editFormData)
-    } catch(err) {
-      console.log(err)
-      notify('خطا در ویرایش یادآور!', 'error');
-    } finally {
-    }
+  if (loading) {
+    return <Loader />
   }
 
   return (
-    <div className={style.schedule}>
-      {/* right part of the website */}
-      <div className={style.right}>
-        <div className={style.container}>
-          <div className={style.header}>
-            <h1>لیست  یادآور های شما</h1>
-            <button onClick={handleModal}> افزودن یادآور <UilPlusCircle  />  </button>
-          </div>
-          <div className={style.content}>
-            {filtered && filtered.length > 0 ? (
-              <div className={style.remindersContainer}>
-                {filtered.map((item, index) => {
-                  return(
-                    <div className={style.reminder} key={index} style={item.finished ? {color: '#969396'} : {color: '#1c1c1c'}}>
-                      <div className={style.remindersWrapper}>
-                        <div className={style.remindersInfo}>
-                          <h3>{item.title}</h3>
-                          <p>{item.descriptions}</p>
-                        </div>
-                        <hr />
-                        <div className={style.remindersTime}>
-                          <h5>زمان</h5>
-                          <p>{toPersianDigits(item.time_jalali)}</p>
-                        </div>
-                        <hr />
-                        <div className={style.remindersActions}>
-                          <UilEdit onClick={() => handleEditModal(item)}/>
-                          <UilTrashAlt onClick={() => handleDeleteModal(item.id)} />
-                        </div>
-                        <hr />
-                        <div className={style.remindersStatus}>
-                          {item.finished ? <UilCheckCircle /> : <UilHourglass onClick={() => handleCompleteModal(item)} /> }
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <h3>هیچ یادآوری وجود ندارد!</h3>
-            )
-          }
-          </div>
-        </div>
-      </div>
-      {/* left part of website */}
-      <div className={style.left}>
-        <div className={style.topLeft}>
-          <Filter filters={filters} setFilters={setFilters} />
-          <p>تعداد یادآور های شما: {remindersList.length}</p>
-        </div>
-        <div className={style.bottomLeft}>
-          <Calendar 
-            calendar={persian}
-            locale={persian_fa}
-            className={style.calendar}
-            fullWidth 
+    <div className={styles.app}>
+      <BackButton route='/dashboard' title='بازگشت' />
+      <Header onAddNew={() => setNewTaskModal(true)} />
+      <div className={styles.body}>
+        <SideSection tasks={tasks} loading={pageLoading}/>
+        <main className={styles.main}>
+          <FilterBar
+            finishedFilter={finishedFilter}
+            setFinishedFilter={setFinishedFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
           />
-        </div>
+          <div className={styles.content}>
+            <TaskList
+              tasks={tasks}
+              onToggle={handleFinishedReminder}
+              onDelete={handleDeleteModal}
+              onEdit={handleUpdateModal}
+              loading={pageLoading}
+            />
+          </div>
+          {totalPages > 1 && (
+            <div className={styles.paginationWrapper}>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onNext={() => {
+                  if (nextPage) {
+                    fetchReminders(nextPage);
+                  }
+                }}
+                onPrev={() => {
+                  if (prevPage) {
+                    fetchReminders(prevPage);
+                  }
+                }}
+                onPageChange={(pageNumber) => {
+                  setPage(pageNumber);
+                }}
+              />
+            </div>
+          )}
+        </main>
       </div>
-      {/* modal */}
-      {modal && (
-        <div className={style.modal}>
-          <div className={style.container}>
-            <div className={style.closeBtn} onClick={handleModal}>
-              <UilTimesCircle />
-            </div>
-            <form onSubmit={handleSubmit}>
-              <div className={style.inputContainer}>
-                <label>عنوان</label>
-                <input 
-                  type="text"
-                  placeholder='عنوان'
-                  name='title'
-                  value={formData.title}
-                  onChange={handleChange}
-                  className={style.formInput}
-                />
-              </div>
-              <div className={style.inputContainer}>
-                <label>توضیحات</label>
-                <textarea 
-                  maxLength={250}
-                  type="text"
-                  placeholder='توضیحات'
-                  name='descriptions'
-                  value={formData.descriptions}
-                  onChange={handleChange}
-                  className={style.formInput}
-                />
-              </div>
-              <div className={style.inputContainer}>
-                <label>تاریخ</label>
-                <DatePicker
-                  value={formData.time}
-                  calendar={persian}
-                  locale={persian_fa}
-                  onChange={(date) => {
-                    // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
-                    const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
-                    // console.log("miladi: ", miladi)
-                    setFormData({ ...formData, time: miladi });
-                  }}
-                  render={(value, openCalendar) => (
-                  <input
-                    onFocus={openCalendar}
-                    value={value}           // این فارسی نمایش می‌دهد
-                    placeholder="تاریخ"
-                    className={style.formInput}
-                    readOnly
-                  />
-                )}
-                />
-              </div>
-              <div className={style.buttonContainer}>
-                <button className={style.submitBtn} type="submit">ذخیره</button>
-                <button className={style.cancelBtn} onClick={handleModal}>لغو</button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {newTaskModal && (
+        <Modal handleModal={() => setNewTaskModal(false)}>
+          <NewTaskForm 
+            onSave={handleSave}
+            onCancel={() => setNewTaskModal(false)}
+          />
+        </Modal>
       )}
+
+      {updateTaskModal && (
+        <Modal handleModal={() => handleUpdateModal()}>
+          {selectedReminder === null ? (
+            <NewTaskFormSkeleton />
+          ) : (
+            <NewTaskForm 
+              mode='edit'
+              data={selectedReminder}
+              onSave={handleUpdate}
+              onCancel={() => handleUpdateModal()}
+              loading={updateLoading}
+            />
+          )}
+        </Modal>
+      )}
+
       {deleteModal && (
-        <div className={style.deleteModal}>
-          <div className={style.container}>
-            <div className={style.closeBtn} onClick={handleDeleteModal}>
-              <UilTimesCircle />
-            </div>
-            <div className={style.content}>
-              {selectedReminder
-                ? `آیا از حذف کردن "${selectedReminder.title}" مطمئن هستید؟`
-                : "آیا از حذف کردن این یادآور مطمئن هستید؟"}
-            </div>
-            <div className={style.buttonContainer}>
-              <button className={style.cancelBtn} onClick={handleDelete}>حذف</button>
-              <button className={style.statusBtn} onClick={handleDeleteModal}>لغو</button>
+        <Modal handleModal={() => handleDeleteModal()}>
+          <div className={styles.deleteModal}>
+            <p>آیا از حذف کردن "{selectedReminder.title}" مطمئن هستید؟</p>
+            <div className={styles.buttons}>
+              <button className={styles.deleteBtn} onClick={() => handleDelete(selectedReminder.id)}>حذف</button>
+              <button className={styles.cancleBtn} onClick={() => handleDeleteModal()}>
+                لغو
+              </button>
             </div>
           </div>
-        </div>
-      )}
-      {editModal && (
-        <div className={style.modal}>
-          <div className={style.container}>
-            <div className={style.closeBtn} onClick={handleEditModal}>
-              <UilTimesCircle />
-            </div>
-            <form onSubmit={handleUpdate}>
-              <div className={style.inputContainer}>
-                <label>عنوان</label>
-                <input 
-                  type="text"
-                  placeholder='عنوان'
-                  name='title'
-                  value={editFormData.title}
-                  onChange={e => setEditFormData({...editFormData, title: e.target.value})}
-                  className={style.formInput}
-                />
-              </div>
-              <div className={style.inputContainer}>
-                <label>توضیحات</label>
-                <textarea 
-                  maxLength={250}
-                  type="text"
-                  placeholder='توضیحات'
-                  name='descriptions'
-                  value={editFormData.descriptions}
-                  onChange={e => setEditFormData({...editFormData, descriptions: e.target.value})}
-                  className={style.formInput}
-                />
-              </div>
-              <div className={style.inputContainer}>
-                <label>تاریخ</label>
-                <DatePicker
-                  value={editFormData.time}
-                  calendar={persian}
-                  locale={persian_fa}
-                  onChange={(date) => {
-                    // const converter = (text) => text.replace(/[٠-٩۰-۹]/g,a=>a.charCodeAt(0)&15);
-                    const miladi = date?.format("YYYY/MM/DD");  // ← این رشته میلادی
-                    // console.log("miladi: ", miladi)
-                    setEditFormData({ ...editFormData, time: miladi });
-                  }}
-                  render={(value, openCalendar) => (
-                  <input
-                    onFocus={openCalendar}
-                    value={value}           // این فارسی نمایش می‌دهد
-                    placeholder="تاریخ"
-                    className={style.formInput}
-                    readOnly
-                  />
-                )}
-                />
-              </div>
-              <div className={style.buttonContainer}>
-                <button className={style.submitBtn} type="submit">ذخیره</button>
-                <button className={style.cancelBtn} onClick={handleEditModal}>لغو</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      {completeModal && (
-        <div className={style.deleteModal}>
-          <div className={style.container}>
-            <div className={style.closeBtn} onClick={handleCompleteModal}>
-              <UilTimesCircle />
-            </div>
-            <div className={style.content}>
-              {selectedReminder
-                ? `آیا از تمام شدن "${selectedReminder.title}" مطمئن هستید؟`
-                : "آیا از تمام شدن این یادآور مطمئن هستید؟"}
-            </div>
-            <div className={style.buttonContainer}>
-              <button className={style.successBtn} onClick={handleFinished}>انجام شد</button>
-              <button className={style.statusBtn} onClick={handleCompleteModal}>لغو</button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Schedule
+export default Schedule;

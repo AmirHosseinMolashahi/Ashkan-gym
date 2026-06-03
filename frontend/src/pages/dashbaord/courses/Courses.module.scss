@@ -1,11 +1,18 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
+
 .courses {
   color: $primary;
   .container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 1.5rem;
+    padding: .5rem;
+    
+    @include desktop {
+      padding: 1rem;
+      gap: 1rem;
+    }
     .header {
       display: flex;
       justify-content: space-between;
@@ -13,58 +20,131 @@
       button {
         background-color: $blue;
         color: $secondary-white;
+        font-size: 14px;
+        padding: .5rem;
+        
+        @include desktop {
+          font-size: 18px;
+          padding: 1rem;
+        }
       }
     }
     .counterCard {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(1, 1fr);
-      gap: 2rem;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 1rem;
+      
+      @include desktop {
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(1, 1fr);
+        gap: 2rem;
+      }
     }
-    .classCard {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(1, 1fr);
-      gap: 2rem;
+
+    .classCardContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      justify-content: center;
+      .classCard {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        @include desktop {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          grid-template-rows: repeat(1, 1fr);
+          gap: 2rem;
+        }
+      }
+      .paginationWrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+      }
     }
   }
 }
 
 .toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: .5rem;
   padding: .5rem;
   background-color: #fff;
   border-radius: 10px;
+
+  @include desktop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
 
   .filterObj {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: .7rem;
-      select {
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        background-color: transparent;
+    gap: .5rem;
+
+    select {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background-color: transparent;
+
+      @include desktop {
+        width: auto;
       }
-      button {
-        padding: .5rem;
+    }
+    button {
+      padding: .5rem;
+    }
+    label {
+      display: none;
+
+      @include desktop {
+        display: block;
       }
+    }
   }
   .clearFilterBtn {
     padding: .5rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin-bottom: .5rem;
+    margin-left: .5rem;
+    font-size: 12px;
+    svg {
+      width: 16px;
+    }
+
+    @include desktop {
+      position: unset;
+      margin: 0;
+    }
   }
   .inputWrapper {
     position: relative;
     display: flex;
-    width: 55%;
+    width: 100%;
+    
+    @include desktop {
+      width: 59%;
+    }
     .searchInput {
       width: 100%;
       padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid #ddd;
+
+      @include desktop {
+        
+      }
     }
     .clearSearch {
       position: absolute;
