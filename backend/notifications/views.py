@@ -25,8 +25,15 @@ class NotificationListView(ListAPIView):
     filterset_class = NotificationFilter
 
     def get_queryset(self):
-        print(self.request.GET)
         return Notification.objects.filter(user=self.request.user).order_by("-created_at")
+    
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        response.data['unread_count'] = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
+        return response
 
 
 class UnreadNotificationListView(ListAPIView):
@@ -35,7 +42,6 @@ class UnreadNotificationListView(ListAPIView):
 
     def get_queryset(self):
         data = Notification.objects.filter(user=self.request.user).order_by("-created_at")[:4]
-        print(data)
         return data
 
 

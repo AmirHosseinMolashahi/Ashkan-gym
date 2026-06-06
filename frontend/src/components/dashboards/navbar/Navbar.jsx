@@ -2,20 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import style from './Navbar.module.scss';
 import { UilBell, UilUser, UilBars } from '@iconscout/react-unicons'
 import api from '../../../hooks/api';
-import { useSelector } from "react-redux";
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import NotifIcon from '../../../hooks/notifIcon';
+import NotificationsDropdown from '../notificationsDropdown/NotificationsDropdown';
+import { useSelector } from 'react-redux';
 
 const Navbar = ({sidebarToggle, setSidebarToggle}) => {
-
-  const { unreadCount, loading, unreadList } = useSelector(
-    state => state.notifications
-  );
 
   const [notifListDisplay, setNotifListDisplay] = useState(false)
   const wrapperRef = useRef()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const { unreadCount } = useSelector(
+    state => state.notifications
+  )
 
   const appLocations = {
     '/dashboard' : 'داشبورد',
@@ -25,7 +26,6 @@ const Navbar = ({sidebarToggle, setSidebarToggle}) => {
     '/dashboard/notifications': 'اعلان ها',
   }
 
-  console.log(location.pathname)
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -56,7 +56,7 @@ const Navbar = ({sidebarToggle, setSidebarToggle}) => {
         <h1>
           {appLocations[location.pathname]}
         </h1>
-        <div className={style.notifContainer}>
+        <div className={style.notifContainer} ref={wrapperRef}>
           <div className={style.search}>
             <input type="text" className={style.search__input} placeholder="دنبال چی میگردی؟" />
               <button className={style.search__button}>
@@ -67,51 +67,20 @@ const Navbar = ({sidebarToggle, setSidebarToggle}) => {
                 </svg>
               </button>
           </div>
-          <div className={style.icons} ref={wrapperRef}>
-            <UilBell fill="#616161" onClick={() => setNotifListDisplay(!notifListDisplay)} />
+          <button className={style.icons} onClick={() => setNotifListDisplay(!notifListDisplay)}>
+            <UilBell fill="#616161" />
             {unreadCount > 0 && (
               <span className={style.notifCounter}>
                 {unreadCount > 4 ? '+4' : unreadCount}
               </span>
             )}
-            {notifListDisplay && (
-              <div className={style.notifList}>
-                <div className={style.header}>
-                  <h3>اعلان های خوانده نشده</h3>
-                  <button onClick={() => console.log('mark all as read')}>تغییر همه به خوانده شده!</button>
-                </div>
-                <div className={style.body}>
-                    {unreadList.length > 0 ? (
-                      <ul>
-                      {
-                        unreadList.map((item, index) => {
-                          return(
-                            <li key={index}>
-                              <div className={style.icon}>
-                                {NotifIcon(item.category)}
-                              </div>
-                              <div className={style.info}>
-                                {item.title}
-                                <span>{item.created_at_jalali}</span>  
-                              </div>
-                              {item.is_read === false && (
-                                <span className={style.newDot}>.</span>
-                              )}
-                            </li>
-                          )
-                        })
-                      }
-                    </ul>
-                    ) : (
-                      <p>در حال حاضر اعلانی برای نمایش وجود ندارد!</p>
-                    )}
-                  <hr style={{backgroundColor: '#333'}}/>
-                  <div className={style.viewAllNotif}><Link to={'/dashboard/notifications'} onClick={() => setNotifListDisplay(!notifListDisplay)}>لیست اعلان ها</Link></div>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className={style.icons}><UilUser fill="#616161" /></div>
+          </button>
+          <button className={style.icons}><UilUser fill="#616161" /></button>
+          {notifListDisplay && (
+            <div className={style.notifDropdownWrapper}>
+              <NotificationsDropdown onClose={() => setNotifListDisplay(false)}/>
+            </div>
+          )}
         </div>
       </div>
     </nav>
@@ -119,3 +88,41 @@ const Navbar = ({sidebarToggle, setSidebarToggle}) => {
 }
 
 export default Navbar;
+
+
+
+
+{/* <div className={style.notifList}>
+  <div className={style.header}>
+    <h3>اعلان های خوانده نشده</h3>
+    <button onClick={() => console.log('mark all as read')}>تغییر همه به خوانده شده!</button>
+  </div>
+  <div className={style.body}>
+      {unreadList.length > 0 ? (
+        <ul>
+        {
+          unreadList.map((item, index) => {
+            return(
+              <li key={index}>
+                <div className={style.icon}>
+                  {NotifIcon(item.category)}
+                </div>
+                <div className={style.info}>
+                  {item.title}
+                  <span>{item.created_at_jalali}</span>  
+                </div>
+                {item.is_read === false && (
+                  <span className={style.newDot}>.</span>
+                )}
+              </li>
+            )
+          })
+        }
+      </ul>
+      ) : (
+        <p>در حال حاضر اعلانی برای نمایش وجود ندارد!</p>
+      )}
+    <hr style={{backgroundColor: '#333'}}/>
+    <div className={style.viewAllNotif}><Link to={'/dashboard/notifications'} onClick={() => setNotifListDisplay(!notifListDisplay)}>لیست اعلان ها</Link></div>
+  </div>
+</div> */}

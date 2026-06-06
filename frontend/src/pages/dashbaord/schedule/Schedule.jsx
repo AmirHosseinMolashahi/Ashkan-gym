@@ -11,7 +11,6 @@ import NewTaskForm from '../../../components/dashboards/schedule/newTaskForm/New
 import { useToast } from '../../../context/NotificationContext';
 import Loader from '../../../components/GlobalComponents/NewLoader/Loader';
 import NewTaskFormSkeleton from '../../../components/dashboards/schedule/newTaskForm/newTaskFormSkeleton/NewTaskFormSkeleton';
-import BackButton from '../../../components/dashboards/backButton/BackButton';
 
 
 const Schedule = () => {
@@ -201,7 +200,6 @@ const Schedule = () => {
 
   return (
     <div className={styles.app}>
-      <BackButton route='/dashboard' title='بازگشت' />
       <Header onAddNew={() => setNewTaskModal(true)} />
       <div className={styles.body}>
         <SideSection tasks={tasks} loading={pageLoading}/>

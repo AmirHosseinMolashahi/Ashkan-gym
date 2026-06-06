@@ -15,6 +15,7 @@ import api from '../../../hooks/api';
 import { useLoading } from '../../../context/LoadingContext';
 import FileModal from '../../../components/GlobalComponents/FileModal/FileModal';
 import Modal from '../../../components/GlobalComponents/Modal/Modal';
+import BackButton from '../../../components/dashboards/backButton/BackButton';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
@@ -260,34 +261,37 @@ const EditProfile = () => {
       <div className={styles.container}>
         <div className={styles.wrapper}>
           <div className={styles.avatarInfo}>
-            <div className={styles.centerWrapper}>
-              <div className={styles.profileImageWrapper}>
-                <img
-                  src={profileImage ? URL.createObjectURL(profileImage) : formData.profile_picture}
-                  alt="Profile Preview"
-                  className={styles.profileImage}
-                />
-                <label htmlFor="profile-upload" className={styles.uploadIcon}>
-                  <UilCameraPlus color='#333' size='1.2rem'/>
-                </label>
-                {profileImage && isEditingAvatar && (
-                  <button className={styles.checkUpload} onClick={() => handleSaveAvatar()}>
-                    <UilCheck  color='#333' size='1.5em' />
-                  </button>
-                )}
-                <input
-                  id="profile-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className={styles.hiddenInput}
-                />
+            <BackButton route={'/dashboard'} title={'بازگشت'} color={'#ffffff'} />
+            <div className={styles.infoWrapper}>
+              <div className={styles.centerWrapper}>
+                <div className={styles.profileImageWrapper}>
+                  <img
+                    src={profileImage ? URL.createObjectURL(profileImage) : formData.profile_picture}
+                    alt="Profile Preview"
+                    className={styles.profileImage}
+                  />
+                  <label htmlFor="profile-upload" className={styles.uploadIcon}>
+                    <UilCameraPlus color='#333' size='1.2rem'/>
+                  </label>
+                  {profileImage && isEditingAvatar && (
+                    <button className={styles.checkUpload} onClick={() => handleSaveAvatar()}>
+                      <UilCheck  color='#333' size='1.5em' />
+                    </button>
+                  )}
+                  <input
+                    id="profile-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleChange}
+                    className={styles.hiddenInput}
+                  />
+                </div>
               </div>
-            </div>
-            <div className={styles.info}>
-              <h1 className={styles.infoName}>{user?.full_name}</h1>
-              <p className={styles.infoRole}>{roleConverter(user?.roles)}</p>
-              <p className={styles.infoLastLogin}>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
+              <div className={styles.info}>
+                <h1 className={styles.infoName}>{user?.full_name}</h1>
+                <p className={styles.infoRole}>{roleConverter(user?.roles)}</p>
+                <p className={styles.infoLastLogin}>آخرین ورود: {toPersianDigits(formData.previous_login_jalali)}</p>
+              </div>
             </div>
           </div>
           <div className={styles.content}>

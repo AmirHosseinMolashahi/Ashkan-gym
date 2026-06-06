@@ -14,14 +14,22 @@
       .avatarInfo {
         display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 2rem;
         background-color: $blue;
         padding: 1rem;
         border-radius: 10px;
-        @include desktop {
-          flex-direction: row;
+        gap: .7rem;
+        
+        .infoWrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2rem;
+
+          @include desktop {
+            flex-direction: row;
+          }
         }
+
         .info {         
           color: $white;
           display: flex;

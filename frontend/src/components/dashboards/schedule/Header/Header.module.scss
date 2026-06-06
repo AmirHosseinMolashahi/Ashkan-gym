@@ -3,11 +3,10 @@
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0;
+  flex-direction: column;
   background: transparent;
   border-bottom: 1px solid $border;
+  padding: 1rem;
   flex-wrap: wrap;
   gap: 12px;
   
@@ -16,8 +15,14 @@
   }
   
   @include desktop {
-    padding: 22px 36px;
+    padding: 1rem;
     background: $surface;
+  }
+  
+  .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 }
 

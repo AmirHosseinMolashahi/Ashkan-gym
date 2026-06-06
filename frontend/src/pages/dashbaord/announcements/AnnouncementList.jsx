@@ -20,6 +20,7 @@ import { useToast } from '../../../context/NotificationContext';
 import Modal from '../../../components/GlobalComponents/Modal/Modal';
 import { useSelector } from 'react-redux';
 import { hasRole } from '../../../hooks/roleConverter';
+import BackButton from '../../../components/dashboards/backButton/BackButton';
 
 
 const STATUS_CONFIG = {
@@ -304,61 +305,68 @@ const AnnouncementList = () => {
   return (
     <div className={style.page}>
       {/* ── Header ── */}
-      <div className={style.pageHeader}>
-        <div className={style.pageHeaderText}>
-          <h2>اطلاعیه ها</h2>
-          <p>مدیریت و انتشار اطلاعیه‌ها</p>
-        </div>
-        {hasRole(user.roles, 'manager') && (
-          <button className={style.newBtn} onClick={() => navigate('/dashboard/announcements/create')}>
-            <UilPlus />
-            اطلاعیه‌ی جدید
-          </button>
-        )}
-      </div>
-
-      {/* ── Filters ── */}
-      <div className={style.filters}>
-        <div className={style.filterCount}>
-          <UilMegaphone className={style.filterCountIcon} />
-          <span>{totalCount}</span>
-        </div>
-        {hasRole(user.roles, 'manager') && (
-          FILTERS.map((f) => (
-            <button
-              key={f.value}
-              className={`${style.filterBtn} ${statusFilter === f.value ? style.filterActive : ''}`}
-              onClick={() => {setStatusFilter(f.value); setPage(1);}}
-            >
-              {f.label}
-              {f.value !== '' && (
-                <span className={style.filterDot} data-status={f.value} />
-              )}
+      <div className={style.header}>
+        <BackButton route={'/dashboard'} title={'بازگشت'} />
+        <div className={style.pageHeader}>
+          <div className={style.pageHeaderText}>
+            <h2>اطلاعیه ها</h2>
+            <p>مدیریت و انتشار اطلاعیه‌ها</p>
+          </div>
+          {hasRole(user.roles, 'manager') && (
+            <button className={style.newBtn} onClick={() => navigate('/dashboard/announcements/create')}>
+              <UilPlus />
+              اطلاعیه‌ی جدید
             </button>
-          ))
-        )}
+          )}
+        </div>
       </div>
 
-      {/* ── List ── */}
-      <div className={style.list}>
-        {loading
-        ? Array.from({ length: 3 }).map((_, i) => (
-          <AnnouncementCardSkeleton key={i} />
-        ))
-        : announcements.map((item) => (
-          <AnnouncementCard
-            key={item.id}
-            item={item}
-            onDelete={handleDeleteModal}
-            onEdit={handleEdit}
-            onView={handlePreviewModal}
-            user={user}
-            justRead={justRead}
-          />
-        ))}
-        {announcements.length === 0 && (
-          <div className={style.empty}>اعلانی یافت نشد</div>
-        )}
+      <div className={style.content}>
+        <div className={style.contentWrapper}>
+          {/* ── Filters ── */}
+          <div className={style.filters}>
+            <div className={style.filterCount}>
+              <UilMegaphone className={style.filterCountIcon} />
+              <span>{totalCount}</span>
+            </div>
+            {hasRole(user.roles, 'manager') && (
+              FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  className={`${style.filterBtn} ${statusFilter === f.value ? style.filterActive : ''}`}
+                  onClick={() => {setStatusFilter(f.value); setPage(1);}}
+                >
+                  {f.label}
+                  {f.value !== '' && (
+                    <span className={style.filterDot} data-status={f.value} />
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+
+          {/* ── List ── */}
+          <div className={style.list}>
+            {loading
+            ? Array.from({ length: 3 }).map((_, i) => (
+              <AnnouncementCardSkeleton key={i} />
+            ))
+            : announcements.map((item) => (
+              <AnnouncementCard
+                key={item.id}
+                item={item}
+                onDelete={handleDeleteModal}
+                onEdit={handleEdit}
+                onView={handlePreviewModal}
+                user={user}
+                justRead={justRead}
+              />
+            ))}
+            {announcements.length === 0 && (
+              <div className={style.empty}>اعلانی یافت نشد</div>
+            )}
+          </div>
+        </div>
       </div>
 
       {totalPages > 1 && (

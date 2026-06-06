@@ -13,7 +13,7 @@ import AnnounceForm from './pages/dashbaord/announcements/announceForm/AnnounceF
 import NotifList from './pages/dashbaord/notifications/NotifList';
 import { useToast } from './context/NotificationContext';
 import { addNotification, deleteNotification } from './store/notificationSlice';
-import { fetchNotifications, fetchUnreadCount, fetchUnreadNotifList } from "./store/notificationSlice";
+import { fetchNotifications, fetchUnreadCount, selectUnreadNotifications,  } from "./store/notificationSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUser } from "./store/userSlice";
 import StudentRegisterations from './pages/dashbaord/studentRegistrations/StudentRegisterations';
@@ -82,8 +82,7 @@ function App() {
           dispatch(deleteNotification(data.id));
         } else {
           dispatch(addNotification(data));
-          dispatch(fetchUnreadCount());
-          dispatch(fetchUnreadNotifList());
+          dispatch(selectUnreadNotifications());
           notify(data.title, data.type ?? "info")
         }
       };
@@ -112,8 +111,6 @@ function App() {
     if (user) {
       console.log("👤 user is ready → fetch notifications");
       dispatch(fetchNotifications());
-      dispatch(fetchUnreadCount());
-      dispatch(fetchUnreadNotifList());
     }
   }, [user, dispatch, notify]);
 

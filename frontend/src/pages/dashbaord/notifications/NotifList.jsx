@@ -12,10 +12,8 @@ import {
   fetchUnreadCount,
   markAllAsRead,
   markNotificationAsRead,
-  markNotificationReadLocal,
   fetchNextNotifications,
   fetchPrevNotifications,
-  fetchNotificationsByPage,
 } from '../../../store/notificationSlice';
 
 import BackButton from '../../../components/dashboards/backButton/BackButton';
@@ -25,6 +23,7 @@ import NotifCard from './notifCard/index';
 import Pagination from '../../../components/GlobalComponents/Pagination/Pagination';
 import NewtonLoader from '../../../components/GlobalComponents/NewtonLoader/NewtonLoader';
 import NotifCardSkeleton from './notifCardSkeleton/NotifCardSkeleton';
+import useCurrentDateTime from '../../../hooks/currentDateTime';
 
 export function groupNotifications(notifs) {
   const grouped = {
@@ -60,6 +59,8 @@ const NotifList = () => {
   
   const [filterStatus, setFilterStatus] = useState("");
   const [filterRead, setFilterRead] = useState(null);
+
+  const {date, weekday} = useCurrentDateTime()
 
 
   const dispatch = useDispatch();
@@ -101,7 +102,6 @@ const NotifList = () => {
 
 
   const handleReadNotif = (item) => {
-    dispatch(markNotificationReadLocal(item.id));
     dispatch(markNotificationAsRead(item));
   }
 
@@ -126,147 +126,145 @@ const NotifList = () => {
   return (
     <div className={style.NotifList}>
       <div className={style.container}>
-        <BackButton route='/dashboard' title='بازگشت' />
         <div className={style.header}>
-          <div className={style.headerTitle}>
-            <h3>لیست اعلان های شما</h3>
-            <span>{unreadCount} جدید</span>
-          </div>
-          <div className={style.actions}>
-            <button 
-              className={`${style.markAllRead} ${unreadCount === 0 ? style.disabled : ''}`}
-              onClick={() => {
-                if (unreadCount > 0) {
-                  handleAllReadModal()
-                }
-              }}
-            >
-              خواندن همه <UilCheckSquare />
-            </button>
-            {/* <div className={style.filterDropdown}>
-              <button
-                className={style.dropdownToggle}
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                فیلتر نوتیف‌ها <UilSetting />
-              </button>
-            </div> */}
-          </div>
-        </div>
-
-        <div className={style.toolbar}>
-          <div className={style.btnContainer}>
-            <button
-              className={`${style.filterObj} ${filterStatus === '' && filterRead === null ? style.active : ''}`}
-              onClick={() =>
-                applyFilter({
-                  category: "",
-                  is_read: null,
-                })
-              }
-            >
-              همه اعلان ها
-            </button>
-            <button
-              className={`${style.filterObj} ${filterStatus === '' && filterRead === false ? style.active : ''}`}
-              onClick={() =>
-                applyFilter({
-                  category: "",
-                  is_read: false,
-                })
-              }
-            >
-              خوانده نشده
-            </button>
-            <button
-              className={`${style.filterObj} ${filterStatus === 'tuition' && filterRead === null ? style.active : ''}`}
-              onClick={() =>
-                applyFilter({
-                  category: "tuition",
-                  is_read: null,
-                })
-              }
-            >
-              مالی
-            </button>
-          </div>
-        </div>
-        <div className={style.wrapper}>
-          {loading ? (
-            <div className={style.skleteonContainer}>
-              {[1,2,3,4].map((item) => (
-                <NotifCardSkeleton key={item} />
-              ))}
+          <BackButton route='/dashboard' title='بازگشت' />
+          <div className={style.wrapper}>
+            <div className={style.headerTitle}>
+              <h3>لیست اعلان های شما <span className={style.notifCount}>{unreadCount} جدید</span></h3>
+              <span className={style.subtitle}>{weekday}, {toPersianDigits(date)}</span>
             </div>
-          ) : (
-            <>
-              {grouped.today.length > 0 && (
-                <div className={style.cardContainer}>
-                  <h3>امروز</h3>
-                  {grouped.today.map((item) => (
-                    <NotifCard
-                      key={item.id}
-                      item={item}
-                      handleDelete={handleDeleteModal}
-                      handleRead={handleReadNotif}
-                    />
-                  ))}
-                </div>
-              )}
+            <div className={style.actions}>
+              <button 
+                className={`${style.markAllRead} ${unreadCount === 0 ? style.disabled : ''}`}
+                onClick={() => {
+                  if (unreadCount > 0) {
+                    handleAllReadModal()
+                  }
+                }}
+              >
+                خواندن همه <UilCheckSquare />
+              </button>
+            </div>
+          </div>
+        </div>
 
-              {grouped.yesterday.length > 0 && (
-                <div className={style.cardContainer}>
-                  <h3>دیروز</h3>
-                  {grouped.yesterday.map((item) => (
-                    <NotifCard
-                      key={item.id}
-                      item={item}
-                      handleDelete={handleDeleteModal}
-                      handleRead={handleReadNotif}
-                    />
+        <div className={style.content}>
+          <div className={style.contentContainer}>
+            <div className={style.toolbar}>
+              <div className={style.btnContainer}>
+                <button
+                  className={`${style.filterObj} ${filterStatus === '' && filterRead === null ? style.active : ''}`}
+                  onClick={() =>
+                    applyFilter({
+                      category: "",
+                      is_read: null,
+                    })
+                  }
+                >
+                  همه اعلان ها
+                </button>
+                <button
+                  className={`${style.filterObj} ${filterStatus === '' && filterRead === false ? style.active : ''}`}
+                  onClick={() =>
+                    applyFilter({
+                      category: "",
+                      is_read: false,
+                    })
+                  }
+                >
+                  خوانده نشده
+                </button>
+                <button
+                  className={`${style.filterObj} ${filterStatus === 'tuition' && filterRead === null ? style.active : ''}`}
+                  onClick={() =>
+                    applyFilter({
+                      category: "tuition",
+                      is_read: null,
+                    })
+                  }
+                >
+                  مالی
+                </button>
+              </div>
+            </div>
+            <div className={style.contentWrapper}>
+              {loading ? (
+                <div className={style.skleteonContainer}>
+                  {[1,2,3,4].map((item) => (
+                    <NotifCardSkeleton key={item} />
                   ))}
                 </div>
-              )}
+              ) : (
+                <>
+                  {grouped.today.length > 0 && (
+                    <div className={style.cardContainer}>
+                      <h3>امروز</h3>
+                      {grouped.today.map((item) => (
+                        <NotifCard
+                          key={item.id}
+                          item={item}
+                          handleDelete={handleDeleteModal}
+                          handleRead={handleReadNotif}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-              {grouped.older.length > 0 && (
-                <div className={style.cardContainer}>
-                  <h3>قدیمی‌تر</h3>
-                  {grouped.older.map((item) => (
-                    <NotifCard
-                      key={item.id}
-                      item={item}
-                      handleDelete={handleDeleteModal}
-                      handleRead={handleReadNotif}
-                    />
-                  ))}
-                </div>
+                  {grouped.yesterday.length > 0 && (
+                    <div className={style.cardContainer}>
+                      <h3>دیروز</h3>
+                      {grouped.yesterday.map((item) => (
+                        <NotifCard
+                          key={item.id}
+                          item={item}
+                          handleDelete={handleDeleteModal}
+                          handleRead={handleReadNotif}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {grouped.older.length > 0 && (
+                    <div className={style.cardContainer}>
+                      <h3>قدیمی‌تر</h3>
+                      {grouped.older.map((item) => (
+                        <NotifCard
+                          key={item.id}
+                          item={item}
+                          handleDelete={handleDeleteModal}
+                          handleRead={handleReadNotif}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {totalPages > 1 && (
+                    <div className={style.paginationWrapper}>
+                      <Pagination 
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onNext={() => {
+                          if (next) {
+                            dispatch(fetchNextNotifications())
+                          }
+                        }}
+                        onPrev={() => {
+                          if (previous) {
+                            dispatch(fetchPrevNotifications())
+                          }
+                        }}
+                        onPageChange={(page) => {
+                          dispatch(fetchNotifications({page}));
+                        }}
+                      />
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
-
-      {!loading && (
-        <div className={style.paginationWrapper}>
-          <Pagination 
-            currentPage={page}
-            totalPages={totalPages}
-            onNext={() => {
-              if (next) {
-                dispatch(fetchNextNotifications())
-              }
-            }}
-            onPrev={() => {
-              if (previous) {
-                dispatch(fetchPrevNotifications())
-              }
-            }}
-            onPageChange={(page) => {
-              dispatch(fetchNotificationsByPage(page));
-            }}
-          />
-        </div>
-      )}
       {deleteModal && (
         <Modal handleModal={handleDeleteModal}>
           <div className={style.deleteModal}>
