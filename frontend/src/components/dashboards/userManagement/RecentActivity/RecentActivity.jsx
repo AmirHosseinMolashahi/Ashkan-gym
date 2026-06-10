@@ -7,6 +7,8 @@ import roleConverter, { hasRole } from '../../../../hooks/roleConverter';
 import { useSelector } from 'react-redux';
 import ActivityCard from './activityCard/ActivityCard';
 import Pagination from '../../../GlobalComponents/Pagination/Pagination';
+import ActivityTableSkeleton from './activityTableSkeleton/ActivityTableSkeleton';
+import ActivityCardSkeleton from './activityCard/activityCardSkeleton/ActivityCardSkeleton';
 
 export const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(
@@ -27,10 +29,11 @@ export const useIsMobile = (breakpoint = 768) => {
 };
 
 const RecentActivity = () => {
-  const [ activity, setActivity ] = useState([])
+  const [activity, setActivity] = useState([])
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(false)
 
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
@@ -50,6 +53,7 @@ const RecentActivity = () => {
     url = "/activity/manager/recent/"
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -61,7 +65,9 @@ const RecentActivity = () => {
       
       setActivity(res.data.results);
 
-      setPage(res.data.current_page);
+      if (res.data.current_page !== page) {
+        setPage(res.data.current_page);
+      }
       setTotalPages(res.data.total_pages);
       setTotalCount(res.data.count);
 
@@ -78,6 +84,8 @@ const RecentActivity = () => {
       }
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -160,76 +168,90 @@ const RecentActivity = () => {
         </div>
 
         {isMobile ? (
-          <ActivityCard 
-            data={activity}
-          />
+          loading === true ? (
+            <ActivityCardSkeleton />
+          ) : (
+            <ActivityCard 
+              data={activity}
+            />
+          )
         ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ردیف</th>
-                  <th>ورزشکار</th>
-                  <th>نقش</th>
-                  <th>وضعیت</th>
-                  <th>آخرین فعالیت</th>
-                  <th>زمان</th>
-                  <th>حذف</th>
-                </tr>
-              </thead>
+          loading === true ? (
+            <ActivityTableSkeleton />
+          ) : (
+            activity.length === 0 ? (
+              <p>هیچ اطلاعاتی پیدا نشد!!!</p>
+            ) : (
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ردیف</th>
+                      <th>ورزشکار</th>
+                      <th>نقش</th>
+                      <th>وضعیت</th>
+                      <th>آخرین فعالیت</th>
+                      <th>زمان</th>
+                      <th>حذف</th>
+                    </tr>
+                  </thead>
 
-              <tbody>
-                {activity.map((item, index) => (
-                  <tr key={item.id ?? index}>
-                    <td>{toPersianDigits((page - 1) * 10 + index + 1)}</td>
-                    <td>
-                      <div className={styles.students}>
-                        <img src={item.actor.profile_picture} alt={item.actor.full_name} />
-                        <div>
-                          <strong>{item.actor.full_name}</strong>
-                          <p>{toPersianDigits(item.actor.national_id)}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td><strong>{roleConverter(item.actor.roles)}</strong></td>
-                    <td>{item.actor.is_active ? 'فعال' : 'غیرفعال'}</td>
-                    <td>
-                      <span className={styles.badge}>
-                        {item.description}
-                      </span>
-                    </td>
-                    <td>{toPersianDigits((item.created_at_jalali || "").split(" ")[0] || "-")}</td>
-                    <td>
-                      <div className={styles.btnContainer}>
-                        <button><UilTrashAlt fill='#C1121F' /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  <tbody>
+                    {activity.map((item, index) => (
+                      <tr key={item.id ?? index}>
+                        <td>{toPersianDigits((page - 1) * 10 + index + 1)}</td>
+                        <td>
+                          <div className={styles.students}>
+                            <img src={item.actor.profile_picture} alt={item.actor.full_name} />
+                            <div>
+                              <strong>{item.actor.full_name}</strong>
+                              <p>{toPersianDigits(item.actor.national_id)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td><strong>{roleConverter(item.actor.roles)}</strong></td>
+                        <td>{item.actor.is_active ? 'فعال' : 'غیرفعال'}</td>
+                        <td>
+                          <span className={styles.badge}>
+                            {item.description}
+                          </span>
+                        </td>
+                        <td>{toPersianDigits((item.created_at_jalali || "").split(" ")[0] || "-")}</td>
+                        <td>
+                          <div className={styles.btnContainer}>
+                            <button><UilTrashAlt fill='#C1121F' /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          )
         )}
 
-        <div className={styles.paginationWrapper}>
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onNext={() => {
-              if (nextPage) {
-                fetchActivity(nextPage);
-              }
-            }}
-            onPrev={() => {
-              if (prevPage) {
-                fetchActivity(prevPage);
-              }
-            }}
-            onPageChange={(pageNumber) => {
-              setPage(pageNumber);
-            }}
-          />
-        </div>
+        {totalPages > 1 && (
+          <div className={styles.paginationWrapper}>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onNext={() => {
+                if (nextPage) {
+                  fetchActivity(nextPage);
+                }
+              }}
+              onPrev={() => {
+                if (prevPage) {
+                  fetchActivity(prevPage);
+                }
+              }}
+              onPageChange={(pageNumber) => {
+                setPage(pageNumber);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )

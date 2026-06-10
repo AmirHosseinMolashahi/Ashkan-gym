@@ -1,0 +1,76 @@
+@import '../../../../styles/mixins';
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+%skeleton-base {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.countCard {
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: right;
+  gap: .7rem;
+  
+  @include desktop {
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+}
+.header {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.skeletonCircle {
+  @extend %skeleton-base;
+  border-radius: 50% !important;
+  min-width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.skeletonText {
+  @extend %skeleton-base;
+  height: 14px;
+  
+  @include desktop {
+    height: 16px;
+  }
+}
+
+.skeletonTitle {
+  width: 60%;
+}
+
+.skeletonBody {
+  height: 16px;
+  width: 75%;
+  
+  @include desktop {
+    height: 22px;
+    width: 60%;
+  }
+}
+
+.skeletonFooter {
+  width: 80%;
+}

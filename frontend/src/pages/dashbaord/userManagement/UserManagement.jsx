@@ -8,16 +8,19 @@ import RecentActivity from '../../../components/dashboards/userManagement/Recent
 import { useToast } from '../../../context/NotificationContext';
 import { useSelector } from 'react-redux';
 import BackButton from '../../../components/dashboards/backButton/BackButton';
+import UserSummaryGridSkeleton from './userSummaryGridSkeleton/UserSummaryGridSkeleton';
 
 const UserManagement = () => {
-  const [ activeTab, setActiveTab] = useState(1)
-  const [ allUsers, setAllUsers ] = useState([])
+  const [activeTab, setActiveTab] = useState(1)
+  const [allUsers, setAllUsers] = useState([])
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
+
+  const [loading, setLoading] = useState(false)
 
   const { user } = useSelector(
       state => state.auth
@@ -63,6 +66,7 @@ const UserManagement = () => {
     url = "/account/users/management/"
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -76,7 +80,9 @@ const UserManagement = () => {
       setSummary(res.data.results.summary)
       setAllUsers(res.data.results.users)
 
-      setPage(res.data.results.current_page);
+      if (res.data.current_page !== page) {
+        setPage(res.data.current_page);
+      }
       setTotalCount(res.data.results.total_count);
       setTotalPages(res.data.results.total_pages);
 
@@ -85,6 +91,8 @@ const UserManagement = () => {
 
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -124,16 +132,16 @@ const UserManagement = () => {
   };
 
   useEffect(() => {
-    fetchAllUsers(buildActivityUrl(page))
-  }, [page, search, roleFilter, isActiveFilter, insuranceFilter])
-
-
+    fetchAllUsers(buildActivityUrl(page));
+  }, [page, search, roleFilter, isActiveFilter, insuranceFilter]);
+  
+  
   const clearFilters = () => {
     setSearch("");
     setRoleFilter("all");
     setIsActiveFilter("all");
     setInsuranceFilter("all");
-
+    
     setPage(1);
   };
 
@@ -143,35 +151,33 @@ const UserManagement = () => {
       <div className={style.header}>
         <h3>مدیریت کاربران</h3>
       </div>
-      <div className={style.summaryGrid}>
-        <article className={style.summaryCard}>
-          <p className={style.cardTitle}>تعداد کل کاربران</p>
-          <h3>{toPersianDigits(summary.total_users)} نفر</h3>
-          {/* <p className={style.subtle}>12% بیشتر از ماه قبل</p> */}
-        </article>
 
-        <article className={style.summaryCard}>
-          <p className={style.cardTitle}>امروز فعال بودن</p>
-          <h3>{toPersianDigits(summary.active_today)} نفر</h3>
-          {/* <div className={`${style.miniBadge} ${style.good}`}>
-            {toPersianDigits(3)}نفر بیشتر از ماه قبل
-          </div> */}
-        </article>
+      {loading === true ? (
+        <UserSummaryGridSkeleton />
+      ) : (
+        <div className={style.summaryGrid}>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>تعداد کل کاربران</p>
+            <h3>{toPersianDigits(summary.total_users)} نفر</h3>
+          </article>
 
-        <article className={style.summaryCard}>
-          <p className={style.cardTitle}>ثبت نام جدید (این ماه)</p>
-          <h3>{toPersianDigits(summary.new_this_month)} نفر</h3>
-          {/* <div className={`${style.miniBadge} ${style.warning}`}>
-            {toPersianDigits(Math.max(summary.new_this_month - summary.new_prev_month, 0))} نفر بیشتر از ماه قبل
-          </div> */}
-        </article>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>امروز فعال بودن</p>
+            <h3>{toPersianDigits(summary.active_today)} نفر</h3>
+          </article>
 
-        <article className={style.summaryCard}>
-          <p className={style.cardTitle}>غیر فعال</p>
-          <h3>{toPersianDigits(summary.inactive_users)} نفر</h3>
-          {/* <div className={`${style.miniBadge} ${style.danger}`}>نیازمند پیگیری</div> */}
-        </article>
-      </div>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>ثبت نام جدید (این ماه)</p>
+            <h3>{toPersianDigits(summary.new_this_month)} نفر</h3>
+          </article>
+
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>غیر فعال</p>
+            <h3>{toPersianDigits(summary.inactive_users)} نفر</h3>
+          </article>
+        </div>
+      )}
+
       <div className={style.tabWrapper}>
         <div className={style.tabs}>
           <ul>
@@ -209,6 +215,7 @@ const UserManagement = () => {
             selectedUser={selectedUser}
             handleDeleteUser={handleDeleteUser}
             clearFilters={clearFilters}
+            loading={loading}
           />
         )}
         { activeTab === 2 && (
@@ -219,4 +226,4 @@ const UserManagement = () => {
   )
 }
 
-export default UserManagement
+export default UserManagement;

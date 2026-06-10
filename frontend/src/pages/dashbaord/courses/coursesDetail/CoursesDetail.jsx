@@ -16,12 +16,16 @@ import DiscountTable from '../../../../components/dashboards/courses/discountTab
 import useCurrentDateTime from '../../../../hooks/currentDateTime';
 import toPersianDigits from '../../../../hooks/convertNumber';
 import BackButton from '../../../../components/dashboards/backButton/BackButton';
+import CourseDetailHeaderSkeleton from './courseDetailHeaderSkeleton/CourseDetailHeaderSkeleton';
+import CourseDetailCardsSkeleton from './courseDetailCardsSkeleton/CourseDetailCardsSkeleton';
 
 const CoursesDetail = () => {
 
   const { id } = useParams()
   const {date, weekday, month} = useCurrentDateTime()
   const [courseDetail, setCourseDetail] = useState(null)
+
+  const [courseLoading, setCourseLoading] = useState(false)
 
   const [addStudentModal, setAddStudentsModal] = useState(false)
   const navigate = useNavigate();
@@ -65,12 +69,15 @@ const CoursesDetail = () => {
   const { notify } = useToast()
 
   const fetchCourseDetail = async () => {
-    try {
+    try {4
+      setCourseLoading(true)
       const res = await api.get(`/training/courses/detail/${id}/`);
       console.log(res.data)
       setCourseDetail(res.data)
     } catch (err) {
       console.log(err)
+    } finally {
+      setCourseLoading(false)
     }
   }
   
@@ -202,136 +209,145 @@ const CoursesDetail = () => {
     <div className={style.coursesDetail}>
       <div className={style.container}>
         <BackButton route='/dashboard/courses' title='بازگشت' />
-        <div className={style.header}>
-          <div className={style.headerContainer}>
-            <div className={style.topHeader}>
-              <h1>{courseDetail?.title}</h1>
-              <div className={style.btnContainer}>
-                <button className={style.addUser} onClick={() => handleAddStudentsModal()} >
-                  {addStudentModal ? (
-                    <>در حال اضافه کردن...</>
-                  ) : (
-                    <>اضافه کردن ورزشکار <UilUserPlus /></>
-                  )}
-                </button>
-                <button className={style.editClass} onClick={() => navigate(`/dashboard/courses/${id}/edit`)}>
-                  <UilEdit />
-                </button>
-              </div>
-            </div>
-            <p className={style.classTitle}>
-              {courseDetail?.age_ranges.map((item, index) => {
-                return(
-                  <span key={index}>{item.title} </span>
-                )
-              })} - 
-              {courseDetail?.gender_label} - 
-              {courseDetail?.class_status === 'public' ? 'عمومی' : 'خصوصی'}
-            </p>
-            <div className={style.mainHeader}>
-              <ul>
-                <li>
-                  <p>تعداد ورزشکاران فعال</p>
-                  <h1>{toPersianDigits(courseDetail?.active_students)}</h1>
-                </li>
-                <li>
-                  <p>شهریه کلاس</p>
-                  <h1>{toPersianDigits(courseDetail?.price)}</h1>
-                </li>
-                <li>
-                  <p>میانگین حضور در کلاس</p>
-                  <h1>{toPersianDigits(courseDetail?.attendance_percentage_month ?? 0)}%</h1>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className={style.cardContainer}>
-          <div className={style.detailCard}>
-            <h3>
-              زمان بندی کلاس <span>{hasRole(user?.roles, 'manager') ? (
-                courseDetail?.timeTable.length !== 0 ? (
-                  <button onClick={() => handleEditTimeTableModal()}><UilEdit /></button>
-                ) : (
-                  ''
-                )
-              ) : (
-                ''
-              )}</span>
-            </h3>
-            <div className={style.detailCardcontent}>
-              {courseDetail?.timeTable.length !== 0 ? (
-                <div className={style.detailCardWrapper}>
-                  <ul className={style.timeList}>
+        {courseLoading === true ? (
+          <>
+            <CourseDetailHeaderSkeleton />
+            <CourseDetailCardsSkeleton />
+          </>
+        ) : (
+          <>
+            <div className={style.header}>
+              <div className={style.headerContainer}>
+                <div className={style.topHeader}>
+                  <h1>{courseDetail?.title}</h1>
+                  <div className={style.btnContainer}>
+                    <button className={style.addUser} onClick={() => handleAddStudentsModal()} >
+                      {addStudentModal ? (
+                        <>در حال اضافه کردن...</>
+                      ) : (
+                        <>اضافه کردن ورزشکار <UilUserPlus /></>
+                      )}
+                    </button>
+                    <button className={style.editClass} onClick={() => navigate(`/dashboard/courses/${id}/edit`)}>
+                      <UilEdit />
+                    </button>
+                  </div>
+                </div>
+                <p className={style.classTitle}>
+                  {courseDetail?.age_ranges.map((item, index) => {
+                    return(
+                      <span key={index}>{item.title} </span>
+                    )
+                  })} - 
+                  {courseDetail?.gender_label} - 
+                  {courseDetail?.class_status === 'public' ? 'عمومی' : 'خصوصی'}
+                </p>
+                <div className={style.mainHeader}>
+                  <ul>
                     <li>
-                      <UilCalendar />
-                      <p>{courseDetail?.timeTable?.map(item => (item.day_label + ' '))}</p>
+                      <p>تعداد ورزشکاران فعال</p>
+                      <h1>{toPersianDigits(courseDetail?.active_students)}</h1>
                     </li>
                     <li>
-                      <UilClockFive />
-                      <p>{toPersianDigits(courseDetail?.timeTable[0]?.start_time)} تا {toPersianDigits(courseDetail?.timeTable[0]?.end_time)}</p>
+                      <p>شهریه کلاس</p>
+                      <h1>{toPersianDigits(courseDetail?.price)}</h1>
+                    </li>
+                    <li>
+                      <p>میانگین حضور در کلاس</p>
+                      <h1>{toPersianDigits(courseDetail?.attendance_percentage_month ?? 0)}%</h1>
                     </li>
                   </ul>
                 </div>
-              ) : (
-                hasRole(user?.roles, 'manager') ? (
-                  <button className={style.addTimeTableBtn} onClick={() => setAddTimeTableModal(true)}>
-                    ایجاد جدول زمانی +
-                  </button>
-                ) : (
-                  <p>جدول زمانی ایجاد نشده است!</p>
-                )
-              )}
+              </div>
             </div>
-          </div>
-          <div className={style.detailCard}>
-            <h3>
-             وضعیت پرداخت شهریه <span style={{fontSize: '13px'}}>({month} ماه)</span>
-            </h3>
-            <div className={style.detailCardcontent}>
-              <div className={style.detailCardWrapper}>
-                <ul className={style.payList}>
-                  <li>
-                    <p>تعداد پرداختی این ماه</p>
-                    <p className={style.paid}>{toPersianDigits(paymentStatus?.paid_count ?? 0)}</p>
-                  </li>
-                  <li>
-                    <p>در انتظار پرداخت</p>
-                    <p className={style.pending}>{toPersianDigits(paymentStatus?.unpaid_count ?? 0)}</p>
-                  </li>
-                  <li>
-                    <p>شهریه عقب افتاده</p>
-                    <p className={style.unpaid}>{toPersianDigits(paymentStatus?.overdue_count ?? 0)}</p>
-                  </li>
-                </ul>
-                <div className={style.progressWrapper}>
-                  <div
-                    className={style.progressBar}
-                    style={{ width: `${paymentStatus?.paid_percent ?? 0}%` }}
-                  />
+            <div className={style.cardContainer}>
+              <div className={style.detailCard}>
+                <h3>
+                  زمان بندی کلاس <span>{hasRole(user?.roles, 'manager') ? (
+                    courseDetail?.timeTable.length !== 0 ? (
+                      <button onClick={() => handleEditTimeTableModal()}><UilEdit /></button>
+                    ) : (
+                      ''
+                    )
+                  ) : (
+                    ''
+                  )}</span>
+                </h3>
+                <div className={style.detailCardcontent}>
+                  {courseDetail?.timeTable.length !== 0 ? (
+                    <div className={style.detailCardWrapper}>
+                      <ul className={style.timeList}>
+                        <li>
+                          <UilCalendar />
+                          <p>{courseDetail?.timeTable?.map(item => (item.day_label + ' '))}</p>
+                        </li>
+                        <li>
+                          <UilClockFive />
+                          <p>{toPersianDigits(courseDetail?.timeTable[0]?.start_time)} تا {toPersianDigits(courseDetail?.timeTable[0]?.end_time)}</p>
+                        </li>
+                      </ul>
+                    </div>
+                  ) : (
+                    hasRole(user?.roles, 'manager') ? (
+                      <button className={style.addTimeTableBtn} onClick={() => setAddTimeTableModal(true)}>
+                        ایجاد جدول زمانی +
+                      </button>
+                    ) : (
+                      <p>جدول زمانی ایجاد نشده است!</p>
+                    )
+                  )}
+                </div>
+              </div>
+              <div className={style.detailCard}>
+                <h3>
+                وضعیت پرداخت شهریه <span style={{fontSize: '13px'}}>({month} ماه)</span>
+                </h3>
+                <div className={style.detailCardcontent}>
+                  <div className={style.detailCardWrapper}>
+                    <ul className={style.payList}>
+                      <li>
+                        <p>تعداد پرداختی این ماه</p>
+                        <p className={style.paid}>{toPersianDigits(paymentStatus?.paid_count ?? 0)}</p>
+                      </li>
+                      <li>
+                        <p>در انتظار پرداخت</p>
+                        <p className={style.pending}>{toPersianDigits(paymentStatus?.unpaid_count ?? 0)}</p>
+                      </li>
+                      <li>
+                        <p>شهریه عقب افتاده</p>
+                        <p className={style.unpaid}>{toPersianDigits(paymentStatus?.overdue_count ?? 0)}</p>
+                      </li>
+                    </ul>
+                    <div className={style.progressWrapper}>
+                      <div
+                        className={style.progressBar}
+                        style={{ width: `${paymentStatus?.paid_percent ?? 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className={style.detailCard}>
+                <h3>
+                  جلسه بعدی
+                </h3>
+                <div className={style.detailCardcontent}>
+                  <ul className={style.nextSession}>
+                    <li className={style.date}>
+                      <h1>{nextSession?.day_of_week ?? '—'}</h1>
+                      <p>{toPersianDigits(nextSession?.date_jalali ?? 'جلسه‌ای ثبت نشده')}</p>
+                    </li>
+                    <li className={style.time}>
+                      <p>
+                        از {toPersianDigits(nextSession?.start_time?.slice(0, 5) ?? '--:--')} تا {toPersianDigits(nextSession?.end_time?.slice(0, 5) ?? '--:--')}
+                      </p>
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
-          </div>
-          <div className={style.detailCard}>
-            <h3>
-              جلسه بعدی
-            </h3>
-            <div className={style.detailCardcontent}>
-              <ul className={style.nextSession}>
-                <li className={style.date}>
-                  <h1>{nextSession?.day_of_week ?? '—'}</h1>
-                  <p>{toPersianDigits(nextSession?.date_jalali ?? 'جلسه‌ای ثبت نشده')}</p>
-                </li>
-                <li className={style.time}>
-                  <p>
-                    از {toPersianDigits(nextSession?.start_time?.slice(0, 5) ?? '--:--')} تا {toPersianDigits(nextSession?.end_time?.slice(0, 5) ?? '--:--')}
-                  </p>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
         {/* Tabs */}
         <div className={style.tabWrapper}>
           <div className={style.tabs}>

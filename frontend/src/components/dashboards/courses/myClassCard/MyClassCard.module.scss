@@ -1,14 +1,22 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
 .countCard {
   width: 100%;
   background: #fff;
   border-radius: 10px;
-  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+  padding: 1rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   align-items: right;
-  gap: 1rem;
+  gap: .7rem;
+  
+  @include desktop {
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
   .header {
     display: flex;
     flex-direction: row-reverse;
@@ -19,16 +27,68 @@
       align-items: center;
       width: 28px;
       height: 28px;
-      border-radius: 8px;
+      border-radius: 50%;
       border: none;
       font-size: 20px;
+
+      svg {
+        width: 1.1rem;
+      }
+
+      background-color: $blue-light;
+      color: $blue;
+
+      &.paid {
+        background-color: $green-light;
+        color: $green;
+      }
+
+      &.unpaid {
+        background-color: $red-light;
+        color: $red;
+      }
+
+      &.down {
+        background-color: $red-light;
+        color: $red;
+      }
+    }
+
+    .title {
+      font-size: 14px;
+      color: $text-sub;
+
+      @include desktop {
+        font-size: 16px;
+      }
     }
   }
   .body {
     font-weight: bold;
-    font-size: 20px;
+    font-size: 14px;
+    
+    @include desktop {
+      font-size: 20px;
+    }
   }
   .footer {
+    font-size: 12px;
     color: $blue;
+
+    @include desktop {
+      font-size: 16px;
+    }
+
+    &.paid {
+      color: $green;
+    }
+
+    &.unpaid {
+      color: $red;
+    }
+
+    &.down {
+      color: $red;
+    }
   }
 }

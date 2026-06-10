@@ -166,20 +166,72 @@
   color: $primary;
 }
 .noInsuranceList {
-  list-style: none;
+  display: flex;
+  flex-direction: column;
   color: $primary;
-  overflow-y: scroll;
-  li {
-    position: relative;
-    padding: 0.5rem;
-    border-bottom: 1px solid #ccc;
+  gap: .5rem;
+
+  .listItem {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    .editButton {
-      position: absolute;
-      left: 0;
-      cursor: pointer;
-      color: $primary;
+    gap: .5rem;
+
+    .rightItem {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: .5rem;
+
+      .rowNum {
+        display: flex;
+        color: $gray;
+        padding: .1rem .5rem;
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .userInfo {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .userBaseInfo {
+        display: flex;
+        gap: .5rem;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 11px;
+
+        .expired {
+          border: 1px solid $red;
+          background-color: $red-light;
+          color: $red;
+          border-radius: 20px;
+          padding: .1rem .3rem;
+
+          &.noDate {
+            border: 1px solid $gray;
+            background-color: $gray-light;
+            color: $gray;
+          }
+        }
+      }
     }
+    .editBtn {
+      background-color: $blue-light;
+      color: $blue;
+      padding: .3rem;
+      
+      @include desktop {
+        margin-right: 5rem;
+      }
+
+      svg {
+        width: 1.1rem;
+      }
+    }
+    
   }
 }

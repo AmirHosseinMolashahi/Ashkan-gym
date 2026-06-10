@@ -9,6 +9,7 @@ import api from "../../../../hooks/api";
 import { useToast } from "../../../../context/NotificationContext";
 import StudentsCard from "./studentsCard/StudentsCard";
 import Pagination from "../../../GlobalComponents/Pagination/Pagination";
+import StudentsTableSkeleton from "./studentsTableSkeleton/StudentsTableSkeleton";
 
 const PAGE_SIZE = 5;
 
@@ -40,6 +41,7 @@ export default function StudentsSection({ course_id }) {
   const [selectedEnrollment, setSelectedEnrollment] = useState(null)
   const { notify } = useToast();
   const isMobile = useIsMobile();
+  const [loading, setLoading] = useState(false)
 
 
   const [students, setStudents] = useState([])
@@ -54,6 +56,7 @@ export default function StudentsSection({ course_id }) {
     url = `/training/courses/detail/${course_id}/students/`
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -75,6 +78,8 @@ export default function StudentsSection({ course_id }) {
 
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -141,23 +146,6 @@ export default function StudentsSection({ course_id }) {
     }
   }
 
-  // const filteredData = useMemo(() => {
-  //   return students.filter(s => {
-  //     const fullName =
-  //       s.student.full_name ||
-  //       `${s.student.first_name || ""} ${s.student.last_name || ""}`.trim();
-  //     const email = s.student.email || "";
-
-  //     const matchSearch =
-  //       fullName.toLowerCase().includes(search.toLowerCase()) ||
-  //       email.toLowerCase().includes(search.toLowerCase());
-
-  //     const matchStatus =
-  //       statusFilter === "all" || s.status === statusFilter;
-
-  //     return matchSearch && matchStatus;
-  //   });
-  // }, [students, search, statusFilter]);
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -199,117 +187,124 @@ export default function StudentsSection({ course_id }) {
             data={students}
             onDeactivate={handleDeactiveModal}
             onReactivate={handleReactiveModal}
+            loading={loading}
           />
         ) : (
-          students.length > 0 ? (
-            <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ردیف</th>
-                  <th>ورزشکار</th>
-                  <th>وضعیت</th>
-                  <th>تلفن</th>
-                  <th>
-                    <div className={styles.thDub}>
-                      حضور غیاب
-                      <span>({month} ماه)</span>
-                    </div>
-                  </th>
-                  <th>
-                    <div className={styles.thDub}>
-                      وضعیت شهریه
-                      <span>({month} ماه)</span>
-                    </div>
-                  </th>
-                  <th>تغییرات</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {students.map((item, index) => {
-                  return (
-                    <tr key={index}>
-                      <td className={styles.tableIndex}>{index + 1}</td>
-                      <td>
-                      <div className={styles.students}>
-                        <img src={item.student.profile_picture} />
-                          <div>
-                            <strong>{item.student.first_name} {item.student.last_name}</strong>
-                            <p>{toPersianDigits(item.student.national_id)}</p>
-                          </div>
-                      </div>
-                      </td>
-                      <td>{item.status === 'active' ? (
-                        <span className={styles.status}>فعال <UilCheck /></span>
-                      ) : (
-                        <span className={styles.status}>غیرفعال <UilTimes /></span>
-                      )}</td>
-                      <td>
-                        <div className={styles.phone_number}>
-                          {toPersianDigits(item.student.phone_number)}
-                        </div>
-                      </td>
-                      <td>
-                        {item.attendance_percentage ? (
-                          <strong>{toPersianDigits(item.attendance_percentage)}%</strong>
-                        ) : '-'}
-                      </td>
-                      <td>
-                        {item.tuition_status ? (
-                          <span className={`${styles.badge} ${styles[item.tuition_status?.status]}`}>
-                            {item.tuition_status?.status === "paid" && "پرداخت شده"}
-                            {item.tuition_status?.status === "pending" && "در انتظار پرداخت"}
-                            {item.tuition_status?.status === "overdue" && "از موئد گذشته"}
-                            {item.tuition_status?.status === "unpaid" && "پرداخت نشده"}
-                          </span>
-                        ) : '-'}
-                      </td>
-                      <td>
-                        <div className={styles.btnContainer}>
-                          {item.status === 'active' ? (
-                            <button className={styles.deactive} onClick={() => handleDeactiveModal(item)}>
-                            غیر فعال کردن
-                              <UilTimesCircle />
-                            </button>
-                          ) : (
-                            <button className={styles.active} onClick={() => handleReactiveModal(item)}>
-                              فعال کردن
-                              <UilCheckCircle />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          loading === true ? (
+            <StudentsTableSkeleton />
           ) : (
-            <p>هیچ ورزشکاری پیدا نشد!</p>
+            students.length > 0 ? (
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ردیف</th>
+                      <th>ورزشکار</th>
+                      <th>وضعیت</th>
+                      <th>تلفن</th>
+                      <th>
+                        <div className={styles.thDub}>
+                          حضور غیاب
+                          <span>({month} ماه)</span>
+                        </div>
+                      </th>
+                      <th>
+                        <div className={styles.thDub}>
+                          وضعیت شهریه
+                          <span>({month} ماه)</span>
+                        </div>
+                      </th>
+                      <th>تغییرات</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {students.map((item, index) => {
+                      return (
+                        <tr key={index}>
+                          <td className={styles.tableIndex}>{index + 1}</td>
+                          <td>
+                          <div className={styles.students}>
+                            <img src={item.student.profile_picture} />
+                              <div>
+                                <strong>{item.student.first_name} {item.student.last_name}</strong>
+                                <p>{toPersianDigits(item.student.national_id)}</p>
+                              </div>
+                          </div>
+                          </td>
+                          <td>{item.status === 'active' ? (
+                            <span className={styles.status}>فعال <UilCheck /></span>
+                          ) : (
+                            <span className={styles.status}>غیرفعال <UilTimes /></span>
+                          )}</td>
+                          <td>
+                            <div className={styles.phone_number}>
+                              {toPersianDigits(item.student.phone_number)}
+                            </div>
+                          </td>
+                          <td>
+                            {item.attendance_percentage ? (
+                              <strong>{toPersianDigits(item.attendance_percentage)}%</strong>
+                            ) : '-'}
+                          </td>
+                          <td>
+                            {item.tuition_status ? (
+                              <span className={`${styles.badge} ${styles[item.tuition_status?.status]}`}>
+                                {item.tuition_status?.status === "paid" && "پرداخت شده"}
+                                {item.tuition_status?.status === "pending" && "در انتظار پرداخت"}
+                                {item.tuition_status?.status === "overdue" && "از موئد گذشته"}
+                                {item.tuition_status?.status === "unpaid" && "پرداخت نشده"}
+                              </span>
+                            ) : '-'}
+                          </td>
+                          <td>
+                            <div className={styles.btnContainer}>
+                              {item.status === 'active' ? (
+                                <button className={styles.deactive} onClick={() => handleDeactiveModal(item)}>
+                                غیر فعال کردن
+                                  <UilTimesCircle />
+                                </button>
+                              ) : (
+                                <button className={styles.active} onClick={() => handleReactiveModal(item)}>
+                                  فعال کردن
+                                  <UilCheckCircle />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              ) : (
+                <p>هیچ ورزشکاری پیدا نشد!</p>
+              )
           )
         )}
 
-        <div className={styles.paginationWrapper}>
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onNext={() => {
-              if (nextPage) {
-                fetchCourseStudentsList(nextPage);
-              }
-            }}
-            onPrev={() => {
-              if (prevPage) {
-                fetchCourseStudentsList(prevPage);
-              }
-            }}
-            onPageChange={(pageNumber) => {
-              setPage(pageNumber);
-            }}
-          />
-        </div>
+        {totalPages > 1 && (
+          <div className={styles.paginationWrapper}>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onNext={() => {
+                if (nextPage) {
+                  fetchCourseStudentsList(nextPage);
+                }
+              }}
+              onPrev={() => {
+                if (prevPage) {
+                  fetchCourseStudentsList(prevPage);
+                }
+              }}
+              onPageChange={(pageNumber) => {
+                setPage(pageNumber);
+              }}
+            />
+          </div>
+        )}
       </div>
       {deactiveModal && (
         <Modal handleModal={() => setDeactiveModal(false)} height='200px'>

@@ -70,8 +70,7 @@
 .toolbar {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: .5rem;
   padding: .5rem;
   background-color: #fff;
@@ -79,26 +78,32 @@
 
   @include desktop {
     display: flex;
-    align-items: center;
+    justify-content: space-between;
     gap: 1rem;
   }
 
+  .rows {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .5rem;
+    @include desktop {
+      display: contents;
+    }
+  }
+
   .filterObj {
+    width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
     gap: .5rem;
 
     select {
+      flex: 2;
       width: 100%;
       padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid #ddd;
       background-color: transparent;
-
-      @include desktop {
-        width: auto;
-      }
     }
     button {
       padding: .5rem;
@@ -107,44 +112,33 @@
       display: none;
 
       @include desktop {
+        flex: 1;
         display: block;
+        width: 100%;
       }
     }
   }
   .clearFilterBtn {
+    width: 100%;
     padding: .5rem;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    margin-bottom: .5rem;
-    margin-left: .5rem;
     font-size: 12px;
     svg {
       width: 16px;
     }
 
     @include desktop {
-      position: unset;
-      margin: 0;
+      width: auto;
     }
   }
   .inputWrapper {
     position: relative;
     display: flex;
     width: 100%;
-    
-    @include desktop {
-      width: 59%;
-    }
     .searchInput {
       width: 100%;
       padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid #ddd;
-
-      @include desktop {
-        
-      }
     }
     .clearSearch {
       position: absolute;

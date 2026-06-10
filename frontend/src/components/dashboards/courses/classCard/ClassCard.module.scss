@@ -90,3 +90,36 @@
     background: #1d4ed8;
   }
 }
+
+
+/* skeleton */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.pulse {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e4e4e4 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+.skTopBorder {
+  position: absolute;
+  top: 0; left: 0;
+  height: 6px;
+  width: 100%;
+  border-radius: 14px 14px 0 0;
+}
+.skBadge   { height: 22px; width: 52px; border-radius: 999px; }
+.skMenu    { height: 18px; width: 22px; border-radius: 4px; }
+.skTitle   { height: 18px; width: 65%; border-radius: 6px; }
+.skCoach   { height: 14px; width: 50%; border-radius: 6px; }
+.skSubtitle{ height: 13px; width: 80%; border-radius: 6px; }
+.skInfoRow { height: 13px; border-radius: 6px; }
+.skButton  { height: 40px; width: 100%; border-radius: 10px; margin-top: auto; }

@@ -1,0 +1,84 @@
+@use '../../../../../styles/constants.scss' as *;
+@import '../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+
+  @include desktop {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+  }
+}
+
+.summaryCard {
+  background: #ffffff;
+  border: 1px solid #e8edf2;
+  border-radius: 12px;
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+
+  @include desktop {
+    padding: 1rem;
+    width: 100%;
+    align-items: flex-start;
+  }
+}
+
+.bone {
+  @extend %shimmer;
+}
+
+.boneTitle {
+  width: 90px;
+  height: 13px;
+}
+
+.boneAmount {
+  width: 130px;
+  height: 28px;
+  border-radius: 6px;
+  margin: 0.5rem 0 0.8rem;
+
+  @include desktop {
+    width: 160px;
+    height: 40px;
+  }
+}
+
+.boneBadge {
+  width: 110px;
+  height: 24px;
+  border-radius: 999px;
+
+  @include desktop {
+    width: 140px;
+    height: 28px;
+  }
+}

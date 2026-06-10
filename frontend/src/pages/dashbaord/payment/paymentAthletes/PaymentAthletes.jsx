@@ -16,7 +16,19 @@ import { useToast } from '../../../../context/NotificationContext';
 import PaymentCard from "./paymentCard.jsx/PaymentCard";
 import Pagination from "../../../../components/GlobalComponents/Pagination/Pagination";
 import BackButton from "../../../../components/dashboards/backButton/BackButton";
+import SummaryGridSkeleton from "./skeletonLoading/summaryGridSkeleton/SummaryGridSkeleton";
+import StudentTableSkeleton from "./skeletonLoading/studentTableSkeleton/StudentTableSkeleton";
 
+
+
+const ClassTitleSkeleton = () => {
+  return (
+    <div className={style.classTitle}>
+      <div className={`${style.bone} ${style.boneTitle}`} />
+      <div className={`${style.bone} ${style.boneSubtitle}`} />
+    </div>
+  );
+};
 
 export const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(
@@ -80,7 +92,7 @@ const PaymentAthletes = () => {
 
   const [studentList, setStudentList] = useState([])
   const [summary, setSummary] = useState(null)
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [error, setError] = useState(null);
 
@@ -144,6 +156,7 @@ const PaymentAthletes = () => {
     url = `/payment/coach/invoices/?course_id=${courseId}&year=${year}&month=${month}`
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -205,28 +218,6 @@ const PaymentAthletes = () => {
 
   const monthLabel = `${PERSIAN_MONTH_NAMES[month - 1]} ${year}`;
 
-  // const filteredRows = useMemo(() => {
-  //   const q = searchText.trim().toLowerCase();
-
-  //   return studentList.filter((row) => {
-  //     const state = getRowState(row);
-
-  //     const matchesFilter =
-  //       paymentFilter === "all"
-  //         ? true
-  //         : paymentFilter === "paid"
-  //         ? state.key === "paid"
-  //         : state.key !== "paid";
-
-  //     const name = (row.student_name || "").toLowerCase();
-  //     const nationalId = String(row.student_national_id || "").toLowerCase();
-
-  //     const matchesSearch =
-  //       q === "" || name.includes(q) || nationalId.includes(q);
-
-  //     return matchesFilter && matchesSearch;
-  //   });
-  // }, [studentList, searchText, paymentFilter]);
 
   const handleMarkPaid = async (invoiceId) => {
     try {
@@ -255,7 +246,6 @@ const PaymentAthletes = () => {
     alert(`یادآوری برای ${list.length} ورزشکار ارسال شد (دمو).`);
   };
 
-  if (loading) return <div className={style.page}>در حال بارگذاری...</div>;
   if (error) return <div className={style.page}>{error}</div>;
 
   return (
@@ -264,12 +254,16 @@ const PaymentAthletes = () => {
         <div className={style.wrapper}>
           <BackButton route="/dashboard/payment" title="بازگشت" />
           <div className={style.container}>
-            <div className={style.classTitle}>
-              <h2 className={style.title}>{summary.course_title}</h2>
-              <p className={style.subtitle}>
-                {toPersianDigits(String(summary.students_count))} ورزشکار
-              </p>
-            </div>
+            {loading === true ? (
+              <ClassTitleSkeleton />
+            ) : (
+              <div className={style.classTitle}>
+                <h2 className={style.title}>{summary?.course_title}</h2>
+                <p className={style.subtitle}>
+                  {toPersianDigits(String(summary?.students_count))} ورزشکار
+                </p>
+              </div>
+            )}
              <div className={style.monthTag}>
                 {toPersianDigits(monthLabel)}
               </div>
@@ -277,42 +271,46 @@ const PaymentAthletes = () => {
         </div>
       </div>
 
-      <div className={style.summaryGrid}>
-        <article className={style.card}>
-          <p className={style.cardLabel}>مجموع مورد انتظار</p>
-          <h3>{formatMoney(summary.total_expected)}</h3>
-          <span className={style.subtle}>
-            {toPersianDigits(String(summary.students_count))} ورزشکار
-          </span>
-        </article>
+      {loading === true ? (
+        <SummaryGridSkeleton />
+      ) : (
+        <div className={style.summaryGrid}>
+          <article className={style.card}>
+            <p className={style.cardLabel}>مجموع مورد انتظار</p>
+            <h3>{formatMoney(summary?.total_expected)}</h3>
+            <span className={style.subtle}>
+              {toPersianDigits(String(summary?.students_count))} ورزشکار
+            </span>
+          </article>
 
-        <article className={style.card}>
-          <p className={style.cardLabel}>دریافت شده</p>
-          <h3>{formatMoney(summary.collected)}</h3>
-          <span className={`${style.badge} ${style.paid}`}>
-            {toPersianDigits(
-              String(studentList.filter((r) => getRowState(r).key === "paid").length)
-            )}{" "}
-            پرداخت شده
-          </span>
-        </article>
+          <article className={style.card}>
+            <p className={style.cardLabel}>دریافت شده</p>
+            <h3>{formatMoney(summary?.collected)}</h3>
+            <span className={`${style.badge} ${style.paid}`}>
+              {toPersianDigits(
+                String(studentList.filter((r) => getRowState(r).key === "paid").length)
+              )}{" "}
+              پرداخت شده
+            </span>
+          </article>
 
-        <article className={style.card}>
-          <p className={style.cardLabel}>در انتظار</p>
-          <h3>{formatMoney(summary.pending)}</h3>
-          <span className={`${style.badge} ${style.pending}`}>
-            {toPersianDigits(String(summary.pending_count))} پرداخت نشده
-          </span>
-        </article>
+          <article className={style.card}>
+            <p className={style.cardLabel}>در انتظار</p>
+            <h3>{formatMoney(summary?.pending)}</h3>
+            <span className={`${style.badge} ${style.pending}`}>
+              {toPersianDigits(String(summary?.pending_count))} پرداخت نشده
+            </span>
+          </article>
 
-        <article className={`${style.card} ${style.actionCard}`}>
-          <p className={style.cardLabel}>نیازمند اقدام</p>
-          <h3>{toPersianDigits(String(summary.pending_count))} ورزشکار در انتظار</h3>
-          <button className={style.primaryBtn} onClick={handleRemindAll}>
-            یادآوری به همه
-          </button>
-        </article>
-      </div>
+          <article className={`${style.card} ${style.actionCard}`}>
+            <p className={style.cardLabel}>نیازمند اقدام</p>
+            <h3>{toPersianDigits(String(summary?.pending_count))} ورزشکار در انتظار</h3>
+            <button className={style.primaryBtn} onClick={handleRemindAll}>
+              یادآوری به همه
+            </button>
+          </article>
+        </div>
+      )}
 
       <div className={style.filtersBar}>
         <input
@@ -345,135 +343,142 @@ const PaymentAthletes = () => {
           handleRemind={handleRemind}
           handleMarkPaid={handleMarkPaid}
           updatingId={updatingId}
+          loading={loading}
         />
       ) : (
-        <div className={style.tableWrap}>
-          <div className={style.tableHead}>
-            <span>ورزشکار</span>
-            <span>وضعیت پرداخت</span>
-            <span>مبلغ</span>
-            <span>تغییرات</span>
-            <span>عملیات</span>
-          </div>
+        loading === true ? (
+          <StudentTableSkeleton />
+        ) : (
+          <div className={style.tableWrap}>
+            <div className={style.tableHead}>
+              <span>ورزشکار</span>
+              <span>وضعیت پرداخت</span>
+              <span>مبلغ</span>
+              <span>تغییرات</span>
+              <span>عملیات</span>
+            </div>
 
-          {studentList.map((row) => {
-            const state = getRowState(row);
+            {studentList.map((row) => {
+              const state = getRowState(row);
 
-            return (
-              <div className={style.tableRow} key={row.id}>
-                <div className={style.athleteCell}>
-                  <div className={style.avatar}>
-                    {row.profile_picture ? (
-                      <img src={row.profile_picture} alt={row.student_name} />
+              return (
+                <div className={style.tableRow} key={row.id}>
+                  <div className={style.athleteCell}>
+                    <div className={style.avatar}>
+                      {row.profile_picture ? (
+                        <img src={row.profile_picture} alt={row.student_name} />
+                      ) : (
+                        <span>{row.student_name?.slice(0, 1) || "و"}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className={style.name}>{row.student_name}</p>
+                      <p className={style.emailLike}>{row.student_national_id || "—"}</p>
+                    </div>
+                  </div>
+
+                  <div className={style.paymentStatus}>
+                    <div className={`${style.badge} ${style[state.key]}`}>{state.label}</div>
+                    {state.key !== 'paid' ? (
+                      <>
+                      <div className={style.notifiedStatus}>
+                        {row.overdue_notified_count ? (
+                        `${toPersianDigits(row.overdue_notified_count)} یادآور ارسال شده است`
+                      ) : ''}
+                      </div>
+                      <div className={style.notifiedDate}>
+                        {row.overdue_notified_at ? (
+                        `در تاریخ: ${toPersianDigits(row.overdue_notified_at)}`
+                      ) : ''}
+                      </div>
+                      </>
+                    ): ''}
+                  </div>
+
+                  <div>
+                    <p className={style.amount}>{formatMoney(row.final_amount)}</p>
+                    <p className={style.dateText}>
+                      {state.key === "paid"
+                        ? formatDateFa(row.payments[0].paid_at?.slice(0, 10))
+                        : `سررسید: ${formatDateFa(row.due_date)}`}
+                    </p>
+                    <p className={style.dateText}>
+                      روش پرداخت: {row.payments[0]?.method_label || "—"}
+                    </p>
+                  </div>
+
+                  <div className={style.changeInvoice}>
+                    {state.key !== "paid" ? (
+                      <button onClick={() => handleChangeInvoiceModal(row)}>
+                        <UilEdit /> تغییر فاکتور
+                      </button>
                     ) : (
-                      <span>{row.student_name?.slice(0, 1) || "و"}</span>
+                      <span className={style.subtle}>امکات تغییر فاکتور نمیباشد</span>
                     )}
                   </div>
-                  <div>
-                    <p className={style.name}>{row.student_name}</p>
-                    <p className={style.emailLike}>{row.student_national_id || "—"}</p>
+
+                  <div className={style.actions}>
+                    {state.key === "paid" ? (
+                      <button className={style.ghostBtn}>رسید</button>
+                    ) : (
+                      <>
+                        <select
+                          className={style.methodSelect}
+                          value={methodByInvoice[row.inv_id] || "cash"}
+                          onChange={(e) =>
+                            setMethodByInvoice((prev) => ({
+                              ...prev,
+                              [row.inv_id]: e.target.value,
+                            }))
+                          }
+                        >
+                          <option value="cash">نقدی</option>
+                          <option value="pos">کارت‌خوان</option>
+                          <option value="transfer">کارت‌به‌کارت/واریز</option>
+                          <option value="online">آنلاین</option>
+                        </select>
+                        <button className={style.ghostBtn} onClick={() => handleRemind(row)}>
+                          یادآوری
+                        </button>
+                        <button
+                          className={style.primaryBtn}
+                          onClick={() => handleMarkPaid(row.inv_id)}
+                          disabled={updatingId === row.inv_id}
+                        >
+                          {updatingId === row.inv_id ? "..." : "ثبت پرداخت"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
+              );
+            })}
 
-                <div className={style.paymentStatus}>
-                  <div className={`${style.badge} ${style[state.key]}`}>{state.label}</div>
-                  {state.key !== 'paid' ? (
-                    <>
-                    <div className={style.notifiedStatus}>
-                      {row.overdue_notified_count ? (
-                      `${toPersianDigits(row.overdue_notified_count)} یادآور ارسال شده است`
-                    ) : ''}
-                    </div>
-                    <div className={style.notifiedDate}>
-                      {row.overdue_notified_at ? (
-                      `در تاریخ: ${toPersianDigits(row.overdue_notified_at)}`
-                    ) : ''}
-                    </div>
-                    </>
-                  ): ''}
-                </div>
-
-                <div>
-                  <p className={style.amount}>{formatMoney(row.final_amount)}</p>
-                  <p className={style.dateText}>
-                    {state.key === "paid"
-                      ? formatDateFa(row.payments[0].paid_at?.slice(0, 10))
-                      : `سررسید: ${formatDateFa(row.due_date)}`}
-                  </p>
-                  <p className={style.dateText}>
-                    روش پرداخت: {row.payments[0]?.method_label || "—"}
-                  </p>
-                </div>
-
-                <div className={style.changeInvoice}>
-                  {state.key !== "paid" ? (
-                    <button onClick={() => handleChangeInvoiceModal(row)}>
-                      <UilEdit /> تغییر فاکتور
-                    </button>
-                  ) : (
-                    <span className={style.subtle}>امکات تغییر فاکتور نمیباشد</span>
-                  )}
-                </div>
-
-                <div className={style.actions}>
-                  {state.key === "paid" ? (
-                    <button className={style.ghostBtn}>رسید</button>
-                  ) : (
-                    <>
-                      <select
-                        className={style.methodSelect}
-                        value={methodByInvoice[row.inv_id] || "cash"}
-                        onChange={(e) =>
-                          setMethodByInvoice((prev) => ({
-                            ...prev,
-                            [row.inv_id]: e.target.value,
-                          }))
-                        }
-                      >
-                        <option value="cash">نقدی</option>
-                        <option value="pos">کارت‌خوان</option>
-                        <option value="transfer">کارت‌به‌کارت/واریز</option>
-                        <option value="online">آنلاین</option>
-                      </select>
-                      <button className={style.ghostBtn} onClick={() => handleRemind(row)}>
-                        یادآوری
-                      </button>
-                      <button
-                        className={style.primaryBtn}
-                        onClick={() => handleMarkPaid(row.inv_id)}
-                        disabled={updatingId === row.inv_id}
-                      >
-                        {updatingId === row.inv_id ? "..." : "ثبت پرداخت"}
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-
-          {studentList.length === 0 && <p className={style.empty}>موردی با این فیلتر/جستجو پیدا نشد.</p>}
+            {studentList.length === 0 && <p className={style.empty}>موردی با این فیلتر/جستجو پیدا نشد.</p>}
+          </div>
+        )
+      )}
+      {totalPages > 1 && (
+        <div className={style.paginationWrapper}>
+          <Pagination 
+            currentPage={page}
+            totalPages={totalPages}
+            onNext={() => {
+              if (nextPage) {
+                fetchCourseInvoices(nextPage);
+              }
+            }}
+            onPrev={() => {
+              if (prevPage) {
+                fetchCourseInvoices(prevPage);
+              }
+            }}
+            onPageChange={(pageNumber) => {
+              setPage(pageNumber);
+            }}
+          />
         </div>
       )}
-      <div className={style.paginationWrapper}>
-        <Pagination 
-          currentPage={page}
-          totalPages={totalPages}
-          onNext={() => {
-            if (nextPage) {
-              fetchCourseInvoices(nextPage);
-            }
-          }}
-          onPrev={() => {
-            if (prevPage) {
-              fetchCourseInvoices(prevPage);
-            }
-          }}
-          onPageChange={(pageNumber) => {
-            setPage(pageNumber);
-          }}
-        />
-      </div>
       {changeInvoiceModal && (
         <Modal handleModal={() => setChangeInvoiceModal(false)} height="500px" width="500px">
           <h2>تغییر فاکتور</h2>

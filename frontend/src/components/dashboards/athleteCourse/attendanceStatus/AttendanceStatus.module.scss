@@ -1,32 +1,88 @@
 @use '../../../../styles/constants.scss' as *;
+@import '../../../../styles/mixins';
+
 .container {
   display: flex;
-  gap: 1rem;
-  padding: 1rem;
+  gap: .5rem;
+  padding: 0;
+  flex-direction: column;
   
+  @include desktop {
+    gap: 1rem;
+    padding: 1rem;
+    flex-direction: row;
+  }
+
   .left {
     flex: 2;
-    background-color: #fff;
     border-radius: 10px;
+    
+    @include desktop {
+      background-color: #fff;
+    }
 
     .leftContainer {
-      padding: 1rem;
+      padding: .7rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
       h1 {
-        font-size: 28px;
-        margin-bottom: 6px;
+        font-size: 18px;
+        
+        @include desktop {
+          font-size: 28px;
+        }
+      }
+      
+      @include desktop {
+        padding: 1rem;
+        gap: 1rem;
       }
 
       .subtitle {
         color: #6b7280;
-        margin-bottom: 20px;
+        font-size: 14px;
+
+        @include desktop {
+          font-size: 16px;
+        }
+      }
+
+      .filter {
+        display: flex;
+        flex-direction: column;
+        gap: .7rem;
+
+        @include desktop {
+          flex-direction: row;
+          gap: 1rem;
+          align-items: center;
+          justify-content: flex-start;
+        }
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        gap: .7rem;
+
+        @include desktop {
+          display: contents;
+        }
       }
 
       .select {
+        width: 100%;
         padding: 10px 14px;
         border-radius: 8px;
         border: 1px solid #ddd;
-        margin-bottom: 24px;
         background: white;
+      }
+      
+      .submitBtn {
+        background-color: $blue;
+        color: $white;
+        padding: 10px 14px;
       }
 
       // .card {
@@ -43,16 +99,34 @@
   }
 }
 
-.smallText {
-  color: #6b7280;
-  font-size: 14px;
-  margin-bottom: 16px;
+.card {
+  background-color: $surface;
+  padding: .7rem;
+  border-radius: 10px;
+
+  h2 {
+    font-size: 16px;
+
+    @include desktop {
+      font-size: 18px;
+    }
+  }
+
+  .smallText {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
 }
 
 .monthList {
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  @include desktop {
+    background-color: transparent;
+  }
 }
 
 .monthItem {
@@ -170,4 +244,10 @@
   li {
     margin-bottom: 6px;
   }
+}
+
+.paginationWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

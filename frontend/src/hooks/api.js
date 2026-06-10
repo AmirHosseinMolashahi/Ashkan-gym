@@ -52,6 +52,9 @@ api.interceptors.response.use(
         isRefreshing = false;
         processQueue(err, null);
         // فقط خطا رو برگردون. واکنش درون React انجام میشه.
+
+        window.dispatchEvent(new CustomEvent('auth:logout'));
+        
         return Promise.reject(err);
       }
     }

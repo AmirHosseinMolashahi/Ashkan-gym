@@ -30,6 +30,7 @@ import EditCourse from './pages/dashbaord/courses/editCourse/EditCourse';
 import NotFound from './components/NotFound/NotFound';
 import Unauthorized from './components/Unauthorized/Unauthorized';
 import { AnimatePresence, motion } from "framer-motion";
+import { useAuthListener } from './hooks/useAuthListener';
 
 
 
@@ -47,6 +48,7 @@ const PageWrapper = ({ children }) => {
   }
 
 function App() {
+  useAuthListener()
   const { notify } = useToast();
 
   const dispatch = useDispatch();

@@ -1,4 +1,5 @@
 @use '../../../styles/constants.scss' as *;
+@import '../../../styles/mixins';
 
 .athleteCourse {
   color: $primary;
@@ -7,17 +8,76 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+
+    .header {
+      font-size: 14px;
+      @include desktop {
+        font-size: 16px;
+      }
+    }
     .classInfoCard {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr; /* موبایل: یک ستون */
+      gap: 12px;
+
+      @include desktop {
+        grid-template-columns: 1fr 1fr 1fr; /* دسکتاپ: سه ستون */
+      }
+
+      .cardsRow {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* موبایل: دو کارت کنار هم */
+        gap: 12px;
+
+        @include desktop {
+          display: contents;
+        }
+      }
+
+      .cardPayment {
+        order: 0; /* موبایل: اول */
+        @include desktop {
+          order: 2;
+        }
+      }
+
+      .cardNextSession {
+        order: 1;
+        @include desktop {
+          order: 0;
+        }
+      }
+
+      .cardAttendance {
+        order: 2;
+        @include desktop {
+          order: 1;
+        }
+      }
+      
     }
 
     .classInfoList {
       display: flex;
       flex-direction: column;
       gap: 2rem;
+
+      .topPageTitle {
+        h2 {
+          font-size: 18px;
+
+          @include desktop {
+            font-size: 22px;
+          }
+        }
+        p {
+          font-size: 12px;
+
+          @include desktop {
+            font-size: 16px;
+          }
+        }
+      }
       .classList {
         .headerContainer {
           display: flex;
@@ -26,6 +86,12 @@
 
           button {
             background-color: transparent;
+            padding: .5rem;
+            font-size: 13px;
+            @include desktop {
+              padding: 1rem;
+              font-size: 16px;
+            }
 
             &.active {
               background-color: $blue;
@@ -37,16 +103,12 @@
     }
   }
 }
-.unpaid {
+.status {
   display: flex;
   gap: .5rem;
   align-items: center;
-  color: #6b0c0c;
-}
-
-.paid {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-  color: #0c2a6b;
+  font-size: 14px;
+  @include desktop {
+    font-size: 18px;
+  }
 }

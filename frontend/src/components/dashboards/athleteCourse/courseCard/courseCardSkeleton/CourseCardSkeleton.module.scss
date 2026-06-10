@@ -1,0 +1,169 @@
+@import '../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+%shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 360px;
+  @include desktop {
+    max-width: none;
+  }
+}
+
+// ─── Hero ───────────────────────────────────────────────
+.hero {
+  position: relative;
+  height: 160px;
+  @include desktop { height: 120px; }
+}
+
+.heroImage {
+  @extend %shimmer;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.titleLine {
+  @extend %shimmer;
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  height: 20px;
+  width: 45%;
+  border-radius: 6px;
+}
+
+.badgeLine {
+  @extend %shimmer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  height: 24px;
+  width: 90px;
+  border-radius: 20px;
+}
+
+// ─── Body ───────────────────────────────────────────────
+.body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoIcon {
+  @extend %shimmer;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.infoText {
+  @extend %shimmer;
+  height: 14px;
+  width: 55%;
+}
+
+// ─── Attendance ─────────────────────────────────────────
+.attendanceSection {
+  margin-top: 2px;
+}
+
+.attendanceHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.attendancePercent {
+  @extend %shimmer;
+  width: 52px;
+  height: 24px;
+}
+
+.attendanceLabel {
+  @extend %shimmer;
+  width: 90px;
+  height: 13px;
+}
+
+.progressBar {
+  height: 6px;
+  border-radius: 99px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progressFill {
+  @extend %shimmer;
+  height: 100%;
+  width: 100%;
+  border-radius: 99px;
+}
+
+// ─── Stats ──────────────────────────────────────────────
+.stats {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: #f9f9f9;
+}
+
+.statIcon {
+  @extend %shimmer;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.statCount {
+  @extend %shimmer;
+  height: 13px;
+  width: 70%;
+}
+
+.statLabel {
+  @extend %shimmer;
+  height: 11px;
+  width: 50%;
+}

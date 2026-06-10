@@ -67,7 +67,13 @@ const authSlice = createSlice({
     loading: true,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    // 👇 اضافه کن
+    clearUser(state) {
+      state.user = null;
+      state.loading = false;
+    }
+  },
   extraReducers: (builder) => {
     builder
       // گرفتن کاربر
@@ -119,4 +125,6 @@ const authSlice = createSlice({
   },
 });
 
+
+export const { clearUser } = authSlice.actions;
 export default authSlice.reducer;

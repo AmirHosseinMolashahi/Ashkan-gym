@@ -4,6 +4,9 @@ import api from "../../../hooks/api";
 import { getCurrentShamsiPeriod, PERSIAN_MONTH_NAMES } from "../../../hooks/shamsiDate";
 import toPersianDigits from "../../../hooks/convertNumber";
 import style from "./studentPayment.module.scss";
+import SummaryCardsSkeleton from "./skeletonLoading/summaryCardsSkeleton/SummaryCardsSkeleton";
+import BackButton from "../../../components/dashboards/backButton/BackButton";
+import InvoiceTableSkeleton from "./skeletonLoading/invoiceTableSkeleton/InvoiceTableSkeleton";
 
 const toFaDate = (dateStr) => {
   if (!dateStr) return "بدون سررسید";
@@ -61,6 +64,7 @@ const studentPayment = () => {
 
   return (
   <section className={style.paymentPage}>
+    <BackButton route={'/dashboard'} title={'بازگشت'} />
     <header className={style.header}>
       <div>
         <h2>پرداخت‌های من</h2>
@@ -101,99 +105,116 @@ const studentPayment = () => {
       </div>
     </header>
 
-    <div className={style.summaryGrid}>
-      <article className={style.summaryCard}>
-        <p className={style.cardTitle}>کل صورتحساب</p>
-        <h3>{formatPrice(summary.total_invoiced)}</h3>
-        <span className={style.cardBadge}>
-          {toPersianDigits(String(summary.count))} کلاس
-        </span>
-      </article>
+    {loading === true ? (
+      <SummaryCardsSkeleton />
+    ) : (
+      <div className={style.summaryGrid}>
+        <div className={style.summaryRow}>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>کل صورتحساب</p>
+            <h3>{formatPrice(summary.total_invoiced)}</h3>
+            <span className={style.cardBadge}>
+              {toPersianDigits(String(summary.count))} کلاس
+            </span>
+          </article>
 
-      <article className={style.summaryCard}>
-        <p className={style.cardTitle}>جمع پرداخت‌شده</p>
-        <h3>{formatPrice(summary.total_paid)}</h3>
-        <span className={`${style.cardBadge} ${style.success}`}>
-          {toPersianDigits(String(summary.total_paid_count))} مورد تسویه
-        </span>
-      </article>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>جمع پرداخت‌شده</p>
+            <h3>{formatPrice(summary.total_paid)}</h3>
+            <span className={`${style.cardBadge} ${style.success}`}>
+              {toPersianDigits(String(summary.total_paid_count))} مورد تسویه
+            </span>
+          </article>
+        </div>
 
-      <article className={`${style.summaryCard} ${style.warningCard}`}>
-        <p className={style.cardTitle}>مانده قابل پرداخت</p>
-        <h3>{formatPrice(summary.total_remaining)}</h3>
-        <span className={`${style.cardBadge} ${style.danger}`}>
-          {toPersianDigits(String(summary.total_remaining_count))} مورد در انتظار
-        </span>
-      </article>
+        <article className={`${style.summaryCard} ${style.warningCard}`}>
+          <p className={style.cardTitle}>مانده قابل پرداخت</p>
+          <h3>{formatPrice(summary.total_remaining)}</h3>
+          <span className={`${style.cardBadge} ${style.danger}`}>
+            {toPersianDigits(String(summary.total_remaining_count))} مورد در انتظار
+          </span>
+        </article>
+      </div>
+    )}
+    
+    <div className={style.tabelLabel}>
+      <h3>جزئیات پرداخت</h3>
+      <p>وضعیت پرداخت شهریه کلاس های این ماه</p>
     </div>
+    {loading === true ? (
+      <InvoiceTableSkeleton />
+    ) : (
+      <section className={style.tableWrap}>
+        <div className={style.tableHead}>
+          <span>اطلاعات کلاس</span>
+          <span>وضعیت پرداخت</span>
+          <span>مبلغ</span>
+          <span>عملیات</span>
+        </div>
 
-    <section className={style.tableWrap}>
-      <div className={style.tableHead}>
-        <span>اطلاعات کلاس</span>
-        <span>وضعیت پرداخت</span>
-        <span>مبلغ</span>
-        <span>عملیات</span>
-      </div>
-
-      <div className={style.tableBody}>
-        {loading ? (
-          <div className={style.row}>در حال بارگذاری...</div>
-        ) : invoices.length === 0 ? (
-          <div className={style.row}>برای این ماه صورتحسابی پیدا نشد.</div>
-        ) : (
-          invoices.map((item, index) => (
-            <article className={style.row} key={item.id}>
-              <div className={style.classInfo}>
-                <div className={style.classIcon}>{toPersianDigits(String(index + 1))}</div>
-                <div>
-                  <div className={style.classTitle}>
-                    <h4>{item.course.title}</h4>
-                    <span>مربی: {item.course.coach.full_name}</span>
+        <div className={style.tableBody}>
+          {loading ? (
+            <div className={style.row}>در حال بارگذاری...</div>
+          ) : invoices.length === 0 ? (
+            <div className={style.row}>برای این ماه صورتحسابی پیدا نشد.</div>
+          ) : (
+            invoices.map((item, index) => (
+              <article className={style.row} key={item.id}>
+                <div className={style.classInfo}>
+                  <div className={style.classIcon}>{toPersianDigits(String(index + 1))}</div>
+                  <div>
+                    <div className={style.classTitle}>
+                      <h4>{item.course.title}</h4>
+                      <span>مربی: {item.course.coach.full_name}</span>
+                    </div>
+                    <p>
+                      {item.course.schedule}
+                    </p>
                   </div>
-                  <p>
-                    {item.course.schedule}
-                  </p>
                 </div>
-              </div>
 
-              <div>
-                <span className={`${style.statusBadge} ${style[statusInfo(item).className]}`}>
-                  {statusInfo(item).label}
-                </span>
-              </div>
+                <div className={style.column}>
+                  <div>
+                    <span className={`${style.statusBadge} ${style[statusInfo(item).className]}`}>
+                      {statusInfo(item).label}
+                    </span>
+                  </div>
 
-              <div className={style.amountCol}>
-                <strong>{formatPrice(item.final_amount)}</strong>
-                { item.status === "paid" ? (
-                  <small>پرداخت شده: {toFaDate(item.payments[0].paid_at)}</small>
-                ) : (
-                  <small>سررسید: {toFaDate(item.final_due_date)}</small>
-                )}
-              </div>
+                  <div className={style.amountCol}>
+                    <p>مبلغ</p>
+                    <strong>{formatPrice(item.final_amount)}</strong>
+                    { item.status === "paid" ? (
+                      <small>پرداخت شده: {toFaDate(item.payments[0].paid_at)}</small>
+                    ) : (
+                      <small>سررسید: {toFaDate(item.final_due_date)}</small>
+                    )}
+                  </div>
+                </div>
 
-              <div className={style.actions}>
-                {item.status === "paid" ? (
-                  <button type="button" className={style.outlineBtn}>
-                    <UilCreditCard size={14} />
-                    پرداخت شده
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className={item.statusClass === "overdue" ? style.dangerBtn : style.primaryBtn}
-                    disabled
-                    title="فعلاً API پرداخت ورزشکار پیاده‌سازی نشده"
-                  >
-                    <UilCreditCard size={14} />
-                    پرداخت الان
-                  </button>
-                )}
-              </div>
-            </article>
-          ))
-        )}
-      </div>
-    </section>
+                <div className={style.actions}>
+                  {item.status === "paid" ? (
+                    <button type="button" className={style.outlineBtn}>
+                      <UilCreditCard size={14} />
+                      پرداخت شده
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={item.statusClass === "overdue" ? style.dangerBtn : style.primaryBtn}
+                      disabled
+                      title="فعلاً API پرداخت ورزشکار پیاده‌سازی نشده"
+                    >
+                      <UilCreditCard size={14} />
+                      پرداخت الان
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+    )}
   </section>
 );
 

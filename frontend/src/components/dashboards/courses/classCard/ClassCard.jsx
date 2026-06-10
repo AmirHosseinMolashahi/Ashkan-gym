@@ -1,3 +1,4 @@
+import toPersianDigits from "../../../../hooks/convertNumber";
 import style from "./ClassCard.module.scss";
 
 const ClassCard = ({
@@ -37,9 +38,9 @@ const ClassCard = ({
       </p>
 
       <div className={style.info}>
-        <div>👥 ورزشکار {students}</div>
+        <div>👥 ورزشکار {toPersianDigits(students)}</div>
         <div>📅 {schedule}</div>
-        <div>⏱ هر جلسه {hours}</div>
+        <div>⏱ هر جلسه {toPersianDigits(hours)}</div>
       </div>
 
       <button className={style.button} onClick={onView}>

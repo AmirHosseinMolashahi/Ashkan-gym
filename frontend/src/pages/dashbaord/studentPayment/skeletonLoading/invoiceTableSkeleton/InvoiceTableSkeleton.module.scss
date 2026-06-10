@@ -1,0 +1,164 @@
+@use '../../../../../styles/constants.scss' as *;
+@import '../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+%shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.tableWrap {
+  background: #ffffff;
+  border: 1px solid #e7edf4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableHead {
+  display: none;
+  @include desktop {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+    gap: 1rem;
+    background: #f7fafc;
+    padding: 0.9rem 1rem;
+    align-items: center;
+  }
+}
+
+.tableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  padding: 0.95rem 1rem;
+  border-top: 1px solid #edf2f7;
+  gap: 0.7rem;
+
+  @include desktop {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+}
+
+.classInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid #edf2f7;
+
+  @include desktop {
+    border: none;
+    padding-bottom: 0;
+  }
+}
+
+.classIcon {
+  @extend %shimmer;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.classInfoText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.column {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+
+  @include desktop {
+    display: contents;
+  }
+}
+
+.amountCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+// skeleton pieces
+.sk {
+  @extend %shimmer;
+}
+
+.skHeadCell {
+  height: 12px;
+  width: 60%;
+  border-radius: 4px;
+}
+
+.skTitle {
+  height: 15px;
+  width: 55%;
+}
+
+.skSub {
+  height: 12px;
+  width: 38%;
+}
+
+.skSchedule {
+  height: 12px;
+  width: 70%;
+}
+
+.skBadge {
+  height: 26px;
+  width: 72px;
+  border-radius: 999px;
+}
+
+.skLabel {
+  height: 11px;
+  width: 28px;
+
+  @include desktop {
+    display: none;
+  }
+}
+
+.skAmount {
+  height: 16px;
+  width: 80px;
+}
+
+.skDate {
+  height: 11px;
+  width: 96px;
+}
+
+.skBtn {
+  height: 34px;
+  width: 100%;
+  border-radius: 8px;
+
+  @include desktop {
+    width: 90px;
+  }
+}

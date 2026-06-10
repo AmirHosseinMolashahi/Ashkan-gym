@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import toPersianDigits from '../../../../hooks/convertNumber';
 import api from '../../../../hooks/api';
 import Modal from '../../../GlobalComponents/Modal/Modal';
-import { UilEdit, UilCheckCircle, UilExclamationTriangle, UilClockFive, UilShieldExclamation, UilHeartRate, UilShieldPlus } from '@iconscout/react-unicons'
+import { UilEdit, UilPen, UilCheckCircle, UilExclamationTriangle, UilClockFive, UilShieldExclamation, UilHeartRate, UilShieldPlus } from '@iconscout/react-unicons'
 import { useNavigate } from 'react-router-dom';
 import { hasRole } from '../../../../hooks/roleConverter';
 
@@ -84,15 +84,23 @@ const DetailBox = () => {
       {noIsuranceListModal && (
         <Modal handleModal={() => setNoInsuranceListModal(false)} width="500px" height="400px">
           <h2 className={style.modalTitle}>لیست افراد فاقد بیمه</h2>
-          <ul className={style.noInsuranceList}>
+          <div className={style.noInsuranceList}>
             {NoInsuranceList.map((user, index) => (
-              <li key={index}>
-                <span>{index + 1}.</span>
-                {user.first_name} {user.last_name} - {toPersianDigits(user.national_id)} - {user.insurance_expiry_jalali !== null ? "تاریخ انقضا: " + toPersianDigits(user.insurance_expiry_jalali) : 'فاقد تاریخ انقضا'}
-                <span className={style.editButton}><UilEdit onClick={() => navigate(`/dashboard/user-management/${user.id}/edit`)}/></span>
-              </li>
+              <div key={index} className={style.listItem}>
+                <div className={style.rightItem}>
+                  <span className={style.rowNum}>{toPersianDigits(index + 1)}</span>
+                  <div className={style.userInfo}>
+                    <h3>{user.first_name} {user.last_name}</h3>
+                    <div className={style.userBaseInfo}>
+                      <p>{toPersianDigits(user.national_id)}</p>
+                      <p className={`${style.expired} ${user.insurance_expiry_jalali === null ? style.noDate : ''}`}>{user.insurance_expiry_jalali !== null ? "تاریخ انقضا: " + toPersianDigits(user.insurance_expiry_jalali) : 'فاقد تاریخ انقضا'}</p>
+                    </div>
+                  </div>
+                </div>
+                <button className={style.editBtn}><UilPen onClick={() => navigate(`/dashboard/user-management/${user.id}/edit`)}/></button>
+              </div>
             ))}
-          </ul>
+          </div>
         </Modal>
       )}
     </>

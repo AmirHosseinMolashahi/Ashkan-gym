@@ -1,0 +1,224 @@
+@import '../../../../styles/mixins';
+
+.card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 360px;
+
+  @include desktop {
+    max-width:none;
+  }
+}
+
+// ─── Hero ───────────────────────────────────────────────
+.hero {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+
+  @include desktop {
+    height: 120px;
+  }
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+.title {
+  position: absolute;
+  bottom: 12px;
+  right: 14px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+
+  @include desktop {
+    font-weight: bold;
+  }
+}
+
+.unpaidBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(220, 38, 38, 0.85);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.badgeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+// ─── Body ───────────────────────────────────────────────
+.body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.infoIcon {
+  font-size: 15px;
+  flex-shrink: 0;
+
+  @include desktop {
+    font-size: 18px;
+  }
+}
+
+.infoText {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+
+  @include desktop {
+    font-size: 16px;
+  }
+}
+
+// ─── Attendance ─────────────────────────────────────────
+.attendanceSection {
+  margin-top: 2px;
+}
+
+.attendanceHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.attendancePercent {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1;
+}
+
+.attendanceLabel {
+  font-size: 12px;
+  color: #888;
+}
+
+.progressBar {
+  height: 6px;
+  border-radius: 99px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 99px;
+  background: #3b82f6;
+  transition: width 0.4s ease;
+}
+
+// ─── Stats ──────────────────────────────────────────────
+.stats {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+
+  @include desktop {
+    justify-content: center;
+    gap: 1rem;
+  }
+}
+
+.statIcon {
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.statWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  @include desktop {
+    flex-direction: row;
+    gap: .7rem;
+  }
+}
+
+.statCount {
+  font-weight: 600;
+  font-size: 12px;
+
+  @include desktop {
+    font-size: 16px;
+  }
+}
+
+.statLabel {
+  font-size: 11px;
+  color: inherit;
+  opacity: 0.75;
+  
+  @include desktop {
+    font-size: 14px;
+  }
+}
+
+.statPresent {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.statLate {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.statAbsent {
+  background: #fef2f2;
+  color: #dc2626;
+}

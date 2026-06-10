@@ -11,11 +11,17 @@ import { useNavigate } from 'react-router-dom';
 import { hasRole } from '../../../hooks/roleConverter';
 import Pagination from '../../../components/GlobalComponents/Pagination/Pagination';
 import BackButton from '../../../components/dashboards/backButton/BackButton';
+import CoursesCountCardSkeleton from '../../../components/dashboards/courses/coursesCountCard/coursesCountCardSkeleton/CoursesCountCardSkeleton ';
+import ClassCardSkeleton from '../../../components/dashboards/courses/classCard/classCardSkeleton/ClassCardSkeleton';
 
 const Courses = () => {
 
   const [courses, setCourses] = useState([])
   const [dashboard, setDasboard] = useState([])
+  
+  const [courseLoading, setCourseLoading] = useState(false)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+  
   const { user } = useSelector(
     state => state.auth
   )
@@ -37,6 +43,7 @@ const Courses = () => {
     url = '/training/courses/'
   ) => {
     try {
+      setCourseLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -56,6 +63,8 @@ const Courses = () => {
       console.log(res.data)
     } catch (err) {
       console.log(err)
+    } finally {
+      setCourseLoading(false)
     }
   }
 
@@ -83,11 +92,14 @@ const Courses = () => {
 
   const fetchDashboard = async () => {
     try {
+      setDashboardLoading(true)
       const res = await api.get('/training/courses/dashboard/')
       console.log(res.data)
       setDasboard(res.data)
     } catch (err) {
       console.log(err)
+    } finally {
+      setDashboardLoading(false)
     }
   }
 
@@ -99,26 +111,6 @@ const Courses = () => {
   useEffect(() => {
     fetchCourses(buildActivityUrl(page));  
   }, [searchText, dayFilter, genderFilter, page])
-
-  // const filteredRows = useMemo(() => {
-  //   const q = searchText.trim().toLowerCase()
-
-  //   return courses.filter((row) => {
-
-  //     const matchGenderFilter = 
-  //       genderFilter === "both" || row.gender === genderFilter;
-      
-  //     const matchDaysFilter =
-  //       dayFilter === 'all' || row.days_group === dayFilter;
-
-  //     const name = (row.title || "").toLowerCase()
-  //     const matchesSearch = 
-  //       q === "" || name.includes(q);
-      
-
-  //     return matchesSearch && matchGenderFilter && matchDaysFilter;
-  //   })
-  // }, [courses, searchText, genderFilter, dayFilter]);
 
   const handleClearFilter = () => {
     setSearchText('');
@@ -142,123 +134,136 @@ const Courses = () => {
             </button>
           )}
         </div>
-        <div className={style.counterCard}>
-          <CoursesCountCard
-            icon={<UilLaptop  fill='#2f6bff'/>}
-            iconColor='#e9f0ff'
-            title='تعداد کلاس ها'
-            number={dashboard.total_courses}
-          />
-          <CoursesCountCard
-            icon={<UilUserCheck fill='#39ff2f' />}
-            iconColor='#e9ffeb'
-            title='تعداد ورزشکاران فعال'
-            number={`${dashboard.total_enrollments} نفر`}
-          />
-          <CoursesCountCard
-            icon={<UilPlay fill='#ff2fee' />}
-            iconColor='#ffe9fe'
-            title='کلاس های فعال'
-            number={dashboard.active_courses}
-          />
-          <CoursesCountCard
-            icon={<UilClock fill='#ff632fff' />}
-            iconColor='#ffece9'
-            title='تعداد ساعت در هفته'
-            number={`${dashboard.weekly_hours} ساعت`}
-          />
-        </div>
+        {dashboardLoading === true ? (
+          <div className={style.counterCard}>
+            {[...Array(4)].map((_, i) => (
+              <CoursesCountCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className={style.counterCard}>
+            <CoursesCountCard
+              icon={<UilLaptop  fill='#2f6bff'/>}
+              iconColor='#e9f0ff'
+              title='تعداد کلاس ها'
+              number={dashboard.total_courses}
+            />
+            <CoursesCountCard
+              icon={<UilUserCheck fill='#39ff2f' />}
+              iconColor='#e9ffeb'
+              title='تعداد ورزشکاران فعال'
+              number={`${dashboard.total_enrollments} نفر`}
+            />
+            <CoursesCountCard
+              icon={<UilPlay fill='#ff2fee' />}
+              iconColor='#ffe9fe'
+              title='کلاس های فعال'
+              number={dashboard.active_courses}
+            />
+            <CoursesCountCard
+              icon={<UilClock fill='#ff632fff' />}
+              iconColor='#ffece9'
+              title='تعداد ساعت در هفته'
+              number={`${dashboard.weekly_hours} ساعت`}
+            />
+          </div>
+        )}
         {/* <FilterBar /> */}
         <div className={style.toolbar}>
           <div className={style.filterObj}>
-            <label htmlFor="">جنسیت: </label>
-            <select
-              value={genderFilter}
-              onChange={e => {
-                setGenderFilter(e.target.value);
-              }}
-            >
-              <option value="both">جنسیت: فرقی ندارد</option>
-              <option value="male">آقایان</option>
-              <option value="female">بانوان</option>
-            </select>
+            <div className={style.inputWrapper}>
+              <input
+                placeholder="جستجوی کلاس..."
+                value={searchText}
+                className={style.searchInput}
+                onChange={e => {
+                  setSearchText(e.target.value);
+                }}
+              />
+              { searchText && (
+                <span className={style.clearSearch} onClick={() => setSearchText("")}><UilTimes /></span>
+              )}
+            </div>
+          </div>
+          <div className={style.rows}>
+            <div className={style.filterObj}>
+              <label htmlFor="">جنسیت: </label>
+              <select
+                value={genderFilter}
+                onChange={e => {
+                  setGenderFilter(e.target.value);
+                }}
+              >
+                <option value="both">جنسیت: فرقی ندارد</option>
+                <option value="male">آقایان</option>
+                <option value="female">بانوان</option>
+              </select>
+            </div>
+            <div className={style.filterObj}>
+              <label htmlFor="">انتخاب روز: </label>
+              <select
+                value={dayFilter}
+                onChange={e => {
+                  setDayFilter(e.target.value);
+                }}
+              >
+                <option value="all">روزها: همه روزه</option>
+                <option value="even">روزهای زوج</option>
+                <option value="odd">روزهای فرد</option>
+              </select>
+            </div>
           </div>
           <div className={style.filterObj}>
-            <label htmlFor="">انتخاب روز: </label>
-            <select
-              value={dayFilter}
-              onChange={e => {
-                setDayFilter(e.target.value);
-              }}
-            >
-              <option value="all">روزها: همه روزه</option>
-              <option value="even">روزهای زوج</option>
-              <option value="odd">روزهای فرد</option>
-            </select>
+            <button className={style.clearFilterBtn} onClick={() => handleClearFilter()}>
+              حذف فیلتر<UilTimes />
+            </button>
           </div>
-
-          <div className={style.inputWrapper}>
-            <input
-              placeholder="جستجوی کلاس..."
-              value={searchText}
-              className={style.searchInput}
-              onChange={e => {
-                setSearchText(e.target.value);
-              }}
-            />
-            { searchText && (
-              <span className={style.clearSearch} onClick={() => setSearchText("")}><UilTimes /></span>
-            )}
-          </div>
-          <button className={style.clearFilterBtn} onClick={() => handleClearFilter()}>
-            حذف فیلتر<UilTimes />
-          </button>
         </div>
 
         <div className={style.classCardContainer}>
-          {courses.length !== 0 ? (
-            <>
-              <div className={style.classCard}>
-                {courses.map((item, index) => {
-                  return (
-                    <ClassCard
-                      key={index}
-                      status={item.is_active ? 'active' : 'deactive'}
-                      title={item.title}
-                      coach={item.coach.full_name}
-                      age_ranges={item.age_ranges}
-                      gender={item.gender_label}
-                      students={item.active_students}
-                      schedule={item.schedule ? toPersianDigits(item.schedule) : 'ایجاد نشده است!'}
-                      hours={item.session_duration}
-                      class_status={item.class_status}
-                      onView={() => navigate(`/dashboard/courses/${item.id}`)}
-                    />
-                  )
-              })}
-              </div>
-              <div className={style.paginationWrapper}>
-                <Pagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  onNext={() => {
-                    if (nextPage) {
-                      fetchCourses(nextPage);
-                    }
-                  }}
-                  onPrev={() => {
-                    if (prevPage) {
-                      fetchCourses(prevPage);
-                    }
-                  }}
-                  onPageChange={(pageNumber) => {
-                    setPage(pageNumber);
-                  }}
-                />
-              </div>
-            </>
-          ) : (
-            <p>کلاسی پیدا نشد!</p>
+          <div className={style.classCard}>
+            {courseLoading === true ? (
+              [...Array(6)].map((_, i) => <ClassCardSkeleton key={i} />)
+            ) : (
+              courses.map((item, index) => {
+                return (
+                  <ClassCard
+                    key={index}
+                    status={item.is_active ? 'active' : 'deactive'}
+                    title={item.title}
+                    coach={item.coach.full_name}
+                    age_ranges={item.age_ranges}
+                    gender={item.gender_label}
+                    students={item.active_students}
+                    schedule={item.schedule ? toPersianDigits(item.schedule) : 'ایجاد نشده است!'}
+                    hours={item.session_duration}
+                    class_status={item.class_status}
+                    onView={() => navigate(`/dashboard/courses/${item.id}`)}
+                  />
+                )
+              })
+            )}
+          </div>
+          {totalPages > 1 && (
+            <div className={style.paginationWrapper}>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onNext={() => {
+                  if (nextPage) {
+                    fetchCourses(nextPage);
+                  }
+                }}
+                onPrev={() => {
+                  if (prevPage) {
+                    fetchCourses(prevPage);
+                  }
+                }}
+                onPageChange={(pageNumber) => {
+                  setPage(pageNumber);
+                }}
+              />
+            </div>
           )}
         </div>
       </div>

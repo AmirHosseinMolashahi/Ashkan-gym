@@ -9,6 +9,8 @@ import AttendanceToolbar from "./AttendanceToolbar";
 import AttendanceRow from "./AttendanceRow";
 import AttendanceCard from "./attendanceCard/AttendanceCard";
 import Pagination from "../../../GlobalComponents/Pagination/Pagination";
+import AttendanceTableSkeleton from "./attendanceRowSkeleton/AttendanceTableSkeleton";
+import AttendanceCardSkeleton from "./attendanceCard/attendanceCardSkeleton/AttendanceCardSkeleton";
 
 const PAGE_SIZE = 10;
 
@@ -41,6 +43,7 @@ const AttendanceTable = ({ course_id }) => {
   const { notify } = useToast()
   const {date, weekday, month} = useCurrentDateTime()
   const isMobile = useIsMobile();
+  const [loading, setLoading] = useState(false)
 
   const monthFromDate = Number(
     date.split('/')[1].replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
@@ -92,11 +95,14 @@ const AttendanceTable = ({ course_id }) => {
 
   const fetchSessionAttendance = async (id) => {
     try {
+      setLoading(true)
       const res = await api.get(`/training/session/${id}/attendance/`);
       console.log(res.data)
       setSessionAttendance(res.data)
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -188,51 +194,70 @@ const AttendanceTable = ({ course_id }) => {
       />
 
         {isMobile ? (
-          <AttendanceCard
-            data={paginatedData}
-            onStatusChange={handleStatusChange}
-            onNoteChange={handleNoteChange}
-          />
+          loading === true ? (
+            <div className={styles.cardContainer}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <AttendanceCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <AttendanceCard
+              data={paginatedData}
+              onStatusChange={handleStatusChange}
+              onNoteChange={handleNoteChange}
+            />
+          )
         ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ردیف</th>
-                  <th>ورزشکار</th>
-                  <th>حضور غیاب</th>
-                  <th>توضیحات</th>
-                </tr>
-              </thead>
+          loading === true ? (
+            <AttendanceTableSkeleton />
+          ) : (
+            paginatedData.length === 0 ? (
+              <p>هیچ جلسه ای انتخاب نشده است!</p>
+            ) : (
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ردیف</th>
+                      <th>ورزشکار</th>
+                      <th>حضور غیاب</th>
+                      <th>توضیحات</th>
+                    </tr>
+                  </thead>
 
-              <tbody>
-                {paginatedData?.map((item, index) => (
-                  <AttendanceRow
-                    key={item.student ?? index}
-                    item={item}
-                    index={(page - 1) * PAGE_SIZE + index}
-                    onStatusChange={handleStatusChange}
-                    onNoteChange={handleNoteChange}
-                  />
-                ))}
-              </tbody> 
-            </table>
-          </div>
+                  <tbody>
+                    {paginatedData?.map((item, index) => (
+                      <AttendanceRow
+                        key={item.student ?? index}
+                        item={item}
+                        index={(page - 1) * PAGE_SIZE + index}
+                        onStatusChange={handleStatusChange}
+                        onNoteChange={handleNoteChange}
+                      />
+                    ))}
+                  </tbody> 
+                </table>
+              </div>
+            )
+          )
+          
         )}
 
-        <div className={styles.paginationWrapper}>
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            onNext={() =>
-              setPage(prev => Math.min(prev + 1, totalPages))
-            }
-            onPrev={() =>
-              setPage(prev => Math.max(prev - 1, 1))
-            }
-          />
-        </div>
+        {totalPages > 1 && (
+          <div className={styles.paginationWrapper}>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              onNext={() =>
+                setPage(prev => Math.min(prev + 1, totalPages))
+              }
+              onPrev={() =>
+                setPage(prev => Math.max(prev - 1, 1))
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -133,6 +133,10 @@ class RefreshTokenView(APIView):
 
             res = Response()
             res.set_cookie('access', str(access_token), httponly=True)
+            res.set_cookie(
+                'refresh', str(refresh),
+                httponly=True, samesite='Lax', secure=False, path='/'
+            )
             res.data = {"success": True}
             return res
         except Exception as e:

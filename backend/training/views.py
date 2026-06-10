@@ -22,7 +22,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from account.permissions import IsCoachOrManager, IsManager
 from account.models import CustomUser
-from payment.models import Invoice
+from payment.models import Invoice, Payment
 from payment.utils import _last_day_of_jalali_month
 
 from .paginations import CustomPagination
@@ -360,82 +360,6 @@ class AddEnrollmentView(CreateAPIView):
         print(serializer.errors)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-#نمایش لیست ثبت نامی های یک کلاس
-# class CoursesEnrollmentsView(ListAPIView):
-#     permission_classes = [IsAuthenticated, IsCoachOrManager]
-#     serializer_class = EnrollmentSerializer
-
-#     pagination_class = CustomPagination
-
-#     def get_queryset(self):
-#         course_id = self.kwargs['course_id']
-#         start_date, end_date = get_current_shamsi_month_range()
-
-#         priority_invoice = Invoice.objects.filter(
-#             enrollment=OuterRef('pk'),
-#             status__in=['unpaid', 'partially_paid']
-#         ).order_by('due_date')
-
-#         all_invoice = Invoice.objects.filter(
-#             enrollment=OuterRef('pk')
-#         ).order_by('due_date')
-
-#         return (
-#             Enrollment.objects
-#             .filter(
-#                 course_id=course_id,
-#                 # status='active'
-#             )
-#             .select_related('student', 'course')
-#             .annotate(
-#                 total_sessions=Count(
-#                     'attendances',
-#                     filter=Q(
-#                         attendances__session__attendance_status='finished',
-#                         attendances__session__date__range=(start_date, end_date)
-#                     ),
-#                     distinct=True
-#                 ),
-
-#                 present_count=Count(
-#                     'attendances',
-#                     filter=Q(
-#                         attendances__session__attendance_status='finished',
-#                         attendances__session__date__range=(start_date, end_date),
-#                         attendances__status__in=['present', 'late']
-#                     ),
-#                     distinct=True
-#                 ),
-#             )
-#             .annotate(
-#                 attendance_percentage=Case(
-#                     When(
-#                         total_sessions=0,
-#                         then=Value(0.0)
-#                     ),
-#                     default=ExpressionWrapper(
-#                         100.0 * F('present_count') / F('total_sessions'),
-#                         output_field=FloatField()
-#                     ),
-#                     output_field=FloatField()
-#                 )
-#             )
-#             .annotate(
-#                 next_invoice_status=Coalesce(
-#                     Subquery(priority_invoice.values('status')[:1]),
-#                     Subquery(all_invoice.values('status')[:1])
-#                 ),
-#                 next_invoice_amount=Coalesce(
-#                     Subquery(priority_invoice.values('amount')[:1]),
-#                     Subquery(all_invoice.values('amount')[:1])
-#                 ),
-#                 next_invoice_due_date=Coalesce(
-#                     Subquery(priority_invoice.values('due_date')[:1]),
-#                     Subquery(all_invoice.values('due_date')[:1])
-#                 ),
-#             )
-#         )
-
 
 class CourseEnrollmentsMonthlyStatusView(ListAPIView):
     permission_classes = [IsAuthenticated, IsCoachOrManager]
@@ -671,240 +595,6 @@ class UserEnrollmentsView(ListAPIView):
         )
 
 
-# class UserNextSessionView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         today = datetime.date.today()
-
-#         session = (
-#             Session.objects
-#             .filter(
-#                 time_table__course__enrollments__student=request.user,
-#                 date__gte=today,
-#                 time_table__course__enrollments__status='active',
-#                 attendance_status='unfinished'
-#             )
-#             .select_related('time_table__course')
-#             .order_by('date')
-#             .first()
-#         )
-
-#         if not session:
-#             return Response({'next_session': None})
-    
-
-#         return Response({
-#             'next_session': {
-#                 'session_id': session.id,
-#                 'date': session.date,
-#                 'date_jalali': jdatetime.datetime.fromgregorian(datetime=session.date).strftime("%Y/%m/%d"),
-#                 'day_of_week': session.time_table.get_day_of_week_display(),
-#                 'start_time': session.time_table.start_time,
-#                 'end_time': session.time_table.end_time,
-#                 'course': {
-#                     'id': session.time_table.course.id,
-#                     'title': session.time_table.course.title,
-#                     'age_ranges': AgeRangeSerializers(
-#                         session.time_table.course.age_ranges.all(),
-#                         many=True
-#                     ).data
-#                 }
-#             }
-#         })
-
-
-# class AthleteDashboardView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-
-#         user = request.user
-
-#         # گرفتن ماه و سال از query params
-#         year = request.query_params.get("year")
-#         month = request.query_params.get("month")
-
-#         # اگر نفرستاده بود، ماه جاری
-#         if not year or not month:
-#             today_jalali = jdatetime.date.today()
-#             year = today_jalali.year
-#             month = today_jalali.month
-#         else:
-#             year = int(year)
-#             month = int(month)
-
-#         # تبدیل بازه ماه شمسی به میلادی
-#         start_jalali = jdatetime.date(year, month, 1)
-#         if month == 12:
-#             end_jalali = jdatetime.date(year + 1, 1, 1)
-#         else:
-#             end_jalali = jdatetime.date(year, month + 1, 1)
-
-#         start_date = start_jalali.togregorian()
-#         end_date = end_jalali.togregorian()
-
-#         # محاسبه ماه قبل
-#         if month == 1:
-#             prev_year = year - 1
-#             prev_month = 12
-#         else:
-#             prev_year = year
-#             prev_month = month - 1
-
-#         prev_start_jalali = jdatetime.date(prev_year, prev_month, 1)
-
-#         if prev_month == 12:
-#             prev_end_jalali = jdatetime.date(prev_year + 1, 1, 1)
-#         else:
-#             prev_end_jalali = jdatetime.date(prev_year, prev_month + 1, 1)
-
-#         prev_start_date = prev_start_jalali.togregorian()
-#         prev_end_date = prev_end_jalali.togregorian()
-
-#         # enrollments فعال
-#         enrollments = Enrollment.objects.filter(
-#             student=user,
-#             status='active'
-#         )
-
-#         total_courses = enrollments.count()
-
-#         # session های finished در اون ماه برای همه کلاس‌ها
-#         sessions = Session.objects.filter(
-#             attendance_status='finished',
-#             time_table__course__enrollments__in=enrollments,
-#             date__gte=start_date,
-#             date__lt=end_date
-#         ).distinct()
-
-#         total_sessions = sessions.count()
-
-#         attendances = Attendance.objects.filter(
-#             student__in=enrollments,
-#             session__in=sessions
-#         )
-
-#         total_present = attendances.filter(
-#             status__in=['present', 'late']
-#         ).count()
-
-#         total_absent = attendances.filter(
-#             status='absent'
-#         ).count()
-
-#         attendance_percentage = (
-#             round((total_present / total_sessions) * 100, 1)
-#             if total_sessions > 0 else 0
-#         )
-
-#         remaining_sessions = Session.objects.filter(
-#             attendance_status='unfinished',
-#             time_table__course__enrollments__in=enrollments,
-#             date__gte=start_date,
-#             date__lt=end_date
-#         ).distinct().count()
-
-#         prev_sessions = Session.objects.filter(
-#             attendance_status='finished',
-#             time_table__course__enrollments__in=enrollments,
-#             date__gte=prev_start_date,
-#             date__lt=prev_end_date
-#         ).distinct()
-
-#         prev_total_sessions = prev_sessions.count()
-
-#         prev_attendances = Attendance.objects.filter(
-#             student__in=enrollments,
-#             session__in=prev_sessions,
-#             status__in=['present', 'late']
-#         )
-
-#         prev_total_present = prev_attendances.count()
-
-#         previous_attendance_percentage = (
-#             round((prev_total_present / prev_total_sessions) * 100, 1)
-#             if prev_total_sessions > 0 else None
-#         )
-
-#         attendance_difference = None
-#         trend = None
-
-#         if previous_attendance_percentage is not None:
-#             attendance_difference = round(
-#                 attendance_percentage - previous_attendance_percentage,
-#                 1
-#             )
-
-#             if attendance_difference > 0:
-#                 trend = "up"
-#             elif attendance_difference < 0:
-#                 trend = "down"
-#             else:
-#                 trend = "same"
-        
-#         invoices = Invoice.objects.filter(
-#             enrollment__in=enrollments
-#         ).select_related('enrollment').prefetch_related('payments')
-
-#         priority_invoices = invoices.filter(
-#             status__in=['unpaid', 'partially_paid']
-#         )
-
-#         def get_closest_invoice(qs):
-#             return qs.order_by(
-#                 'due_date',  # نزدیک‌ترین سررسید
-#                 'period_year',
-#                 'period_month'
-#             ).first()
-        
-#         next_invoice = None
-
-#         if priority_invoices.exists():
-#             next_invoice = get_closest_invoice(priority_invoices)
-#         else:
-#             next_invoice = get_closest_invoice(invoices)
-        
-#         next_payment = None
-
-#         if next_invoice:
-#             next_payment = {
-#                 "course": next_invoice.enrollment.course.title,
-#                 "status": next_invoice.status,
-#                 "amount": next_invoice.amount,
-#                 "paid_amount": next_invoice.paid_amount(),
-#                 "remaining_amount": next_invoice.remaining_amount(),
-#                 "due_date": jdatetime.date.fromgregorian(date=next_invoice.due_date).strftime("%Y/%m/%d"),
-#                 "period": f"{next_invoice.period_year}/{next_invoice.period_month}"
-#             }
-        
-#         print("NEXT INVOICE:", next_invoice)
-#         print("NEXT PAYMENT:", next_payment)
-
-
-#         data = {
-#             "year": year,
-#             "month": month,
-#             "month_name": f"{PERSIAN_MONTHS[month]} {year}",
-
-#             "total_courses": total_courses,
-#             "total_sessions": total_sessions,
-#             "total_present": total_present,
-#             "total_absent": total_absent,
-#             "remaining_sessions": remaining_sessions,
-
-#             "attendance_percentage": attendance_percentage,
-
-#             "previous_attendance_percentage": previous_attendance_percentage,
-#             "attendance_difference": attendance_difference,
-#             "trend": trend,
-#             "next_payment": next_payment,
-#         }
-
-#         serializer = AthleteDashboardSerializer(data)
-
-#         return Response(serializer.data)
-
 class AthleteDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -915,70 +605,67 @@ class AthleteDashboardView(APIView):
         # -----------------------------
         # ENROLLMENTS (ALL LOGIC HERE)
         # -----------------------------
+        jalali_today = jdatetime.date.today()
+        jalali_month_start = jalali_today.replace(day=1)
+
+        # تبدیل به میلادی
+        gregorian_month_start = jalali_month_start.togregorian()
+
+        # اخر ماه شمسی (ماه بعد - یه روز)
+        if jalali_today.month == 12:
+            jalali_next_month = jalali_today.replace(year=jalali_today.year + 1, month=1, day=1)
+        else:
+            jalali_next_month = jalali_today.replace(month=jalali_today.month + 1, day=1)
+
+        gregorian_month_end = jalali_next_month.togregorian()
+
+        present_sq = Attendance.objects.filter(
+            student=OuterRef("pk"),
+            status__in=["present", "late"],
+            session__date__gte=gregorian_month_start,
+            session__date__lt=gregorian_month_end,
+        ).values("student").annotate(cnt=Count("id")).values("cnt")
+
+        absent_sq = Attendance.objects.filter(
+            student=OuterRef("pk"),
+            status="absent",
+            session__date__gte=gregorian_month_start,
+            session__date__lt=gregorian_month_end,
+        ).values("student").annotate(cnt=Count("id")).values("cnt")
+
+        late_sq = Attendance.objects.filter(
+            student=OuterRef("pk"),
+            status="late",
+            session__date__gte=gregorian_month_start,
+            session__date__lt=gregorian_month_end,
+        ).values("student").annotate(cnt=Count("id")).values("cnt")
+
+        total_sessions_sq = Session.objects.filter(
+            time_table__course=OuterRef("course"),
+            date__gte=gregorian_month_start,
+            date__lt=gregorian_month_end,
+        ).values("time_table__course").annotate(cnt=Count("id")).values("cnt")
+
+        paid_sq = Payment.objects.filter(
+            invoice__enrollment=OuterRef("pk"),  # ✅ درسته
+            status="success"
+        ).values("invoice__enrollment").annotate(total=Sum("amount")).values("total")
+
+        total_amount_sq = Invoice.objects.filter(
+            enrollment=OuterRef("pk")
+        ).values("enrollment").annotate(total=Sum("amount")).values("total")
+
         enrollments = (
             Enrollment.objects
             .filter(student=user)
             .select_related("course")
             .annotate(
-                # تعداد کل حضور و غیاب
-                total_sessions=Count(
-                    "course__timeTable__sessions",
-                    filter=Q(
-                        course__timeTable__sessions__attendances__student__student=user
-                    ),
-                    distinct=True
-                ),
-
-                present_count=Count(
-                    "course__timeTable__sessions__attendances",
-                    filter=Q(
-                        course__timeTable__sessions__attendances__student__student=user,
-                        course__timeTable__sessions__attendances__status__in=["present", "late"]
-                    )
-                ),
-
-                absent_count=Count(
-                    "course__timeTable__sessions__attendances",
-                    filter=Q(
-                        course__timeTable__sessions__attendances__student__student=user,
-                        course__timeTable__sessions__attendances__status="absent"
-                    )
-                ),
-
-                late_count=Count(
-                    "course__timeTable__sessions__attendances",
-                    filter=Q(
-                        course__timeTable__sessions__attendances__student__student=user,
-                        course__timeTable__sessions__attendances__status="late"
-                    )
-                ),
-
-                # جلسات باقی‌مانده
-                remaining_sessions = Count(
-                    "course__timeTable__sessions",
-                    filter=(
-                        Q(course__timeTable__sessions__date__gte=today) &
-                        Q(course__timeTable__sessions__attendance_status="unfinished") &
-                        Q(course__timeTable__sessions__date__gte=F("start_date")) &
-                        (
-                            Q(end_date__isnull=True) |
-                            Q(course__timeTable__sessions__date__lte=F("end_date"))
-                        )
-                    ),
-                    distinct=True
-                ),
-
-                paid_amount=Coalesce(
-                    Sum("invoices__payments__amount"),
-                    Value(0)
-                ),
-
-                # مبلغ کل فاکتور
-                total_amount=Coalesce(
-                    Sum("invoices__amount"),
-                    Value(0)
-                ),
-
+                total_sessions=Coalesce(Subquery(total_sessions_sq), Value(0)),
+                present_count=Coalesce(Subquery(present_sq), Value(0)),
+                absent_count=Coalesce(Subquery(absent_sq), Value(0)),
+                late_count=Coalesce(Subquery(late_sq), Value(0)),
+                paid_amount=Coalesce(Subquery(paid_sq), Value(0)),
+                total_amount=Coalesce(Subquery(total_amount_sq), Value(0)),
                 attendance_percentage=ExpressionWrapper(
                     (F("present_count") * 100.0) / Coalesce(F("total_sessions"), Value(1)),
                     output_field=FloatField()
@@ -986,6 +673,16 @@ class AthleteDashboardView(APIView):
             )
         )
 
+        # remaining_sessions رو جدا حساب کن (مطمئن‌تره)
+        for e in enrollments:
+            qs = Session.objects.filter(
+                time_table__course=e.course,
+                date__gte=max(today, e.start_date),
+                attendance_status="unfinished",
+            )
+            if e.end_date:
+                qs = qs.filter(date__lte=e.end_date)
+            e.remaining_sessions = qs.count()
         # -----------------------------
         # NEXT SESSION (single query)
         # -----------------------------
@@ -1155,6 +852,17 @@ class UserEnrollmentAttendanceView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
 
+        jalali_today = jdatetime.date.today()
+        jalali_month_start = jalali_today.replace(day=1)
+        gregorian_month_start = jalali_month_start.togregorian()
+
+        if jalali_today.month == 12:
+            jalali_next_month = jalali_today.replace(year=jalali_today.year + 1, month=1, day=1)
+        else:
+            jalali_next_month = jalali_today.replace(month=jalali_today.month + 1, day=1)
+
+        gregorian_month_end = jalali_next_month.togregorian()
+
         return (
             Enrollment.objects
             .filter(student=user)
@@ -1162,7 +870,13 @@ class UserEnrollmentAttendanceView(ListAPIView):
             .prefetch_related(
                 Prefetch(
                     "attendances",
-                    queryset=Attendance.objects.select_related("session").order_by("session__date")
+                    queryset=Attendance.objects
+                        .select_related("session")
+                        .filter(
+                            session__date__gte=gregorian_month_start,
+                            session__date__lt=gregorian_month_end,
+                        )
+                        .order_by("session__date")
                 )
             )
         )
@@ -1375,11 +1089,51 @@ class AttendanceBulkUpdateView(APIView):
 #ویو برای ورزشکار واسه دیدن گزارش حضور و غیابش
 
 
+class StudentCourseAvailableMonthsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, course_id):
+        enrollment = get_object_or_404(
+            Enrollment,
+            student=request.user,
+            course_id=course_id,
+            status='active'
+        )
+        
+        sessions = Session.objects.filter(
+            time_table__course_id=course_id,
+            attendance_status='finished'
+        ).values_list('date', flat=True)
+        
+        years_months = defaultdict(set)
+        
+        for date in sessions:
+            jalali = jdatetime.date.fromgregorian(date=date)
+            years_months[jalali.year].add(jalali.month)
+        
+        # لیست همه سال‌ها
+        years = sorted(years_months.keys(), reverse=True)
+        
+        # هر ماه با year خودش
+        months = []
+        for year in years:
+            for month in sorted(years_months[year], reverse=True):
+                months.append({
+                    "year": year,
+                    "month": month,
+                    "month_name": PERSIAN_MONTHS[month]
+                })
+        
+        return Response({
+            "years": years,
+            "months": months
+        })
+
+
 class StudentCourseMonthlySummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, course_id):
-
         enrollment = get_object_or_404(
             Enrollment,
             student=request.user,
@@ -1387,36 +1141,36 @@ class StudentCourseMonthlySummaryView(APIView):
             status='active'
         )
 
+        year = request.query_params.get('year')
+        month = request.query_params.get('month')
+
         sessions = (
             Session.objects
-            .filter(
-                time_table__course_id=course_id,
-                attendance_status='finished'
-            )
+            .filter(time_table__course_id=course_id, attendance_status='finished')
             .prefetch_related(
-                Prefetch(
-                    'attendances',
-                    queryset=Attendance.objects.filter(student=enrollment)
-                )
+                Prefetch('attendances', queryset=Attendance.objects.filter(student=enrollment))
             )
         )
 
         monthly_data = defaultdict(lambda: {
-            "year": None,
-            "month": None,
-            "month_name": "",
-            "total_sessions": 0,
-            "present_count": 0,
+            "year": None, "month": None, "month_name": "",
+            "total_sessions": 0, "present_count": 0,
         })
 
         for session in sessions:
-
             jalali = jdatetime.date.fromgregorian(date=session.date)
-            key = (jalali.year, jalali.month)
 
-            monthly_data[key]["year"] = jalali.year
-            monthly_data[key]["month"] = jalali.month
-            monthly_data[key]["month_name"] = f"{PERSIAN_MONTHS[jalali.month]} {jalali.year}"
+            if year and jalali.year != int(year):
+                continue
+            if month and jalali.month != int(month):
+                continue
+
+            key = (jalali.year, jalali.month)
+            monthly_data[key].update({
+                "year": jalali.year,
+                "month": jalali.month,
+                "month_name": f"{PERSIAN_MONTHS[jalali.month]} {jalali.year}",
+            })
             monthly_data[key]["total_sessions"] += 1
 
             attendance = session.attendances.first()
@@ -1424,35 +1178,27 @@ class StudentCourseMonthlySummaryView(APIView):
                 monthly_data[key]["present_count"] += 1
 
         result = []
-
         for data in monthly_data.values():
-
             total = data["total_sessions"]
             present = data["present_count"]
-
             percentage = round((present / total) * 100, 1) if total > 0 else 0
-            if percentage >= (84):
-                percentage_status = 'excellent'
-            elif 60 <= percentage < 84:
-                percentage_status = 'good'
-            elif percentage < 60:
-                percentage_status = 'low'
-            else:
-                percentage_status = '' 
-            
+
             data["attendance_percentage"] = percentage
-            data["attendance_percentage_status"] = percentage_status
+            data["attendance_percentage_status"] = (
+                'excellent' if percentage >= 84 else
+                'good'      if percentage >= 60 else
+                'low'
+            )
             result.append(data)
 
-        # 🔥 جدیدترین ماه اول
         result.sort(key=lambda x: (x["year"], x["month"]), reverse=True)
 
-        serializer = MonthlyAttendanceSummarySerializer(result, many=True)
-
-        return Response({
-            "course_id": course_id,
-            "months": serializer.data
-        })
+        paginator = CustomPagination()
+        paginated = paginator.paginate_queryset(result, request)
+        serializer = MonthlyAttendanceSummarySerializer(paginated, many=True)
+        response = paginator.get_paginated_response(serializer.data)
+        response.data['course_id'] = course_id
+        return response
 
 
 

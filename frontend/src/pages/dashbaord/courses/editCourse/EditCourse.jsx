@@ -122,7 +122,7 @@ const EditCourse = () => {
     }
   };
 
-  if (loading) return <div className={styles.addClassPage}>در حال بارگذاری...</div>;
+  if (loading) return <div className={styles.loading}>در حال بارگذاری...</div>;
 
   return (
     <div className={styles.addClassPage} dir="rtl">

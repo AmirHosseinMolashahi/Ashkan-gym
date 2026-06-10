@@ -3,13 +3,15 @@ import style from './AthleteCourse.module.scss';
 import { useSelector } from 'react-redux';
 import useCurrentDateTime from '../../../hooks/currentDateTime';
 import MyClassCard from '../../../components/dashboards/courses/myClassCard/MyClassCard';
-import { UilClock, UilStatistics, UilCreditCard, UilCheckCircle, UilTimesCircle, UilCheck  } from '@iconscout/react-unicons';
+import { UilClock, UilStatistics, UilCreditCard, UilCheckCircle, UilTimesCircle, UilCheck, UilChartDown  } from '@iconscout/react-unicons';
 import api from '../../../hooks/api';
 import MyClassInfo from '../../../components/dashboards/athleteCourse/MyClassInfo/MyClassInfo';
 import ThisMonthSession from '../../../components/dashboards/athleteCourse/thisMonthSession/ThisMonthSession';
 import LastMonthSession from '../../../components/dashboards/athleteCourse/lastMonthSession/LastMonthSession';
 import AttendanceStatus from '../../../components/dashboards/athleteCourse/attendanceStatus/AttendanceStatus';
 import toPersianDigits from '../../../hooks/convertNumber';
+import BackButton from '../../../components/dashboards/backButton/BackButton';
+import ClassCardSkeleton from '../../../components/dashboards/athleteCourse/classCardSkeleton/ClassCardSkeleton';
 
 const AthleteCourse = () => {
 
@@ -21,38 +23,11 @@ const AthleteCourse = () => {
   const [ activeList, setActiveList ] = useState(1)
   const [ nextSession, setNextSession ] = useState(null)
   const [ athleteInfo, setAthleteInfo ] = useState(null)
-
-  // const fetchUserClasses = async () => {
-  //   try {
-  //     const res = await api.get('/training/my-classes/');
-  //     console.log(res.data)
-  //     setMyClasses(res.data)
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-  // }
-
-  // const fetchNextSession = async () => {
-  //   try {
-  //     const res = await api.get('/training/my-classes/next-session/');
-  //     setNextSession(res.data.next_session)
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-  // }
-
-  // const fetchAthleteInfo = async () => {
-  //   try {
-  //     const res = await api.get('/training/my-classes/info/')
-  //     console.log(res.data)
-  //     setAthleteInfo(res.data)
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-  // }
+  const [loading, setLoading] = useState(false)
 
   const fetchDashboardInfo = async () => {
     try {
+      setLoading(true)
       const res = await api.get('/training/my-classes/dashboard/');
       console.log(res.data)
       setNextSession(res.data.next_session)
@@ -60,6 +35,8 @@ const AthleteCourse = () => {
       setMyClasses(res.data.enrollments)
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -71,48 +48,69 @@ const AthleteCourse = () => {
     <div className={style.athleteCourse}>
       <div className={style.container}>
         <div className={style.header}>
+          <BackButton route={'/dashboard'} title={'بازگشت'} />
           <p>لیست کلاس های شما، <b>{user.full_name}</b> عزیز.</p>
-          <p>امروز {weekday}, {date}</p>
+          <p>امروز {weekday}, {toPersianDigits(date)}</p>
         </div>
         <div className={style.classInfoCard}>
-          <MyClassCard
-            icon={<UilClock />} 
-            title='جلسه بعدی'
-            body={
-              nextSession ? (
-                `${nextSession?.day_of_week === weekday ? 'امروز' : nextSession?.day_of_week} - ${nextSession ? toPersianDigits(nextSession?.date_jalali) : ''}`
-              ) : 'هیچ جلسه ای پیدا نشد!'
-            }
-            footer={
-              nextSession ? 
-              `کلاس ${nextSession?.course}` :
-              'در حال حاضر کلاس فعال ندارید.'
-            }
-          />
-          {/* ${nextSession?.course.age_ranges.map(item => item.title)} */}
-          <MyClassCard
-            icon={<UilStatistics />}
-            title='درصد حضور در ماه'
-            body={
-              athleteInfo?.total_courses >= 1 ?
-              `${toPersianDigits(athleteInfo?.attendance_percentage)} %` :
-              '-'
-            }
-            footer={athleteInfo?.total_courses >= 1 ?
-              athleteInfo?.trend !== null ? `${toPersianDigits(athleteInfo?.attendance_difference)} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد' :
-              '-'
-            }
-          />
-          <MyClassCard
-            icon={<UilCreditCard />} 
-            title='وضعیت پرداخت'
-            body={athleteInfo?.next_payment?.remaining > 0 ? (
-              <span className={style.unpaid}><UilTimesCircle /> پرداخت نشده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+          <div className={style.cardPayment}>
+            {loading === true ? (
+              <ClassCardSkeleton />
             ) : (
-              <span className={style.paid}><UilCheckCircle /> پرداخت شده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+              <MyClassCard
+                icon={<UilCreditCard />}
+                status={athleteInfo?.next_payment?.remaining > 0 ? 'unpaid' : 'paid'} 
+                title='وضعیت پرداخت'
+                body={athleteInfo?.next_payment?.remaining > 0 ? (
+                  <span className={style.status}><UilTimesCircle /> پرداخت نشده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+                ) : (
+                  <span className={style.status}><UilCheckCircle /> پرداخت شده - برای کلاس {athleteInfo?.next_payment?.course}</span>
+                )}
+                footer={athleteInfo?.next_payment?.status === 'unpaid' ? `مبلغ ${toPersianDigits(athleteInfo.next_payment.amount)} تومان - سررسید ${toPersianDigits(athleteInfo.next_payment.due_date_jalali)}` : 'شما هیچ پرداختی ندارید'}
+              />
             )}
-            footer={athleteInfo?.next_payment?.status === 'unpaid' ? `مبلغ ${toPersianDigits(athleteInfo.next_payment.amount)} تومان - سررسید ${toPersianDigits(athleteInfo.next_payment.due_date_jalali)}` : 'شما هیچ پرداختی ندارید'}
-          />
+          </div>
+          <div className={style.cardsRow}>
+            <div className={style.cardNextSession}>
+              {loading === true ? (
+                <ClassCardSkeleton />
+              ) : (
+                <MyClassCard
+                  icon={<UilClock />} 
+                  title='جلسه بعدی'
+                  body={
+                    nextSession ? (
+                      `${nextSession?.day_of_week === weekday ? 'امروز' : nextSession?.day_of_week} - ${nextSession ? toPersianDigits(nextSession?.date_jalali) : ''}`
+                    ) : 'هیچ جلسه ای پیدا نشد!'
+                  }
+                  footer={
+                    nextSession ? 
+                    `کلاس ${nextSession?.course}` :
+                    'در حال حاضر کلاس فعال ندارید.'
+                  }
+                />
+              )}
+            </div>
+            <div className={style.cardAttendance}>
+              {loading === true ? (
+                <ClassCardSkeleton />
+              ) : (
+                <MyClassCard
+                  icon={athleteInfo?.trend === 'up' ? <UilStatistics /> : <UilChartDown />}
+                  title='درصد حضور در ماه'
+                  status={athleteInfo?.trend}
+                  body={
+                    athleteInfo?.total_courses >= 1 ?
+                    `${toPersianDigits(athleteInfo?.attendance_percentage)} %` :
+                    '-'
+                  }
+                  footer={athleteInfo?.total_courses >= 1 ?
+                    (athleteInfo?.trend !== null ? `${toPersianDigits(athleteInfo?.attendance_difference)} از ماه گذشته` : 'اطلاعات کافی برای نمایش وجود ندارد')
+                    : '-'}
+                />
+              )}
+            </div>
+          </div>
         </div>
         <div className={style.classInfoList}>
           <div className={style.topPageInfo}>
@@ -129,7 +127,7 @@ const AthleteCourse = () => {
             </div>
             <hr style={{marginTop: '1rem'}}/>
             { activeList === 1 && (
-              <MyClassInfo myClasses={myClasses} athleteInfo={athleteInfo}/>
+              <MyClassInfo myClasses={myClasses} athleteInfo={athleteInfo} loading={loading}/>
             )}
             { activeList === 2 && (
               <ThisMonthSession athleteInfo={athleteInfo}/>

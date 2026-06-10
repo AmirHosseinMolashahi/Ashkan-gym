@@ -7,6 +7,8 @@ import toPersianDigits from "../../../hooks/convertNumber";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../../components/GlobalComponents/Pagination/Pagination";
 import BackButton from "../../../components/dashboards/backButton/BackButton";
+import SummaryGridSkeleton from "./skeletonLoading/summaryGridSkeleton/SummaryGridSkeleton";
+import ClassListSkeleton from "./skeletonLoading/classListSkeleton/ClassListSkeleton";
 
 
 const Payment = () => {
@@ -16,7 +18,7 @@ const Payment = () => {
   const [summary, setSummary] = useState({});
   const [selectedYear, setSelectedYear] = useState(defaultYear);
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const [page, setPage] = useState(1);
@@ -42,6 +44,7 @@ const Payment = () => {
     url = `/payment/coach/invoices/dashboard/?year=${selectedYear}&month=${selectedMonth}`
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -65,6 +68,8 @@ const Payment = () => {
 
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -110,17 +115,6 @@ const Payment = () => {
     return [y, y - 1].map((yr) => ({ value: yr, label: toPersianDigits(String(yr)) }));
   }, []);
 
-  if (error && !courses.length) {
-    return (
-      <div className={style.paymentPage}>
-        <div className={style.header}>
-          <h2>نمای کلی پرداخت مربی</h2>
-        </div>
-        <p className={style.errorMessage}>{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className={style.paymentPage}>
       <BackButton route="/dashboard" title="بازگشت" />
@@ -163,90 +157,96 @@ const Payment = () => {
         </div>
       </div>
 
-      {loading && !courses.length ? (
-        <p className={style.loading}>در حال بارگذاری...</p>
+      {loading === true ? (
+        <SummaryGridSkeleton />
       ) : (
-        <>
-          <div className={style.summaryGrid}>
-            <article className={style.summaryCard}>
-              <p className={style.cardTitle}>مجموع مورد انتظار</p>
-              <h3>{toPersianDigits(summary.total_expected)} تومان</h3>
-              <p className={style.subtle}>همه کلاس‌ها – {toPersianDigits(monthLabel)}</p>
-            </article>
+        <div className={style.summaryGrid}>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>مجموع مورد انتظار</p>
+            <h3>{toPersianDigits(summary.total_expected)} تومان</h3>
+            <p className={style.subtle}>همه کلاس‌ها – {toPersianDigits(monthLabel)}</p>
+          </article>
 
-            <article className={style.summaryCard}>
-              <p className={style.cardTitle}>دریافتی</p>
-              <h3>{toPersianDigits(summary.collected)} تومان</h3>
-              <div className={`${style.miniBadge} ${style.good}`}>
-                {toPersianDigits(String(summary.collected_percent))}٪ دریافت شده
-              </div>
-            </article>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>دریافتی</p>
+            <h3>{toPersianDigits(summary.collected)} تومان</h3>
+            <div className={`${style.miniBadge} ${style.good}`}>
+              {toPersianDigits(String(summary.collected_percent))}٪ دریافت شده
+            </div>
+          </article>
 
-            <article className={style.summaryCard}>
-              <p className={style.cardTitle}>در انتظار</p>
-              <h3>{toPersianDigits(summary.pending)} تومان</h3>
-              <div className={`${style.miniBadge} ${style.warning}`}>
-                {toPersianDigits(String(summary.pending_athletes))} ورزشکار در انتظار پرداخت
-              </div>
-            </article>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>در انتظار</p>
+            <h3>{toPersianDigits(summary.pending)} تومان</h3>
+            <div className={`${style.miniBadge} ${style.warning}`}>
+              {toPersianDigits(String(summary.pending_athletes))} ورزشکار در انتظار پرداخت
+            </div>
+          </article>
 
-            <article className={style.summaryCard}>
-              <p className={style.cardTitle}>معوق</p>
-              <h3>{toPersianDigits(summary.overdue)} تومان</h3>
-              <div className={`${style.miniBadge} ${style.danger}`}>نیازمند پیگیری</div>
-            </article>
+          <article className={style.summaryCard}>
+            <p className={style.cardTitle}>معوق</p>
+            <h3>{toPersianDigits(summary.overdue)} تومان</h3>
+            <div className={`${style.miniBadge} ${style.danger}`}>نیازمند پیگیری</div>
+          </article>
+        </div>
+      )}
+
+      <div className={style.filtersBar}>
+        <input
+          className={style.searchInput}
+          type="text"
+          placeholder="جستجوی کلاس (برای مثال: ووشو یا ...)"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <div className={style.filterWrap}>
+          <div className={style.filterObj}>
+            <label htmlFor="">روزها:</label>
+            <select
+              className={style.filterSelect}
+              value={dayFilter}
+              onChange={(e) => setDayFilter(e.target.value)}
+            >
+              <option value="all">همه روزها</option>
+              <option value="even">روزهای زوج</option>
+              <option value="odd">روزهای فرد</option>
+            </select>
           </div>
 
-          <div className={style.filtersBar}>
-            <input
-              className={style.searchInput}
-              type="text"
-              placeholder="جستجوی کلاس (برای مثال: ووشو یا ...)"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-            />
-
-            <div className={style.filterWrap}>
-              <div className={style.filterObj}>
-                <label htmlFor="">روزها:</label>
-                <select
-                  className={style.filterSelect}
-                  value={dayFilter}
-                  onChange={(e) => setDayFilter(e.target.value)}
-                >
-                  <option value="all">همه روزها</option>
-                  <option value="even">روزهای زوج</option>
-                  <option value="odd">روزهای فرد</option>
-                </select>
-              </div>
-
-              <div className={style.filterObj}>
-                <label htmlFor="">جنسیت:</label>
-                <select
-                  className={style.filterSelect}
-                  value={genderFilter}
-                  onChange={(e) => setGenderFilter(e.target.value)}
-                >
-                  <option value="both">فرقی ندارد</option>
-                  <option value="male">آقایان</option>
-                  <option value="female">بانوان</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className={style.filterObj}>
-              <button className={style.clearFilterBtn} onClick={() => handleClearFilter()}>پاک کردن فیلتر ها</button>
-            </div>
-
+          <div className={style.filterObj}>
+            <label htmlFor="">جنسیت:</label>
+            <select
+              className={style.filterSelect}
+              value={genderFilter}
+              onChange={(e) => setGenderFilter(e.target.value)}
+            >
+              <option value="both">فرقی ندارد</option>
+              <option value="male">آقایان</option>
+              <option value="female">بانوان</option>
+            </select>
           </div>
+        </div>
+        
+        <div className={style.filterObj}>
+          <button className={style.clearFilterBtn} onClick={() => handleClearFilter()}>پاک کردن فیلتر ها</button>
+        </div>
 
-          <section className={style.classesSection}>
-            <h3>کلاس‌های من</h3>
-            <p className={style.sectionDescription}>
-              یک کلاس را انتخاب کن تا صفحه جداگانه لیست ورزشکارها و وضعیت پرداخت ماه انتخاب‌شده
-              نمایش داده شود.
-            </p>
+      </div>
 
+      <section className={style.classesSection}>
+        <h3>کلاس‌های من</h3>
+        <p className={style.sectionDescription}>
+          یک کلاس را انتخاب کن تا صفحه جداگانه لیست ورزشکارها و وضعیت پرداخت ماه انتخاب‌شده
+          نمایش داده شود.
+        </p>
+
+        {loading === true ? (
+          <ClassListSkeleton />
+        ) : (
+          courses.length === 0 ? (
+            <p className={style.footerNote}>کلاسی برای نمایش وجود ندارد.</p>
+          ) : (
             <div className={style.classList}>
               {courses?.map((item) => (
                 <article key={item.id} className={style.classRow}>
@@ -279,7 +279,7 @@ const Payment = () => {
                       <span>
                         💵
                         {toPersianDigits(String(item?.paid_count ?? 0))} / {toPersianDigits(String(item?.inv_count ?? 0))} پرداخت شده
-                         - 
+                          - 
                         {toPersianDigits(item?.pending_amount)} تومان در انتظار
                       </span>
                     </div>
@@ -303,17 +303,14 @@ const Payment = () => {
                 </article>
               ))}
             </div>
-
-            {courses.length === 0 && !loading && (
-              <p className={style.footerNote}>کلاسی برای نمایش وجود ندارد.</p>
-            )}
-            {courses.length > 0 && (
-              <p className={style.footerNote}>
-                روی هر کلاس بزن تا وارد صفحه جزئیات پرداخت ورزشکارها برای ماه انتخاب‌شده شوی.
-              </p>
-            )}
-          </section>
-
+          )
+        )}
+        {courses.length > 0 && (
+          <p className={style.footerNote}>
+            روی هر کلاس بزن تا وارد صفحه جزئیات پرداخت ورزشکارها برای ماه انتخاب‌شده شوی.
+          </p>
+        )}
+        {totalPages > 1 && (
           <div className={style.paginationWrapper}>
             <Pagination 
               currentPage={page}
@@ -333,8 +330,8 @@ const Payment = () => {
               }}
             />
           </div>
-        </>
-      )}
+        )}
+      </section>
     </div>
   );
 };

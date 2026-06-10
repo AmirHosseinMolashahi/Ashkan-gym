@@ -8,6 +8,7 @@ import api from "../../../../hooks/api";
 import { useToast } from "../../../../context/NotificationContext";
 import DiscountCard from "./discountCard/DiscountCard";
 import Pagination from "../../../GlobalComponents/Pagination/Pagination";
+import PaymentTableSkeleton from "./paymentTableSkeleton/PaymentTableSkeleton";
 
 const PAGE_SIZE = 5;
 
@@ -39,6 +40,8 @@ export default function DiscountTable({ course_id }) {
   const [nextPage, setNextPage] = useState(null);
   const [prevPage, setPrevPage] = useState(null);
 
+  const [loading, setLoading] = useState(false)
+
   const [searchText, setSearchText] = useState("");
   const [discountFilter, setDiscountFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState('active')
@@ -60,6 +63,7 @@ export default function DiscountTable({ course_id }) {
     url = `/training/courses/detail/${course_id}/students/financial/`
   ) => {
     try {
+      setLoading(true)
       let finalUrl = url;
 
       if (url.startsWith("http")) {
@@ -81,6 +85,8 @@ export default function DiscountTable({ course_id }) {
 
     } catch (err) {
       console.log(err)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -178,27 +184,6 @@ export default function DiscountTable({ course_id }) {
     setStatusFilter('active')
   }
 
-
-  // const filteredData = useMemo(() => {
-  //   return students.filter(s => {
-  //     const fullName =
-  //       s.student.full_name ||
-  //       `${s.student.first_name || ""} ${s.student.last_name || ""}`.trim();
-  //     const email = s.student.email || "";
-
-  //     const matchSearch =
-  //       fullName.toLowerCase().includes(search.toLowerCase()) ||
-  //       email.toLowerCase().includes(search.toLowerCase());
-
-  //     const matchPayment =
-  //       discountFilter === "all" || String(s.paid_amount_info.has_discount) === String(discountFilter);
-      
-  //     const matchstatus =
-  //       statusFilter === "all" || s.status === statusFilter
-
-  //     return matchSearch && matchPayment && matchstatus;
-  //   });
-  // }, [students, searchText, discountFilter, statusFilter]);
   return (
     <div className={styles.container}>
       <div className={styles.wrapper}>
@@ -256,95 +241,106 @@ export default function DiscountTable({ course_id }) {
             data={students}
             editDiscount={handleEditModal}
             deleteDiscount={handleDeleteDiscountModal}
+            loading={loading}
           />
         ) : (
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>ردیف</th>
-                  <th>ورزشکار</th>
-                  <th>تاریخ سررسید</th>
-                  <th>تخفیف</th>
-                  <th>مبلغ پرداختی</th>
-                  <th>علت تخفیف</th>
-                  <th>تغییرات</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {students.map((item, index) => {
-                  return (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>
-                      <div className={styles.students}>
-                        <img src={item.student.profile_picture} />
-                          <div>
-                            <strong>{item.student.first_name} {item.student.last_name}</strong>
-                            <p>{toPersianDigits(item.student.national_id)}</p>
-                          </div>
-                      </div>
-                      </td>
-                      <td>
-                        {toPersianDigits(item.custom_due_day)} هر ماه
-                      </td>
-                      <td>
-                        {item.paid_amount_info.has_discount === false ? (
-                          <UilTimes />
-                        ) : (
-                          <UilCheck />
-                        )}
-                      </td>
-                      <td>
-                        {toPersianDigits(item.paid_amount_info.final_price)} تومان  
-                      </td>
-                      <td>
-                        {item.paid_amount_info.has_discount === false ? (
-                          '-'
-                        ) : (
-                          item.paid_amount_info.reason ? item.paid_amount_info.reason : 'بدون توضیح'
-                        )}
-                      </td>
-                      <td>
-                        <div className={styles.btnContainer}>
-                          <button className={styles.editBtn} onClick={() => handleEditModal(item)}>
-                            ویرایش <UilEdit />
-                          </button>
-                          {item.paid_amount_info.has_discount ? (
-                            <button className={styles.deleteBtn} onClick={() => handleDeleteDiscountModal(item)}>
-                              حذف تخفیف
-                            </button>
-                          ): ''}
-                        </div>
-                      </td>
+          loading === true ? (
+            <PaymentTableSkeleton />
+          ) : (
+            students.length === 0 ? (
+              <p>هیچ دیتایی پیدا نشد!</p>
+            ) : (
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>ردیف</th>
+                      <th>ورزشکار</th>
+                      <th>تاریخ سررسید</th>
+                      <th>تخفیف</th>
+                      <th>مبلغ پرداختی</th>
+                      <th>علت تخفیف</th>
+                      <th>تغییرات</th>
                     </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+
+                  <tbody>
+                    {students.map((item, index) => {
+                      return (
+                        <tr key={index}>
+                          <td>{index + 1}</td>
+                          <td>
+                          <div className={styles.students}>
+                            <img src={item.student.profile_picture} />
+                              <div>
+                                <strong>{item.student.first_name} {item.student.last_name}</strong>
+                                <p>{toPersianDigits(item.student.national_id)}</p>
+                              </div>
+                          </div>
+                          </td>
+                          <td>
+                            {toPersianDigits(item.custom_due_day)} هر ماه
+                          </td>
+                          <td>
+                            {item.paid_amount_info.has_discount === false ? (
+                              <UilTimes />
+                            ) : (
+                              <UilCheck />
+                            )}
+                          </td>
+                          <td>
+                            {toPersianDigits(item.paid_amount_info.final_price)} تومان  
+                          </td>
+                          <td>
+                            {item.paid_amount_info.has_discount === false ? (
+                              '-'
+                            ) : (
+                              item.paid_amount_info.reason ? item.paid_amount_info.reason : 'بدون توضیح'
+                            )}
+                          </td>
+                          <td>
+                            <div className={styles.btnContainer}>
+                              <button className={styles.editBtn} onClick={() => handleEditModal(item)}>
+                                ویرایش <UilEdit />
+                              </button>
+                              {item.paid_amount_info.has_discount ? (
+                                <button className={styles.deleteBtn} onClick={() => handleDeleteDiscountModal(item)}>
+                                  حذف تخفیف
+                                </button>
+                              ): ''}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )
+          )
         )}
 
-        <div className={styles.paginationWrapper}>
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onNext={() => {
-              if (nextPage) {
-                fetchCourseStudentsList(nextPage);
-              }
-            }}
-            onPrev={() => {
-              if (prevPage) {
-                fetchCourseStudentsList(prevPage);
-              }
-            }}
-            onPageChange={(pageNumber) => {
-              setPage(pageNumber);
-            }}
-          />
-        </div>
+        {totalPages > 1 && (
+          <div className={styles.paginationWrapper}>
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onNext={() => {
+                if (nextPage) {
+                  fetchCourseStudentsList(nextPage);
+                }
+              }}
+              onPrev={() => {
+                if (prevPage) {
+                  fetchCourseStudentsList(prevPage);
+                }
+              }}
+              onPageChange={(pageNumber) => {
+                setPage(pageNumber);
+              }}
+            />
+          </div>
+        )}
       </div>
       {editModal && (
         <Modal handleModal={() => setEditModal(false)} height='460px' width='500px'>

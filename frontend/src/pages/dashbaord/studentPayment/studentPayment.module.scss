@@ -1,7 +1,7 @@
 @use "../../../styles/constants.scss" as *;
+@import '../../../styles/mixins';
 
 .paymentPage {
-  direction: rtl;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -10,9 +10,14 @@
 
 .header {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
+
+  @include desktop {
+    flex-direction: row;
+  }
 
   h2 {
     font-size: 1.9rem;
@@ -38,16 +43,37 @@
 }
 
 .summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+
+  @include desktop {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;  
+  }
+
+  .summaryRow {
+    display: flex;
+    gap: .5rem;
+    @include desktop {
+      display: contents;
+    }
+  }
+
+
 }
 
 .summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: .7rem;
+  width: 100%;
   background: #ffffff;
   border: 1px solid #e7edf4;
   border-radius: 12px;
   padding: 1rem;
+  box-sizing: border-box;
 
   .cardTitle {
     color: #6b7280;
@@ -56,8 +82,11 @@
   }
 
   h3 {
-    font-size: 1.85rem;
-    margin: 0.5rem 0 0.75rem;
+    font-size: 1rem;
+
+    @include desktop {
+      font-size: 2rem;
+    }
   }
 }
 
@@ -67,7 +96,9 @@
 }
 
 .cardBadge {
-  display: inline-flex;
+  width: fit-content;
+  display: flex;
+  justify-content: flex-start;
   align-items: center;
   border-radius: 999px;
   background: #eef3ff;
@@ -87,42 +118,70 @@
   color: #b91c1c;
 }
 
+.tabelLabel {
+  p { 
+    color: $text-sub;
+    font-size: 14px;
+
+    @include desktop {
+      font-size: 16px;
+    }
+  }
+}
+
 .tableWrap {
   background: #ffffff;
   border: 1px solid #e7edf4;
   border-radius: 12px;
   overflow: hidden;
+  
 }
 
 .tableHead {
-  display: grid;
-  grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
-  gap: 1rem;
-  background: #f7fafc;
-  color: #6b7280;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.9rem 1rem;
+  display: none;
+  @include desktop {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+    gap: 1rem;
+    background: #f7fafc;
+    color: #6b7280;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.9rem 1rem;
+  }
 }
 
 .tableBody {
   display: flex;
   flex-direction: column;
+  gap: .7rem;
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
-  gap: 1rem;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   padding: 0.95rem 1rem;
   border-top: 1px solid #edf2f7;
+  gap: .7rem;
+  
+  @include desktop {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
 }
 
 .classInfo {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid $gray-light;
+
+  @include desktop {
+    border: none;
+  }
 
   h4 {
     margin-bottom: 0.25rem;
@@ -158,6 +217,17 @@
   }
 }
 
+.column {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+
+  @include desktop {
+    display: contents;
+  }
+}
+
 .statusBadge {
   width: fit-content;
   border-radius: 999px;
@@ -186,6 +256,15 @@
   flex-direction: column;
   gap: 0.2rem;
 
+  p {
+    color: $text-sub;
+    font-size: .85rem;
+
+    @include desktop {
+      display: none;
+    }
+  }
+
   strong {
     font-size: 1.02rem;
   }
@@ -204,6 +283,7 @@
 .outlineBtn,
 .primaryBtn,
 .dangerBtn {
+  width: 100%;
   border: none;
   border-radius: 8px;
   padding: 0.55rem 0.78rem;
@@ -212,6 +292,10 @@
   gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 700;
+
+  @include desktop {
+    width: auto;
+  }
 }
 
 .outlineBtn {
@@ -228,29 +312,4 @@
 .dangerBtn {
   background: #fee2e2;
   color: #b91c1c;
-}
-
-@media (max-width: $lg) {
-  .summaryGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .tableHead {
-    display: none;
-  }
-
-  .row {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .actions {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: $sm) {
-  .header {
-    flex-direction: column;
-  }
 }

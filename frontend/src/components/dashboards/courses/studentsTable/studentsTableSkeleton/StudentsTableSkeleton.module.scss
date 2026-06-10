@@ -1,0 +1,150 @@
+@use '../../../../../styles/constants.scss' as *;
+@import '../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.pulse {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e4e4e4 50%,
+    #f0f0f0 75%
+  );
+  background-size: 1200px 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: 6px;
+}
+
+.tableContainer {
+  border-radius: 10px;
+  border: 1px solid $secondary;
+  padding: 1rem 2rem;
+
+  @include desktop {
+    border: 0;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  thead {
+    background: #f6f6f6;
+    display: none;
+
+    @include desktop {
+      display: table-header-group;
+    }
+
+    th {
+      padding: 12px;
+      text-align: right;
+      font-weight: 600;
+      border-bottom: 2px solid #e3e3e3;
+      color: #aaa;
+    }
+  }
+
+  tbody {
+    tr {
+      td {
+        display: block;
+        padding: 10px;
+        text-align: right;
+        position: relative;
+
+        @include desktop {
+          border-bottom: 1px solid #eee;
+          display: table-cell;
+          vertical-align: middle;
+        }
+      }
+
+      .tableIndex {
+        display: none;
+
+        @include desktop {
+          display: table-cell;
+        }
+      }
+    }
+  }
+}
+
+// --- ردیف ---
+.skIndex {
+  height: 14px;
+  width: 20px;
+}
+
+// --- ورزشکار ---
+.students {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.skAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skStudentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skName {
+  height: 14px;
+  width: 100px;
+}
+
+.skNationalId {
+  height: 11px;
+  width: 70px;
+}
+
+// --- وضعیت ---
+.skStatus {
+  height: 14px;
+  width: 55px;
+}
+
+// --- تلفن ---
+.skPhone {
+  height: 14px;
+  width: 90px;
+
+  @include desktop {
+    position: unset;
+  }
+}
+
+// --- حضور غیاب ---
+.skAttendance {
+  height: 16px;
+  width: 40px;
+  border-radius: 4px;
+}
+
+// --- شهریه ---
+.skBadge {
+  height: 22px;
+  width: 90px;
+  border-radius: 999px;
+}
+
+// --- دکمه تغییرات ---
+.skBtn {
+  height: 28px;
+  width: 90px;
+  border-radius: 6px;
+}

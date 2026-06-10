@@ -1,0 +1,101 @@
+@use '../../../../../../styles/constants.scss' as *;
+@import '../../../../../../styles/mixins';
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%shimmer {
+  background: linear-gradient(
+    90deg,
+    #eeeeee 25%,
+    #e0e0e0 50%,
+    #eeeeee 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+%shimmerAction {
+  background: linear-gradient(
+    90deg,
+    #dde8fa 25%,
+    #ccdaf6 50%,
+    #dde8fa 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 12px;
+
+  @include desktop {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+}
+
+.card {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 110px;
+
+  @include desktop {
+    padding: 14px;
+    align-items: flex-start;
+    min-height: 120px;
+  }
+
+  &.actionCard {
+    background: #eef4ff;
+
+    .bone {
+      @extend %shimmerAction;
+    }
+  }
+}
+
+.bone {
+  @extend %shimmer;
+}
+
+.boneLabel {
+  width: 90px;
+  height: 12px;
+}
+
+.boneAmount {
+  width: 120px;
+  height: 22px;
+
+  @include desktop {
+    width: 150px;
+    height: 34px;
+  }
+}
+
+.boneBadge {
+  width: 100px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.boneBtn {
+  width: 110px;
+  height: 32px;
+  border-radius: 8px;
+}
